@@ -1,0 +1,3011 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>⚽ World Cup Babyfoot</title>
+<!-- CrazyGames SDK -->
+<script src="https://sdk.crazygames.com/crazygames-sdk-v3.js"></script>
+<!-- Three.js 3D engine -->
+<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#07090f;display:flex;align-items:center;justify-content:center;min-height:100vh;font-family:'Segoe UI',Arial,sans-serif;overflow:hidden}
+
+/* ── CUSTOM CARTOON CURSOR (whole game) ── */
+/* White fill + dark outline + gold accent so it stays visible on any background */
+body{
+  cursor:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'><path d='M7 3 L7 25 L12.5 20.2 L16.3 27.6 L20.7 25.4 L16.9 18 L24.5 18 Z' fill='white' stroke='%230a1a2e' stroke-width='2.6' stroke-linejoin='round'/><circle cx='10.5' cy='8.5' r='2' fill='%23ffd700'/></svg>") 6 3, auto;
+}
+button, .btn, .btn-play, .btn-lobby, .btn-back-lnk, .btn-join-go, .copy-btn,
+.test-mode-btn, .team-btn, #btn-ready, #btn-mute, input, select, a, [onclick]{
+  cursor:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='34' height='34' viewBox='0 0 34 34'><circle cx='17' cy='17' r='12.5' fill='white' stroke='%230a1a2e' stroke-width='2.6'/><path d='M17 8.5 L19.1 13.8 L24.8 14.2 L20.4 17.9 L21.8 23.5 L17 20.4 L12.2 23.5 L13.6 17.9 L9.2 14.2 L14.9 13.8 Z' fill='%23ffd700' stroke='%230a1a2e' stroke-width='0.8'/></svg>") 17 17, pointer;
+}
+/* Subtle bounce for interactive elements that don't already define their own hover transform */
+button:hover, .btn:hover, #btn-mute:hover, [onclick]:hover{transform:scale(1.06)}
+
+/* ── WRAPPER ── */
+#wrap{position:relative;width:900px;height:600px;transform-origin:center center;transition:transform .15s ease-out}
+.screen{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center}
+.screen.active{display:flex}
+
+/* ── SHARED ── */
+.logo-title{font-size:50px;font-weight:900;background:linear-gradient(90deg,#ffe53b,#ff6b35,#ff3864);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;text-align:center;line-height:1}
+.logo-sub{color:#5a7ca0;font-size:11px;letter-spacing:5px;text-transform:uppercase;margin-top:6px;margin-bottom:36px}
+.btn{border:none;cursor:pointer;border-radius:50px;font-weight:800;text-transform:uppercase;letter-spacing:1px;transition:transform .15s,opacity .15s}
+.btn:active{transform:scale(.96)}
+.btn-gold{background:linear-gradient(90deg,#ffe53b,#ff6b35);color:#07090f;padding:14px 44px;font-size:15px}
+.btn-gold:hover{transform:scale(1.04)}
+.tag{font-size:10px;letter-spacing:3px;text-transform:uppercase;font-weight:700}
+
+/* ── LOADING ── */
+.spinner{width:44px;height:44px;border:3px solid rgba(255,255,255,.3);border-top-color:#ffe53b;border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 20px;position:relative;z-index:1}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-text{color:rgba(255,255,255,.8);font-size:13px;letter-spacing:2px;position:relative;z-index:1;font-weight:600}
+#screen-loading .logo-title{position:relative;z-index:1}
+#screen-loading .logo-sub{color:rgba(255,255,255,.8);position:relative;z-index:1}
+
+/* ── MENU ── */
+#screen-menu{border-radius:18px;overflow:hidden;background:linear-gradient(160deg,#1a9e3f 0%,#158534 40%,#0d6b28 100%) !important;border:none !important}
+#screen-menu::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 110%,rgba(255,220,0,.18) 0%,transparent 65%);pointer-events:none}
+.menu-inner{display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;height:100%;position:relative;gap:0}
+/* grass stripes */
+#screen-menu::after{content:'';position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent,transparent 54px,rgba(0,0,0,.07) 54px,rgba(0,0,0,.07) 108px);pointer-events:none}
+/* cartoon title */
+.menu-title{font-size:62px;font-weight:900;color:#fff;text-shadow:0 6px 0 #0a5c1e,0 3px 0 #0d7225,4px 4px 0 rgba(0,0,0,.3);letter-spacing:-1px;line-height:.9;text-align:center;position:relative;z-index:1;animation:titleBounce 2.5s ease-in-out infinite}
+@keyframes titleBounce{0%,100%{transform:translateY(0) rotate(-1deg)}50%{transform:translateY(-6px) rotate(1deg)}}
+.menu-ball{font-size:56px;display:inline-block;animation:ballSpin 3s linear infinite;margin-bottom:4px}
+@keyframes ballSpin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+.menu-sub{font-size:18px;font-weight:800;color:#ffd700;text-shadow:0 3px 0 #9a5000,2px 2px 0 rgba(0,0,0,.3);letter-spacing:3px;text-transform:uppercase;margin-bottom:28px;position:relative;z-index:1}
+.menu-sub span{color:#fff}
+/* play button */
+.btn-play{background:linear-gradient(180deg,#ffe53b 0%,#ffb800 100%);color:#0a5c1e;font-size:22px;font-weight:900;padding:18px 60px;border-radius:60px;border:none;cursor:pointer;text-transform:uppercase;letter-spacing:2px;box-shadow:0 8px 0 #9a6800,0 10px 20px rgba(0,0,0,.4);transition:all .12s;position:relative;z-index:1;font-family:inherit}
+.btn-play:hover{transform:translateY(-3px);box-shadow:0 11px 0 #9a6800,0 14px 24px rgba(0,0,0,.4)}
+.btn-play:active{transform:translateY(4px);box-shadow:0 4px 0 #9a6800,0 5px 10px rgba(0,0,0,.3)}
+.menu-flags{font-size:24px;margin-top:20px;letter-spacing:4px;opacity:.85;position:relative;z-index:1}
+.menu-tagline{color:rgba(255,255,255,.6);font-size:12px;margin-top:10px;font-weight:600;letter-spacing:1px;position:relative;z-index:1}
+/* stars decoration */
+.menu-stars{position:absolute;width:100%;height:100%;pointer-events:none;z-index:0}
+.mstar{position:absolute;font-size:18px;animation:starFloat 4s ease-in-out infinite;opacity:.7}
+.mstar:nth-child(1){top:12%;left:8%;animation-delay:0s}
+.mstar:nth-child(2){top:18%;right:10%;animation-delay:.8s}
+.mstar:nth-child(3){bottom:20%;left:6%;animation-delay:1.4s}
+.mstar:nth-child(4){bottom:15%;right:8%;animation-delay:.4s}
+.mstar:nth-child(5){top:55%;left:4%;animation-delay:2s}
+.mstar:nth-child(6){top:40%;right:5%;animation-delay:1s}
+@keyframes starFloat{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-8px) scale(1.2)}}
+
+/* ── SHARED CARTOON SCREEN BG ── */
+.cartoon-screen{background:linear-gradient(160deg,#1a9e3f 0%,#158534 40%,#0d6b28 100%) !important;border:none !important;overflow:hidden}
+.cartoon-screen::after{content:'';position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent,transparent 54px,rgba(0,0,0,.07) 54px,rgba(0,0,0,.07) 108px);pointer-events:none}
+/* cartoon card */
+.cartoon-card{background:rgba(255,255,255,.12);backdrop-filter:blur(4px);border:3px solid rgba(255,255,255,.35);border-radius:24px;padding:36px 44px;text-align:center;position:relative;z-index:1;box-shadow:0 8px 32px rgba(0,0,0,.3)}
+.cartoon-card h2{color:#fff;font-size:28px;font-weight:900;text-shadow:0 3px 0 rgba(0,0,0,.3);margin-bottom:6px}
+.cartoon-card .sub{color:rgba(255,255,255,.75);font-size:13px;margin-bottom:26px;font-weight:600}
+
+/* ── LOBBY ── */
+#screen-lobby{border-radius:18px}
+.lobby-box{text-align:center;width:400px}
+.lobby-opts{display:flex;flex-direction:column;gap:12px;align-items:center}
+.btn-lobby{width:280px;padding:16px 0;font-size:16px;font-weight:900;border-radius:50px;letter-spacing:.5px;cursor:pointer;transition:all .12s;border:none;font-family:inherit}
+.btn-create{background:linear-gradient(180deg,#ffe53b,#ffb800);color:#0a5c1e;box-shadow:0 6px 0 #9a6800}
+.btn-create:hover{transform:translateY(-2px);box-shadow:0 8px 0 #9a6800}
+.btn-create:active{transform:translateY(4px);box-shadow:0 2px 0 #9a6800}
+.btn-bot{background:linear-gradient(180deg,#a855f7,#7c3aed);color:#fff;box-shadow:0 6px 0 #4c1d95}
+.btn-bot:hover{transform:translateY(-2px);box-shadow:0 8px 0 #4c1d95}
+.btn-bot:active{transform:translateY(4px);box-shadow:0 2px 0 #4c1d95}
+.btn-random{background:linear-gradient(180deg,#4ecaff,#1a9ee0);color:#fff;box-shadow:0 6px 0 #0d5fa0}
+.btn-random:hover{transform:translateY(-2px);box-shadow:0 8px 0 #0d5fa0}
+.btn-random:active{transform:translateY(4px);box-shadow:0 2px 0 #0d5fa0}
+.divider{color:rgba(255,255,255,.5);font-size:12px;width:280px;display:flex;align-items:center;gap:10px;font-weight:700}
+.divider::before,.divider::after{content:'';flex:1;height:1.5px;background:rgba(255,255,255,.25)}
+.join-row{display:flex;gap:8px;width:280px}
+.join-input{flex:1;background:rgba(255,255,255,.15);border:2px solid rgba(255,255,255,.4);border-radius:12px;color:#fff;padding:11px 14px;font-size:14px;outline:none;letter-spacing:2px;text-transform:uppercase;text-align:center;font-weight:700}
+.join-input::placeholder{color:rgba(255,255,255,.45);letter-spacing:0;text-transform:none;font-weight:400}
+.join-input:focus{border-color:#ffe53b;background:rgba(255,255,255,.2)}
+.btn-join-go{background:linear-gradient(180deg,#ffe53b,#ffb800);color:#0a5c1e;border:none;border-radius:12px;padding:11px 18px;font-size:14px;font-weight:900;cursor:pointer;box-shadow:0 4px 0 #9a6800}
+.btn-back-lnk{background:none;border:2px solid rgba(255,255,255,.3);color:rgba(255,255,255,.7);border-radius:50px;padding:8px 22px;font-size:12px;font-weight:700;cursor:pointer;transition:all .2s;margin-top:4px;font-family:inherit}
+.btn-back-lnk:hover{border-color:rgba(255,255,255,.7);color:#fff}
+
+/* ── WAITING ── */
+#screen-waiting{border-radius:18px}
+.wait-box{text-align:center;width:460px}
+.wait-box h2{color:#fff;font-size:26px;font-weight:900;text-shadow:0 3px 0 rgba(0,0,0,.3);margin-bottom:6px}
+.wait-box .wsub{color:rgba(255,255,255,.7);font-size:13px;margin-bottom:24px;font-weight:600}
+.room-code-display{background:rgba(255,255,255,.1);border:3px dashed rgba(255,229,59,.6);border-radius:18px;padding:20px;margin:0 auto 24px;width:320px}
+.room-code-label{color:#ffd700;font-size:10px;letter-spacing:4px;text-transform:uppercase;margin-bottom:8px;font-weight:800}
+.room-code-value{color:#fff;font-size:34px;font-weight:900;letter-spacing:8px;font-family:monospace;text-shadow:0 2px 0 rgba(0,0,0,.3)}
+.copy-btn{background:linear-gradient(180deg,#ffe53b,#ffb800);border:none;border-radius:20px;color:#0a5c1e;font-size:11px;padding:7px 18px;cursor:pointer;letter-spacing:1px;text-transform:uppercase;font-weight:800;margin-top:10px;box-shadow:0 3px 0 #9a6800;transition:all .12s;font-family:inherit}
+.copy-btn:hover{transform:translateY(-1px)}
+.wait-dots span{display:inline-block;width:12px;height:12px;background:#ffd700;border-radius:50%;margin:0 4px;animation:bounce 1.2s ease-in-out infinite;box-shadow:0 2px 0 rgba(0,0,0,.2)}
+.wait-dots span:nth-child(2){animation-delay:.2s}
+.wait-dots span:nth-child(3){animation-delay:.4s}
+@keyframes bounce{0%,80%,100%{transform:scale(0.6);opacity:.4}40%{transform:scale(1);opacity:1}}
+.test-mode-btn{margin-top:18px;background:rgba(255,255,255,.08);border:1.5px dashed rgba(255,255,255,.25);border-radius:10px;color:rgba(255,255,255,.5);font-size:11px;padding:8px 18px;cursor:pointer;transition:all .2s;font-family:inherit}
+.test-mode-btn:hover{color:rgba(255,255,255,.8);border-color:rgba(255,255,255,.5)}
+
+/* ── 4V4 LOBBY SLOTS ── */
+.lobby-slot{background:rgba(255,255,255,.04);border:1.5px solid rgba(255,255,255,.1);border-radius:12px;padding:14px 12px;text-align:center;min-width:80px;transition:all .3s}
+.lobby-slot.joined{border-color:#26d97f;background:rgba(38,217,127,.08)}
+.lslot-icon{font-size:26px;margin-bottom:4px}
+.lslot-label{color:#5a7ca0;font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px}
+.lslot-status{font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;display:inline-block}
+.lslot-status.waiting{color:#5a7ca0;background:rgba(90,124,160,.15)}
+.lslot-status.joined{color:#26d97f;background:rgba(38,217,127,.15)}
+.lslot-divider{color:#fff;font-size:18px;font-weight:900;align-self:center;padding:0 4px}
+.lobby-count{color:#ffe53b;font-size:15px;font-weight:800;letter-spacing:1px;margin-bottom:10px}
+
+/* ── 4V4 VOTE LAYOUT ── */
+.vote4-my-label{text-align:center;font-size:11px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:#ffe53b;margin-bottom:8px}
+.vote4-opp-label{text-align:center;font-size:11px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:#ff3864;margin-bottom:8px}
+.vote4-preview{background:rgba(255,255,255,.04);border-radius:10px;padding:12px;text-align:center;margin-bottom:8px;border:1.5px solid rgba(255,255,255,.1)}
+.vote4-preview .pf{font-size:36px}.vote4-preview .pn{color:#fff;font-size:13px;font-weight:700;margin-top:4px}
+.vote4-opp{border-color:rgba(255,56,100,.2);background:rgba(255,56,100,.04)}
+.conflict-badge{display:none;font-size:9px;color:#ff3864;font-weight:700;letter-spacing:1px;margin-top:4px;text-transform:uppercase}
+.has-conflict .conflict-badge{display:block}
+
+/* ── TEAM SELECT ── */
+#screen-teams{border-radius:18px;padding:0;background:linear-gradient(160deg,#1a9e3f 0%,#158534 40%,#0d6b28 100%) !important;border:none !important;overflow:hidden}
+#screen-teams::after{content:'';position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent,transparent 54px,rgba(0,0,0,.07) 54px,rgba(0,0,0,.07) 108px);pointer-events:none}
+.teams-wrap{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;padding:20px 24px;background:transparent;border:none;border-radius:18px;position:relative;z-index:1}
+.teams-hdr{text-align:center;margin-bottom:14px}
+.teams-hdr h2{color:#fff;font-size:22px;font-weight:900;text-shadow:0 3px 0 rgba(0,0,0,.3)}
+.teams-hdr p{color:rgba(255,255,255,.75);font-size:12px;margin-top:3px;font-weight:600}
+.ts-layout{display:flex;gap:14px;align-items:flex-start;justify-content:center}
+.ts-panel{width:248px}
+.ts-label{text-align:center;font-size:11px;font-weight:800;letter-spacing:2px;text-transform:uppercase;margin-bottom:7px;padding:4px 10px;border-radius:20px;display:inline-block;width:100%}
+.ts-label.p1{color:#0a5c1e;background:#ffd700;box-shadow:0 3px 0 #9a6800}
+.ts-label.p2{color:#fff;background:#e0354b;box-shadow:0 3px 0 #8a1020}
+.ts-preview{background:rgba(255,255,255,.15);border-radius:14px;padding:12px;text-align:center;margin-bottom:8px;border:2.5px solid rgba(255,255,255,.35);backdrop-filter:blur(4px)}
+.ts-preview .pf{font-size:38px}.ts-preview .pn{color:#fff;font-size:13px;font-weight:800;margin-top:4px;text-shadow:0 1px 0 rgba(0,0,0,.3)}
+.teams-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;max-height:258px;overflow-y:auto;padding-right:2px}
+.teams-grid::-webkit-scrollbar{width:4px}.teams-grid::-webkit-scrollbar-thumb{background:rgba(255,255,255,.3);border-radius:2px}
+.team-btn{background:rgba(255,255,255,.1);border:2px solid rgba(255,255,255,.2);border-radius:10px;padding:7px 3px 5px;cursor:pointer;text-align:center;transition:all .15s;position:relative;overflow:hidden}
+.team-btn:hover{background:rgba(255,255,255,.25);border-color:rgba(255,255,255,.5);transform:translateY(-2px)}
+.team-btn.s1{border-color:#ffd700;background:rgba(255,215,0,.25);box-shadow:0 0 10px rgba(255,215,0,.4)}
+.team-btn.s2{border-color:#ff4d6a;background:rgba(255,77,106,.2);box-shadow:0 0 10px rgba(255,77,106,.4)}
+.team-btn .tf{width:44px;height:30px;display:block;margin:0 auto 2px;object-fit:cover;border-radius:3px;filter:drop-shadow(0 1px 3px rgba(0,0,0,.5))}
+.team-btn .tn{color:rgba(255,255,255,.85);font-size:7.5px;margin-top:3px;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700;letter-spacing:.3px}
+.team-btn .tc{height:3px;border-radius:0 0 7px 7px;position:absolute;bottom:0;left:0;right:0}
+.ts-vs{display:flex;flex-direction:column;align-items:center;justify-content:center;padding-top:44px;gap:10px}
+.vs-txt{color:#fff;font-size:30px;font-weight:900;text-shadow:0 4px 0 rgba(0,0,0,.3),0 2px 0 rgba(0,0,0,.2)}
+.vote-status{text-align:center;font-size:10px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;padding:5px 12px;border-radius:20px;margin-top:5px}
+.vote-status.waiting{color:#0a5c1e;background:#ffd700;box-shadow:0 2px 0 #9a6800}
+.vote-status.voted{color:#fff;background:#26c96e;box-shadow:0 2px 0 #0a7a35}
+.vote-status.conflict{color:#fff;background:#e0354b;box-shadow:0 2px 0 #8a1020}
+#vote-timer{font-size:20px;font-weight:900;color:#ffd700;text-shadow:0 3px 0 #9a6800;min-width:28px;text-align:center}
+.ts-preview .conflict-badge{display:none;font-size:9px;color:#ff4d6a;font-weight:800;letter-spacing:1px;margin-top:4px;text-transform:uppercase;background:rgba(255,77,106,.15);border-radius:10px;padding:2px 8px}
+.ts-preview.has-conflict .conflict-badge{display:block}
+/* ready & back btns inside team select */
+#btn-ready{background:linear-gradient(180deg,#ffe53b,#ffb800) !important;color:#0a5c1e !important;border:none !important;border-radius:50px !important;font-weight:900 !important;box-shadow:0 5px 0 #9a6800 !important;padding:12px 28px !important;font-size:14px !important;cursor:pointer;transition:all .12s !important}
+#btn-ready:hover{transform:translateY(-2px) !important;box-shadow:0 7px 0 #9a6800 !important}
+#btn-ready:active{transform:translateY(3px) !important;box-shadow:0 2px 0 #9a6800 !important}
+
+/* ── GAME ── */
+#screen-game{background:#07090f;border-radius:18px;flex-direction:column;gap:0;overflow:hidden}
+/* Stadium-scoreboard header: dark pitch-green gradient + gold trim so it reads as
+   part of the stadium rather than a plain UI bar dropped on top of the field. */
+#hud{width:100%;display:flex;align-items:center;justify-content:space-between;padding:10px 22px;
+  background:linear-gradient(180deg,#123a20 0%,#0b2413 85%,#081b0d 100%);
+  border-bottom:3px solid #ffd700;box-shadow:0 4px 14px rgba(0,0,0,.45),inset 0 -6px 10px -6px rgba(0,0,0,.5);
+  flex-shrink:0;position:relative}
+.hud-side{display:flex;align-items:center;gap:9px;background:rgba(0,0,0,.22);border:1.5px solid rgba(255,215,0,.25);border-radius:30px;padding:5px 14px 5px 5px}
+.hud-side.right{flex-direction:column;align-items:stretch;gap:5px;padding:5px}
+.hud-opp-row{display:flex;flex-direction:row-reverse;align-items:center;gap:9px;padding:0 9px 0 0}
+.hud-flag{font-size:24px;background:#fff;border-radius:50%;width:34px;height:34px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 0 rgba(0,0,0,.3),0 0 0 2px rgba(255,215,0,.5)}
+.hud-uname{color:#fff;font-size:12px;font-weight:700;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-shadow:0 1px 2px rgba(0,0,0,.5)}
+/* Absolutely centered so unequal left/right content (names, audio controls) never pushes it off-center */
+.hud-center{display:flex;flex-direction:column;align-items:center;justify-content:center;position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+  background:rgba(0,0,0,.3);border:2px solid rgba(255,215,0,.55);border-radius:14px;padding:8px 26px;
+  box-shadow:inset 0 2px 6px rgba(0,0,0,.4),0 2px 8px rgba(0,0,0,.3)}
+.hud-score{font-size:36px;font-weight:900;color:#fff;min-width:100px;text-align:center;letter-spacing:4px;text-shadow:0 3px 0 rgba(0,0,0,.4);line-height:1}
+#timer{font-size:17px;font-weight:700;color:#ffe53b;font-variant-numeric:tabular-nums;text-shadow:0 1px 2px rgba(0,0,0,.5);line-height:1;margin-top:3px}
+/* "1v1 Online" / "vs Bot" / "TEST MODE" label removed from the visible scoreboard */
+.hud-badge{display:none}
+/* Audio controls: boxed blue cartoon panel in the top-right corner of the pitch, mirroring the controls-hud on the top-left */
+#audio-hud{position:absolute;top:12px;right:12px;z-index:15}
+.hud-audio-controls{display:flex;gap:8px;justify-content:center;background:linear-gradient(160deg,#2f8fe0,#1a5fc4);border:2px solid rgba(255,255,255,.4);border-radius:14px;padding:8px 10px;box-shadow:0 4px 0 #0d3a80,inset 0 1px 0 rgba(255,255,255,.25)}
+.hud-audio-controls button{display:flex;flex-direction:column;align-items:center;gap:2px;background:rgba(255,255,255,.16);border:1.5px solid rgba(255,255,255,.35);border-radius:10px;color:#fff;width:48px;height:44px;cursor:pointer;justify-content:center;padding:0;transition:background .15s,opacity .15s,transform .1s}
+.hud-audio-controls button:hover{background:rgba(255,255,255,.32);transform:translateY(-1px)}
+.hud-audio-controls .hac-icon{font-size:18px;line-height:1}
+.hud-audio-controls .hac-label{font-size:7px;font-weight:800;letter-spacing:.7px;text-transform:uppercase;text-shadow:0 1px 0 rgba(0,0,0,.4)}
+.hud-audio-controls button.muted{opacity:.5}
+#canvas-wrap{display:block;flex:1;position:relative}
+#gameCanvas{display:block;width:100%;height:100%}
+#trailCanvas{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none}
+/* ── ABILITY HUD: Hold + Pass share one system, bottom-right ── */
+#ability-hud{position:absolute;bottom:14px;right:14px;display:flex;gap:10px;z-index:15;pointer-events:none}
+.ability-card{display:flex;flex-direction:column;align-items:center;gap:3px;background:rgba(10,10,28,.62);border:2.5px solid rgba(255,255,255,.32);border-radius:16px;padding:8px 12px;backdrop-filter:blur(3px);box-shadow:0 5px 16px rgba(0,0,0,.35);transition:filter .25s,box-shadow .25s,border-color .25s}
+.ability-card.cd-ready{border-color:#ffe566;box-shadow:0 5px 16px rgba(0,0,0,.35),0 0 16px 2px rgba(255,229,102,.55);animation:abilityPulse 1.3s ease-in-out infinite}
+.ability-card.cd-cooling{filter:brightness(.55) saturate(.5)}
+@keyframes abilityPulse{0%,100%{filter:brightness(1)}50%{filter:brightness(1.25)}}
+.ability-key{display:inline-flex;align-items:center;justify-content:center;min-width:34px;height:18px;padding:0 6px;background:linear-gradient(180deg,#ffe53b,#ffb800);color:#0a5c1e;font-weight:900;font-size:9px;border-radius:6px;box-shadow:0 2px 0 #9a6800;border:1.5px solid rgba(255,255,255,.55)}
+.ability-ring{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:conic-gradient(#ffe566 calc(var(--rdy,100)*1%), rgba(255,255,255,.15) 0);box-shadow:0 0 0 2px rgba(255,255,255,.3)}
+.ability-icon{font-size:15px;background:rgba(10,10,28,.75);border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center}
+.ability-icon.standalone{background:none;width:auto;height:auto;font-size:18px;color:#8fe0ff;text-shadow:0 2px 0 rgba(0,0,0,.4)}
+.ability-label{color:#fff;font-size:8px;font-weight:800;text-transform:uppercase;letter-spacing:1px;text-shadow:0 1px 0 rgba(0,0,0,.5)}
+.pc-pips{display:flex;gap:5px;margin-top:1px}
+.charge-pip{width:9px;height:9px;border-radius:50%;background:rgba(255,255,255,.15);border:1.5px solid rgba(255,255,255,.4);transition:background .2s,box-shadow .2s;position:relative;overflow:hidden}
+.charge-pip.filled{background:#5ad2ff;border-color:#8fe8ff;box-shadow:0 0 6px #5ad2ff}
+.charge-pip.recharging::after{content:'';position:absolute;left:0;right:0;bottom:0;background:#5ad2ff;height:var(--pct,0%);transition:height .1s linear}
+/* ── TEST MODE BANNER ── */
+#test-banner{position:absolute;top:54px;left:50%;transform:translateX(-50%);background:rgba(255,56,100,.15);border:1px solid rgba(255,56,100,.3);border-radius:6px;color:#ff3864;font-size:10px;padding:4px 12px;letter-spacing:2px;text-transform:uppercase;font-weight:700;pointer-events:none;display:none}
+/* ── CARTOON CONTROLS HUD ── */
+#controls-hud{position:absolute;top:12px;left:12px;background:rgba(10,25,18,.6);border:2px solid rgba(255,255,255,.3);border-radius:14px;padding:9px 11px;display:flex;flex-direction:column;gap:5px;z-index:15;pointer-events:none;backdrop-filter:blur(3px)}
+.ctrl-row{display:flex;align-items:center;gap:7px}
+.keycap{display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:20px;padding:0 5px;background:linear-gradient(180deg,#ffe53b,#ffb800);color:#0a5c1e;font-weight:900;font-size:10px;border-radius:6px;box-shadow:0 2.5px 0 #9a6800;border:1.5px solid rgba(255,255,255,.55);font-family:inherit}
+.keycap.wide{min-width:44px;padding:0 7px}
+.keycap.hold{background:linear-gradient(180deg,#8fe0ff,#3ea9e0);box-shadow:0 2.5px 0 #0d5fa0;color:#07203a}
+.keycap.pass{background:linear-gradient(180deg,#c084fc,#7c3aed);box-shadow:0 2.5px 0 #4c1d95;color:#fff}
+/* Cartoon mouse icon: rounded body split into left/right click zones */
+.mouse-icon{display:inline-flex;width:20px;height:24px;border-radius:10px 10px 6px 6px;overflow:hidden;border:1.5px solid rgba(255,255,255,.55);box-shadow:0 2px 0 rgba(0,0,0,.35)}
+.mouse-icon .m-half{flex:1;background:rgba(255,255,255,.18)}
+.mouse-icon.left .m-half:first-child{background:linear-gradient(180deg,#ffe53b,#ffb800)}
+.mouse-icon.right .m-half:last-child{background:linear-gradient(180deg,#c084fc,#7c3aed)}
+.ctrl-desc{color:#fff;font-size:10.5px;font-weight:700;text-shadow:0 1px 0 rgba(0,0,0,.5);white-space:nowrap}
+
+/* ── OVERLAY ── */
+#goal-overlay,.overlay{position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.6);border-radius:18px;z-index:20;flex-direction:column}
+#goal-overlay.show,.overlay.show{display:flex}
+.goal-word{font-size:88px;font-weight:900;background:linear-gradient(90deg,#ffe53b,#ff6b35);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:gpop .4s cubic-bezier(.34,1.56,.64,1)}
+.goal-sub{color:#fff;font-size:20px;margin-top:8px}
+@keyframes gpop{from{transform:scale(.2);opacity:0}to{transform:scale(1);opacity:1}}
+#dc-overlay{background:rgba(0,0,0,.8)}
+#dc-overlay .dc-msg{color:#fff;font-size:18px;margin-bottom:20px}
+#matchend-overlay{background:rgba(0,0,0,.72);z-index:25}
+.matchend-msg{font-size:42px;font-weight:900;color:#ffe53b;text-shadow:0 4px 0 rgba(0,0,0,.5),0 0 40px rgba(255,220,0,.5);text-align:center;padding:0 30px;animation:gpop .4s cubic-bezier(.34,1.56,.64,1)}
+/* ── COUNTDOWN ── */
+#countdown-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.55);border-radius:18px;z-index:30;opacity:0;pointer-events:none;transition:opacity .2s}
+#countdown-overlay.show{opacity:1;pointer-events:all}
+#countdown-num{font-size:140px;font-weight:900;color:#fff;text-shadow:0 8px 0 rgba(0,0,0,.4),0 0 60px rgba(255,220,0,.6);line-height:1;transform:scale(1);will-change:transform,opacity}
+#countdown-num.cd-pop{animation:cdPop .35s cubic-bezier(.34,1.8,.64,1) forwards}
+#countdown-num.cd-go{color:#ffe53b;text-shadow:0 8px 0 rgba(0,0,0,.4),0 0 80px rgba(255,220,0,.9);animation:cdGo .4s cubic-bezier(.34,1.56,.64,1) forwards}
+@keyframes cdPop{0%{transform:scale(2.2);opacity:0}100%{transform:scale(1);opacity:1}}
+@keyframes cdGo{0%{transform:scale(.3);opacity:0}100%{transform:scale(1);opacity:1}}
+
+/* ── END ── */
+#screen-end{border-radius:18px}
+.end-box{text-align:center;width:460px}
+.end-trophy{font-size:64px;margin-bottom:8px;animation:float 2s ease-in-out infinite}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+.end-title{color:#ffe53b;font-size:30px;font-weight:900;text-shadow:0 3px 0 rgba(0,0,0,.3);letter-spacing:1px}
+.end-winner{color:#fff;font-size:18px;margin:8px 0 22px;font-weight:700;text-shadow:0 2px 0 rgba(0,0,0,.3)}
+.end-score{font-size:52px;font-weight:900;color:#fff;letter-spacing:8px;margin-bottom:28px;text-shadow:0 3px 0 rgba(0,0,0,.3)}
+.end-btns{display:flex;gap:10px;justify-content:center;align-items:center}
+
+/* ── NOTIF TOAST ── */
+#toast{position:absolute;bottom:18px;left:50%;transform:translateX(-50%) translateY(20px);background:#1a2748;color:#fff;font-size:12px;padding:10px 22px;border-radius:50px;pointer-events:none;opacity:0;transition:all .3s;white-space:nowrap;z-index:50}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+<div id="wrap">
+
+<!-- LOADING -->
+<div id="screen-loading" class="screen active cartoon-screen">
+  <div class="spinner"></div>
+  <div class="logo-title">⚽ WORLD CUP</div>
+  <div class="logo-sub">Babyfoot Edition</div>
+  <div class="loading-text" id="load-msg">Connecting…</div>
+</div>
+
+<!-- MENU -->
+<div id="screen-menu" class="screen">
+  <div class="menu-stars">
+    <div class="mstar">⭐</div>
+    <div class="mstar">🌟</div>
+    <div class="mstar">⭐</div>
+    <div class="mstar">🌟</div>
+    <div class="mstar">✨</div>
+    <div class="mstar">⭐</div>
+  </div>
+  <div class="menu-inner">
+    <div class="menu-ball">⚽</div>
+    <div class="menu-title">WORLD<br>CUP</div>
+    <div class="menu-sub"><span>🏆</span> Babyfoot Edition <span>🏆</span></div>
+    <button class="btn-play" onclick="APP.showScreen('screen-lobby')">▶ PLAY NOW!</button>
+    <div class="menu-flags">🇧🇷 🇩🇪 🇫🇷 🇦🇷 🇪🇸 🏴󠁧󠁢󠁥󠁮󠁧󠁿</div>
+    <div class="menu-tagline">1vs1 Online • 32 Nations • Real-time Multiplayer</div>
+  </div>
+</div>
+
+<!-- LOBBY -->
+<div id="screen-lobby" class="screen cartoon-screen">
+  <div class="lobby-box cartoon-card">
+    <h2>⚽ Play</h2>
+    <p class="sub">Pick a mode to get started</p>
+    <div class="lobby-opts">
+      <button class="btn-lobby btn-bot" onclick="APP.startBotPick()">🤖 Play vs Bot</button>
+      <button class="btn-lobby btn-create" onclick="NET.createRoom()">⚡ Create Private Room</button>
+      <button class="btn-lobby btn-random" onclick="NET.findMatch()">🎲 Random Matchmaking</button>
+      <div class="divider">or join with code</div>
+      <div class="join-row">
+        <input class="join-input" id="join-code-input" maxlength="6" placeholder="Enter room code" oninput="this.value=this.value.toUpperCase()"/>
+        <button class="btn-join-go" onclick="NET.joinRoom(document.getElementById('join-code-input').value)">GO</button>
+      </div>
+      <button class="btn-back-lnk" onclick="APP.showScreen('screen-menu')">← Back</button>
+    </div>
+  </div>
+</div>
+
+<!-- WAITING -->
+<div id="screen-waiting" class="screen cartoon-screen">
+  <div class="wait-box cartoon-card">
+    <h2>🔍 Waiting for opponent</h2>
+    <p class="wsub" id="wait-sub">Share your room code with a friend</p>
+    <div class="room-code-display" id="room-code-box" style="display:none">
+      <div class="room-code-label">Room Code</div>
+      <div class="room-code-value" id="room-code-val">------</div>
+      <button class="copy-btn" onclick="APP.copyRoomCode()">📋 Copy Link</button>
+    </div>
+    <div class="wait-dots" style="margin-bottom:20px"><span></span><span></span><span></span></div>
+    <button class="btn-back-lnk" onclick="NET.cancel()">Cancel</button>
+    <button class="test-mode-btn" onclick="APP.enterTestMode()" id="test-mode-btn">🔧 Test Mode (offline physics test)</button>
+  </div>
+</div>
+
+<!-- TEAMS -->
+<div id="screen-teams" class="screen">
+  <div class="teams-wrap">
+    <div class="teams-hdr"><h2>Choose Your Team</h2><p id="team-sub"></p></div>
+    <div class="ts-layout">
+      <div class="ts-panel">
+        <div class="ts-label p1">🟡 Player 1</div>
+        <div class="ts-preview" id="preview-p1">
+          <div class="pf" id="p1-pf">🇧🇷</div><div class="pn" id="p1-pn">Brazil</div>
+          <div class="conflict-badge">⚠ TAKEN — repick!</div>
+        </div>
+        <div class="vote-status waiting" id="vstatus-p1">Choosing…</div>
+        <div class="teams-grid" id="grid-p1"></div>
+      </div>
+      <div class="ts-vs">
+        <div class="vs-txt">VS</div>
+        <div id="vote-timer">20</div>
+        <button class="btn btn-gold" onclick="APP.confirmTeam()" id="btn-ready" style="padding:11px 26px;font-size:13px">▶ READY</button>
+        <button class="btn-back-lnk" onclick="APP.showScreen('screen-lobby')">← Back</button>
+      </div>
+      <div class="ts-panel">
+        <div class="ts-label p2">🔴 Player 2</div>
+        <div class="ts-preview" id="preview-p2">
+          <div class="pf" id="p2-pf">🇩🇪</div><div class="pn" id="p2-pn">Germany</div>
+          <div class="conflict-badge">⚠ TAKEN — repick!</div>
+        </div>
+        <div class="vote-status waiting" id="vstatus-p2">Choosing…</div>
+        <div class="teams-grid" id="grid-p2"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- GAME -->
+<div id="screen-game" class="screen">
+  <div id="hud">
+    <div class="hud-side left">
+      <span class="hud-flag" id="hud-f1">🇧🇷</span>
+      <span class="hud-uname" id="hud-n1">Player 1</span>
+    </div>
+    <div class="hud-center">
+      <div class="hud-score"><span id="sc1">0</span> : <span id="sc2">0</span></div>
+      <div id="timer">3:00</div>
+      <div class="hud-badge" id="mode-badge">1vs1 Online</div>
+    </div>
+    <div class="hud-side right">
+      <div class="hud-opp-row">
+        <span class="hud-flag" id="hud-f2">🇩🇪</span>
+        <span class="hud-uname" id="hud-n2">Player 2</span>
+      </div>
+    </div>
+  </div>
+  <div id="canvas-wrap">
+    <canvas id="gameCanvas" width="900" height="548"></canvas>
+    <canvas id="trailCanvas" width="900" height="548"></canvas>
+    <div id="controls-hud">
+      <div class="ctrl-row"><span class="keycap">W</span><span class="keycap">S</span><span class="ctrl-desc">Move Rod</span></div>
+      <div class="ctrl-row"><span class="keycap wide">Space</span><span class="ctrl-desc">Tap: Shoot</span></div>
+      <div class="ctrl-row"><span class="keycap wide hold">Space</span><span class="ctrl-desc">Hold: Ball</span></div>
+      <div class="ctrl-row"><span class="keycap pass">Q</span><span class="ctrl-desc">Pass Up ▲</span></div>
+      <div class="ctrl-row"><span class="keycap pass">E</span><span class="ctrl-desc">Pass Down ▼</span></div>
+      <div class="ctrl-row"><span class="mouse-icon left"><span class="m-half"></span><span class="m-half"></span></span><span class="ctrl-desc">Charge Shot</span></div>
+      <div class="ctrl-row"><span class="mouse-icon right"><span class="m-half"></span><span class="m-half"></span></span><span class="ctrl-desc">Lofted Shot</span></div>
+    </div>
+    <div class="hud-audio-controls" id="audio-hud">
+      <button id="btn-music" onclick="AUDIO.toggleMusic()" title="Toggle music">
+        <span class="hac-icon">🎵</span><span class="hac-label">Music</span>
+      </button>
+      <button id="btn-master-mute" onclick="AUDIO.toggleMasterMute()" title="Mute all audio">
+        <span class="hac-icon">🔊</span><span class="hac-label">Sound</span>
+      </button>
+    </div>
+    <div id="ability-hud">
+      <div class="ability-card" id="hold-ability-card" title="Hold Ball (Space)">
+        <span class="ability-key">Space</span>
+        <div class="ability-ring" id="hold-ability-ring"><span class="ability-icon">✋</span></div>
+        <span class="ability-label">Hold</span>
+      </div>
+      <div class="ability-card" id="pass-ability-card" title="Pass charges (Q/E)">
+        <span class="ability-key">Q·E</span>
+        <span class="ability-icon standalone">⇅</span>
+        <span class="ability-label">Pass</span>
+        <div class="pc-pips" id="pass-charges">
+          <span class="charge-pip" data-i="0"></span>
+          <span class="charge-pip" data-i="1"></span>
+          <span class="charge-pip" data-i="2"></span>
+        </div>
+      </div>
+    </div>
+    <div id="countdown-overlay">
+      <div id="countdown-num"></div>
+    </div>
+  </div>
+  <div id="test-banner">⚠ TEST MODE — Physics only</div>
+</div>
+
+<!-- END -->
+<div id="screen-end" class="screen cartoon-screen">
+  <div class="end-box cartoon-card">
+    <div class="end-trophy">🏆</div>
+    <div class="end-title">FULL TIME</div>
+    <div class="end-winner" id="end-winner">Brazil wins!</div>
+    <div class="end-score" id="end-score">3 — 1</div>
+    <div class="end-btns">
+      <button class="btn-lobby btn-create" style="width:auto;padding:14px 34px" onclick="APP.requestRematch()">🔄 Rematch</button>
+      <button class="btn-back-lnk" onclick="APP.showScreen('screen-lobby')">Lobby</button>
+      <button class="btn-back-lnk" onclick="APP.showScreen('screen-menu')">Menu</button>
+    </div>
+  </div>
+</div>
+
+<!-- GOAL OVERLAY -->
+<div id="goal-overlay">
+  <div class="goal-word">GOAL!</div>
+  <div class="goal-sub" id="goal-sub">Brazil scores!</div>
+</div>
+
+<!-- DISCONNECT OVERLAY -->
+<div id="dc-overlay" class="overlay">
+  <div class="dc-msg">Opponent disconnected</div>
+  <button class="btn btn-gold" onclick="APP.leaveMatch('screen-lobby')">Back to Lobby</button>
+</div>
+
+<!-- MATCH END OVERLAY: shown over the frozen gameplay while the whistle plays out -->
+<div id="matchend-overlay" class="overlay">
+  <div class="matchend-msg">🏁 THE GAME HAS ENDED! 🏁</div>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+<audio id="snd-applause" src="applause.mp3" preload="auto"></audio>
+<audio id="snd-music" src="Windmill Isle_loop.mp3" preload="auto" loop></audio>
+<audio id="snd-menu-music" src="Menu_loop.mp3" preload="auto" loop></audio>
+<audio id="snd-countdown" src="321_GO_sound_effect.mp3" preload="auto"></audio>
+<audio id="snd-whistle-full" src="Whistle_sound_effect.mp3" preload="auto"></audio>
+
+</div><!-- /wrap -->
+
+<script>
+'use strict';
+// ═══════════════════════════════════════════════════════════════
+//  CONFIG
+//  • Local dev  : open HTML as file:// OR from localhost → auto-connects to ws://localhost:3000
+//  • Production : set PROD_SERVER to your deployed WebSocket URL
+// ═══════════════════════════════════════════════════════════════
+const PROD_SERVER = 'wss://your-deployed-server.com'; // ← change only for production
+const _h = window.location.hostname;
+const _isLocal = !_h || _h === 'localhost' || _h === '127.0.0.1';
+const CFG = {
+  SERVER_URL: _isLocal ? 'ws://localhost:3000' : PROD_SERVER,
+  MATCH_SECS: 180,
+  BALL_R: 10,
+  FIG_W: 13,
+  FIG_H: 34,
+  ROD_SPD: 8.5,   // px per frame — fast enough to actually chase the ball
+  MAX_BALL_SPD: 9,
+  MIN_BALL_SPD: 2.5,
+};
+
+// ═══════════════════════════════════════════════════════════════
+//  PITCH LAYOUT
+// ═══════════════════════════════════════════════════════════════
+const CV = document.getElementById('gameCanvas');
+const ctx = null; // Three.js owns the WebGL context — no 2D ctx
+const W = CV.width, H = CV.height;  // 900 × 548
+
+const P = {
+  x:40, y:18, w:W-80, h:H-36,
+  goalH:112, goalW:26,
+  get right(){ return this.x+this.w },
+  get bottom(){ return this.y+this.h },
+  get cx(){ return this.x+this.w/2 },
+  get cy(){ return this.y+this.h/2 },
+};
+
+// ═══════════════════════════════════════════════════════════════
+//  ROD DEFINITIONS (shared by both modes initially)
+// ═══════════════════════════════════════════════════════════════
+// xFrac = fraction of pitch width; nFigs = figure count; team p1|p2
+const ROD_DEFS_2V2 = [
+  {xFrac:.075, nFigs:1, team:'p1', name:'GK'},
+  {xFrac:.200, nFigs:2, team:'p1', name:'DEF'},
+  {xFrac:.330, nFigs:3, team:'p2', name:'ATT'},
+  {xFrac:.440, nFigs:4, team:'p1', name:'MID'},
+  {xFrac:.560, nFigs:4, team:'p2', name:'MID'},
+  {xFrac:.670, nFigs:3, team:'p1', name:'ATT'},
+  {xFrac:.800, nFigs:2, team:'p2', name:'DEF'},
+  {xFrac:.925, nFigs:1, team:'p2', name:'GK'},
+];
+
+// ═══════════════════════════════════════════════════════════════
+//  ROD OFFSET LIMITS (pre-computed so figures stay in pitch)
+// ═══════════════════════════════════════════════════════════════
+function computeOffsetLimits(defs, team) {
+  const rods = defs.filter(r => r.team === team);
+  let minOff = -Infinity, maxOff = Infinity;
+  for (const rod of rods) {
+    const sp = P.h / (rod.nFigs + 1);
+    // topmost figure base y = P.y + sp
+    const limitUp   = -(sp - CFG.FIG_H/2);
+    // bottommost figure base y = P.y + sp*nFigs
+    const limitDown =  (P.h - sp*rod.nFigs - sp) + (sp - CFG.FIG_H/2);
+    // most restrictive limits across all rods of this team
+    if (limitUp   > minOff) minOff = limitUp;
+    if (limitDown < maxOff) maxOff = limitDown;
+  }
+  return { min: minOff, max: maxOff };
+}
+const LIM = {
+  p1: computeOffsetLimits(ROD_DEFS_2V2, 'p1'),
+  p2: computeOffsetLimits(ROD_DEFS_2V2, 'p2'),
+};
+// Per-rod limits (tighter control per individual rod)
+const ROD_LIMS = ROD_DEFS_2V2.map(rod => {
+  const sp = P.h / (rod.nFigs + 1);
+  return { min: -(sp - CFG.FIG_H/2), max: (P.h - sp*rod.nFigs - sp) + (sp - CFG.FIG_H/2) };
+});
+
+// ═══════════════════════════════════════════════════════════════
+//  32 WORLD CUP TEAMS  (home/homeS = home shirt/shorts · away/awayS = away shirt/shorts)
+// ═══════════════════════════════════════════════════════════════
+const _F=f=>`worldcup countries/${f}`;
+const TEAMS = [
+  {id:'argentina',   name:'Argentina',    flag:_F('Flag_of_Argentina.png'),           home:'#74ACDF', homeS:'#1A1A1A', away:'#1D428A', awayS:'#FFFFFF'},
+  {id:'brazil',      name:'Brazil',       flag:_F('Flag_of_Brazil.png'),              home:'#FFDF00', homeS:'#009C3B', away:'#0032A0', awayS:'#FFFFFF'},
+  {id:'france',      name:'France',       flag:_F('Flag_of_France.png'),              home:'#002395', homeS:'#FFFFFF', away:'#FFFFFF', awayS:'#ED2939'},
+  {id:'spain',       name:'Spain',        flag:_F('Flag_of_Spain.png'),               home:'#AA151B', homeS:'#1A1A1A', away:'#002B7F', awayS:'#FFFFFF'},
+  {id:'england',     name:'England',      flag:_F('Flag_of_England.png'),             home:'#FFFFFF', homeS:'#1C4E9D', away:'#CF0A1E', awayS:'#CF0A1E'},
+  {id:'germany',     name:'Germany',      flag:_F('Flag_of_germany.png'),             home:'#FFFFFF', homeS:'#1A1A1A', away:'#1A1A1A', awayS:'#FFFFFF'},
+  {id:'portugal',    name:'Portugal',     flag:_F('Flag_of_Portugal.png'),            home:'#FF0000', homeS:'#006600', away:'#FFFFFF', awayS:'#006600'},
+  {id:'netherlands', name:'Netherlands',  flag:_F('Flag_of_the_Netherlands.png'),     home:'#FF6600', homeS:'#1A1A1A', away:'#FFFFFF', awayS:'#1A1A1A'},
+  {id:'belgium',     name:'Belgium',      flag:_F('Flag_of_Belgium.png'),             home:'#EF3340', homeS:'#1A1A1A', away:'#FFFFFF', awayS:'#EF3340'},
+  {id:'croatia',     name:'Croatia',      flag:_F('Flag_of_Croatia.png'),             home:'#CC0000', homeS:'#1C478A', away:'#1C478A', awayS:'#FFFFFF'},
+  {id:'switzerland', name:'Switzerland',  flag:_F('Flag_of_Switzerland.png'),         home:'#DA291C', homeS:'#FFFFFF', away:'#FFFFFF', awayS:'#DA291C'},
+  {id:'austria',     name:'Austria',      flag:_F('Flag_of_Austria.png'),             home:'#ED2939', homeS:'#FFFFFF', away:'#FFFFFF', awayS:'#ED2939'},
+  {id:'norway',      name:'Norway',       flag:_F('Flag_of_Norway.png'),              home:'#EF2B2D', homeS:'#003087', away:'#FFFFFF', awayS:'#EF2B2D'},
+  {id:'sweden',      name:'Sweden',       flag:_F('Flag_of_Sweden.png'),              home:'#FECC02', homeS:'#006AA7', away:'#006AA7', awayS:'#FECC02'},
+  {id:'turkey',      name:'Turkey',       flag:_F('Flag_of_Turkey.svg.png'),          home:'#E30A17', homeS:'#FFFFFF', away:'#FFFFFF', awayS:'#E30A17'},
+  {id:'scotland',    name:'Scotland',     flag:_F('Flag_of_Scotland.png'),            home:'#003078', homeS:'#FFFFFF', away:'#FECC02', awayS:'#003078'},
+  {id:'czech',       name:'Czech Rep.',   flag:_F('CZ_Flag.png'),                     home:'#D7141A', homeS:'#FFFFFF', away:'#11457E', awayS:'#FFFFFF'},
+  {id:'bosnia',      name:'Bosnia & Hz.', flag:_F('Flag_of_Bosnia_and_Herzegovina.png'), home:'#002395', homeS:'#FCD116', away:'#FFFFFF', awayS:'#002395'},
+  {id:'usa',         name:'USA',          flag:_F('Flag_of_the_United_States.png'),   home:'#FFFFFF', homeS:'#002868', away:'#002868', awayS:'#BF0A30'},
+  {id:'mexico',      name:'Mexico',       flag:_F('Flag_of_Mexico.png'),              home:'#006847', homeS:'#FFFFFF', away:'#CE1126', awayS:'#FFFFFF'},
+  {id:'canada',      name:'Canada',       flag:_F('Flag_of_Canada.png'),              home:'#FF0000', homeS:'#FFFFFF', away:'#FFFFFF', awayS:'#FF0000'},
+  {id:'colombia',    name:'Colombia',     flag:_F('Flag_of_Colombia.png'),            home:'#FCD116', homeS:'#003087', away:'#003087', awayS:'#FCD116'},
+  {id:'uruguay',     name:'Uruguay',      flag:_F('Flag_of_Uruguay.png'),             home:'#5EB6E4', homeS:'#1A1A1A', away:'#1A1A1A', awayS:'#FFFFFF'},
+  {id:'paraguay',    name:'Paraguay',     flag:_F('Flag_of_Paraguay.png'),            home:'#D62929', homeS:'#1A1A1A', away:'#002868', awayS:'#FFFFFF'},
+  {id:'panama',      name:'Panama',       flag:_F('Flag_of_Panama.png'),              home:'#FFFFFF', homeS:'#DA121A', away:'#DA121A', awayS:'#FFFFFF'},
+  {id:'haiti',       name:'Haiti',        flag:_F('Flag_of_Haiti.png'),               home:'#00209F', homeS:'#D21034', away:'#D21034', awayS:'#00209F'},
+  {id:'morocco',     name:'Morocco',      flag:_F('Flag_of_Morocco.png'),             home:'#C1272D', homeS:'#006233', away:'#FFFFFF', awayS:'#C1272D'},
+  {id:'senegal',     name:'Senegal',      flag:_F('Flag_of_Senegal.png'),             home:'#FFFFFF', homeS:'#00853F', away:'#00853F', awayS:'#FDEF42'},
+  {id:'algeria',     name:'Algeria',      flag:_F('Flag_of_Algeria.png'),             home:'#FFFFFF', homeS:'#006233', away:'#006233', awayS:'#FFFFFF'},
+  {id:'ghana',       name:'Ghana',        flag:_F('Flag_of_Ghana.png'),               home:'#FFFFFF', homeS:'#006B3F', away:'#FCD116', awayS:'#006B3F'},
+  {id:'tunisia',     name:'Tunisia',      flag:_F('Flag_of_Tunisia.png'),             home:'#E70013', homeS:'#FFFFFF', away:'#FFFFFF', awayS:'#E70013'},
+  {id:'egypt',       name:'Egypt',        flag:_F('Flag_of_Egypt.png'),               home:'#CE1126', homeS:'#FFFFFF', away:'#FFFFFF', awayS:'#CE1126'},
+  {id:'southafrica', name:'South Africa', flag:_F('Flag_of_South_Africa.png'),        home:'#FFB81C', homeS:'#007A4D', away:'#FFFFFF', awayS:'#007A4D'},
+  {id:'ivorycoast',  name:"Côte d'Ivoire",flag:_F("Flag_of_Côte_d'Ivoire.png"),       home:'#F77F00', homeS:'#009A44', away:'#FFFFFF', awayS:'#F77F00'},
+  {id:'drc',         name:'DR Congo',     flag:_F('Flag_of_the_Democratic_Republic_of_the_Congo.png'), home:'#007FFF', homeS:'#F7D618', away:'#F7D618', awayS:'#007FFF'},
+  {id:'capeverde',   name:'Cape Verde',   flag:_F('Flag_of_Cape_Verde.png'),          home:'#003893', homeS:'#CF2027', away:'#FFFFFF', awayS:'#003893'},
+  {id:'japan',       name:'Japan',        flag:_F('Flag_of_Japan.png'),               home:'#1A2D60', homeS:'#1A2D60', away:'#FFFFFF', awayS:'#BC002D'},
+  {id:'southkorea',  name:'South Korea',  flag:_F('Flag_of_South_Korea.png'),         home:'#CD2E3A', homeS:'#1A1A1A', away:'#003478', awayS:'#FFFFFF'},
+  {id:'australia',   name:'Australia',    flag:_F('Flag_of_Australia.png'),           home:'#FFD700', homeS:'#00008B', away:'#00008B', awayS:'#FFD700'},
+  {id:'iran',        name:'Iran',         flag:_F('Flag_of_Iran.png'),                home:'#FFFFFF', homeS:'#239F40', away:'#DA0000', awayS:'#FFFFFF'},
+  {id:'iraq',        name:'Iraq',         flag:_F('Flag_of_Iraq.svg.png'),            home:'#FFFFFF', homeS:'#CE1126', away:'#CE1126', awayS:'#FFFFFF'},
+  {id:'saudi',       name:'Saudi Arabia', flag:_F('Flag_of_Saudi_Arabia.png'),        home:'#FFFFFF', homeS:'#006C35', away:'#006C35', awayS:'#FFFFFF'},
+  {id:'jordan',      name:'Jordan',       flag:_F('Flag_of_Jordan.png'),              home:'#FFFFFF', homeS:'#007A3D', away:'#CE1126', awayS:'#FFFFFF'},
+  {id:'qatar',       name:'Qatar',        flag:_F('Flag_of_Qatar.png'),               home:'#8D1B3D', homeS:'#FFFFFF', away:'#FFFFFF', awayS:'#8D1B3D'},
+  {id:'uzbekistan',  name:'Uzbekistan',   flag:_F('Flag_of_Uzbekistan.png'),          home:'#FFFFFF', homeS:'#1EB53A', away:'#009FCA', awayS:'#FFFFFF'},
+  {id:'newzealand',  name:'New Zealand',  flag:_F('Flag_of_New_Zealand.png'),         home:'#FFFFFF', homeS:'#1A1A1A', away:'#1A1A1A', awayS:'#FFFFFF'},
+  {id:'curacao',     name:'Curaçao',      flag:_F('Flag_of_Curaçao.png'),             home:'#002B7F', homeS:'#F9E814', away:'#FFFFFF', awayS:'#002B7F'},
+];
+
+// ── Kit auto-selection ───────────────────────────────────────────
+function _hexLum(hex){
+  const h=hex.replace('#','').padEnd(6,'0');
+  const r=parseInt(h.slice(0,2),16)/255, g=parseInt(h.slice(2,4),16)/255, b=parseInt(h.slice(4,6),16)/255;
+  const lin=c=>c<=0.04045?c/12.92:Math.pow((c+0.055)/1.055,2.4);
+  return 0.2126*lin(r)+0.7152*lin(g)+0.0722*lin(b);
+}
+function _kitContrast(h1,h2){
+  const l1=_hexLum(h1),l2=_hexLum(h2);
+  const hi=Math.max(l1,l2),lo=Math.min(l1,l2);
+  return (hi+0.05)/(lo+0.05);
+}
+function selectKits(t1,t2){
+  const opts=[
+    {p1Kit:'home',p2Kit:'home', c:_kitContrast(t1.home,t2.home)},
+    {p1Kit:'home',p2Kit:'away', c:_kitContrast(t1.home,t2.away)},
+    {p1Kit:'away',p2Kit:'home', c:_kitContrast(t1.away,t2.home)},
+    {p1Kit:'away',p2Kit:'away', c:_kitContrast(t1.away,t2.away)},
+  ];
+  opts.sort((a,b)=>{
+    const diff=b.c-a.c;
+    if(Math.abs(diff)<0.4){
+      // near-tie: prefer home kits
+      const ha=(a.p1Kit==='home'?1:0)+(a.p2Kit==='home'?1:0);
+      const hb=(b.p1Kit==='home'?1:0)+(b.p2Kit==='home'?1:0);
+      return hb-ha;
+    }
+    return diff;
+  });
+  STATE.p1Kit=opts[0].p1Kit;
+  STATE.p2Kit=opts[0].p2Kit;
+  // Invalidate renderer kit cache so new colors get applied
+  if(RENDERER._rods) RENDERER._rods.forEach(({figs})=>figs.forEach(g=>{ g.userData.lastTeam=null; }));
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  CRAZYGAMES SDK  (graceful fallback when not on CrazyGames)
+// ═══════════════════════════════════════════════════════════════
+const CG = {
+  ready: false,
+  username: null,
+  async init() {
+    if (!window.CrazyGames?.SDK) return;
+    try {
+      const timeout = new Promise((_,rej)=>setTimeout(()=>rej(new Error('CG timeout')),3000));
+      await Promise.race([window.CrazyGames.SDK.init(), timeout]);
+      this.ready = true;
+      const user = window.CrazyGames.SDK.user?.getUser?.();
+      this.username = user?.username || null;
+      const ctx2 = window.CrazyGames.SDK.game?.gameContext;
+      if (ctx2?.isInstantMultiplayer) NET.findMatch();
+      const inv = ctx2?.inviteParam;
+      if (inv?.roomId)  NET.joinRoom(inv.roomId);
+    } catch(e){ console.warn('CG SDK:', e); }
+  },
+  gameplayStart(){ try{ window.CrazyGames?.SDK?.game?.gameplayStart?.(); }catch(e){} },
+  gameplayStop() { try{ window.CrazyGames?.SDK?.game?.gameplayStop?.();  }catch(e){} },
+  happyTime()    { try{ window.CrazyGames?.SDK?.game?.happyTime?.();    }catch(e){} },
+  updateRoom(roomId, isJoinable){
+    try{ window.CrazyGames?.SDK?.game?.updateRoom?.({ roomId, isJoinable, inviteParam:{roomId} }); }catch(e){}
+  },
+  async showMidAd(){
+    if(!this.ready) return;
+    return new Promise(res=>{
+      try{ window.CrazyGames.SDK.ad?.requestAd?.('midgame',{adFinished:res,adError:res,adStarted:()=>{}}); }catch(e){ res(); }
+    });
+  }
+};
+
+// ═══════════════════════════════════════════════════════════════
+//  AUDIO  (soft sine waves — no harsh square/sawtooth)
+// ═══════════════════════════════════════════════════════════════
+let AC = null;
+const AUDIO = {
+  _masterMuted: false,
+  init(){
+    if(!AC) AC = new (window.AudioContext||window.webkitAudioContext)();
+  },
+  resume(){ AC?.state==='suspended' && AC.resume(); },
+  // Master mute: silences everything at once — music, all procedural SFX
+  // tones (kick/wall/catch/pass/whistle beeps), and every <audio> element
+  // (music tracks, applause, whistle, countdown voice) — independent of the
+  // separate music-only toggle.
+  toggleMasterMute(){
+    this._masterMuted = !this._masterMuted;
+    document.querySelectorAll('audio').forEach(el => { el.muted = this._masterMuted; });
+    const btn = document.getElementById('btn-master-mute');
+    const icon = btn?.querySelector('.hac-icon');
+    if(icon) icon.textContent = this._masterMuted ? '🔇' : '🔊';
+    if(btn) btn.classList.toggle('muted', this._masterMuted);
+    return this._masterMuted;
+  },
+  tone(freq, dur, vol=0.18, t=0){
+    if(!AC || this._masterMuted) return;
+    const o = AC.createOscillator(), g = AC.createGain();
+    o.connect(g); g.connect(AC.destination);
+    o.type='sine'; o.frequency.value=freq;
+    const st = AC.currentTime+t;
+    g.gain.setValueAtTime(0,st);
+    g.gain.linearRampToValueAtTime(vol, st+0.01);
+    g.gain.exponentialRampToValueAtTime(0.001, st+dur);
+    o.start(st); o.stop(st+dur);
+  },
+  kick(){ this.tone(140,.09,.22); this.tone(80,.12,.14); },
+  wall(){ this.tone(260,.05,.10); },
+  goal(){
+    const el = document.getElementById('snd-applause');
+    if(el){ el.currentTime=0; el.volume=0.5; el.play().catch(()=>{}); }
+  },
+  stopApplause(){
+    const el = document.getElementById('snd-applause');
+    if(el){ el.pause(); el.currentTime=0; }
+  },
+  playMusic(){
+    const el = document.getElementById('snd-music');
+    const btn = document.getElementById('btn-music');
+    if(el){ el.currentTime=0; el.volume=0.25; el.play().catch(()=>{}); }
+    if(btn) btn.classList.remove('muted');
+  },
+  stopMusic(){
+    const el = document.getElementById('snd-music');
+    if(el){ el.pause(); el.currentTime=0; }
+  },
+  _wantMenuMusic: false,
+  playMenuMusic(){
+    const el = document.getElementById('snd-menu-music');
+    if(!el) return;
+    this._wantMenuMusic = true;
+    if(!el.paused) return;
+    el.volume = 0.25;
+    el.play().catch(()=>{ /* blocked until user gesture — _wantMenuMusic flag handles it */ });
+  },
+  stopMenuMusic(){
+    const el = document.getElementById('snd-menu-music');
+    if(el){ el.pause(); el.currentTime = 0; }
+  },
+  toggleMusic(){
+    const el = document.getElementById('snd-music');
+    const btn = document.getElementById('btn-music');
+    if(!el) return;
+    if(el.paused) el.play().catch(()=>{}); else el.pause();
+    if(btn) btn.classList.toggle('muted', el.paused);
+  },
+  whistle(){
+    // Referee whistle
+    for(let i=0;i<3;i++) this.tone(2000+i*50,.15,.12,i*.22);
+  },
+  fullTimeWhistle(onEnded){
+    // Full-length final-whistle blast to signal the match has ended.
+    // Plays the whole file (not a truncated clip) and calls back on completion.
+    const w = document.getElementById('snd-whistle-full');
+    if(!w){ onEnded?.(); return; }
+    w.currentTime = 0; w.volume = 0.8;
+    const done = () => { w.removeEventListener('ended', done); onEnded?.(); };
+    w.addEventListener('ended', done);
+    w.play().catch(() => done());
+  }
+};
+
+// ═══════════════════════════════════════════════════════════════
+//  NETWORK LAYER  (WebSocket client, ready to connect to server)
+// ═══════════════════════════════════════════════════════════════
+const NET = {
+  ws: null,
+  roomId: null,
+  myRole: null,   // 'p1' | 'p2'
+  connected: false,
+  testMode: false,
+
+  async connect(){
+    return new Promise((res,rej)=>{
+      try {
+        this.ws = new WebSocket(CFG.SERVER_URL);
+        const t = setTimeout(()=>rej(new Error('timeout')), 2500);
+        this.ws.onopen = ()=>{ clearTimeout(t); this.connected=true; res(); };
+        this.ws.onerror = e => { clearTimeout(t); rej(e); };
+        this.ws.onmessage = e => this._onMsg(JSON.parse(e.data));
+        this.ws.onclose = () => this._onClose();
+      } catch(e){ rej(e); }
+    });
+  },
+
+  _send(type, data={}){
+    if(this.ws?.readyState===WebSocket.OPEN)
+      this.ws.send(JSON.stringify({type,...data}));
+  },
+
+  createRoom(){ APP.showScreen('screen-waiting'); document.getElementById('room-code-box').style.display='none'; document.getElementById('wait-sub').textContent='Creating room…'; this._send('create_room'); },
+  joinRoom(id){ if(!id||id.length<4){APP.toast('Enter a valid room code');return;} APP.showScreen('screen-waiting'); document.getElementById('room-code-box').style.display='none'; document.getElementById('wait-sub').textContent=`Joining room ${id}…`; this._send('join_room',{roomId:id.toUpperCase()}); },
+  findMatch(){
+    APP.showScreen('screen-waiting');
+    document.getElementById('room-code-box').style.display='none';
+    document.getElementById('wait-sub').textContent='Finding a match…';
+    this._send('find_match');
+  },
+  cancel(){ this._send('cancel'); APP.showScreen('screen-lobby'); },
+  sendInput(offset,kick,up,down){ this._send('input',{offset,kick,up,down}); },
+  sendPass(dir){ this._send('pass',{dir}); },
+  sendChargeStart(){ this._send('charge_start'); },
+  sendChargeRelease(){ this._send('charge_release'); },
+  sendLofted(){ this._send('lofted'); },
+  sendTeam(teamId){ this._send('select_team',{teamId}); },
+  requestRematch(){ this._send('rematch'); },
+
+  _onMsg(m){
+    switch(m.type){
+      case 'room_created':
+        NET.roomId=m.roomId; NET.myRole='p1';
+        document.getElementById('room-code-val').textContent=m.roomId;
+        document.getElementById('room-code-box').style.display='block';
+        document.getElementById('wait-sub').textContent='Share the code with a friend to start';
+        CG.updateRoom(m.roomId,true);
+        break;
+      case 'in_queue':
+        document.getElementById('wait-sub').textContent='Searching for an opponent…';
+        break;
+      case 'matched':
+        NET.roomId=m.roomId; NET.myRole=m.role;
+        APP.showTeamSelect(m.role, m.oppUsername);
+        CG.updateRoom(m.roomId,false);
+        break;
+      case 'opp_team':   APP.onOppTeam(m.teamId);   break;
+      case 'game_start': APP.onGameStart(m);         break;
+      case 'state':      GAME.applyServerState(m);   break;
+      case 'goal':       GAME.onServerGoal(m);       break;
+      case 'game_end':        APP.onGameEnd(m);           break;
+      case 'rematch_ok':      APP.startMatch();            break;
+      case 'opp_disconnected':APP.onOppDisconnected();     break;
+      case 'error':      APP.toast(m.msg);            break;
+    }
+  },
+
+  _onClose(){
+    this.connected=false;
+    if(GAME.running) document.getElementById('dc-overlay').classList.add('show');
+  },
+};
+
+// ═══════════════════════════════════════════════════════════════
+//  PHYSICS ENGINE
+// ═══════════════════════════════════════════════════════════════
+const GAME = {
+  running: false,
+  testMode: false,
+
+  // Ball state
+  ball: { x:0, y:0, vx:0, vy:0 },
+  // Rod offsets (single value per team — moves ALL rods together)
+  p1Off: 0,
+  p2Off: 0,
+  // Kick angle per team: 0=rest, positive=kicked forward
+  p1KickAngle: 0,
+  p2KickAngle: 0,
+  // Slow-ball detector
+  // Ball rotation angle (visual only)
+  ballAngle: 0,
+  ballHidden: false,
+  goalPause: false,
+  countdownActive: false,
+  lastTouchTeam: null,
+  heldBy: null,      // { team, rod, figIdx } while ball is held
+  holdTimer: 0,      // seconds ball has been held
+  holdCooldownP1: 0, // seconds until P1's hold ability is available again
+  holdCooldownP2: 0, // seconds until P2's hold ability is available again
+  HOLD_COOLDOWN_MAX: 2.5,
+  passAnim: null,    // { fromBaseY, toBaseY, newFigIdx, t, frames } during pass animation
+  catchIndicator: null, // { team, rod, figIdx } — figure that CAN catch right now
+  _passRequest: null,   // 'prev' | 'next' — set by keydown, consumed in _updateHeld
+  _holdBufferP1: 0, // frames of "hold was just pressed" leniency, refreshed on keydown
+  _holdBufferP2: 0,
+  HOLD_BUFFER_FRAMES: 14, // ~230ms at 60fps — forgives slightly early/late presses
+  HOLD_CATCH_BONUS: 16,   // extra reach (px) beyond normal contact radius, catch-only
+  _ballPrevX: null, _ballPrevY: null, // ball position at start of frame, for swept catch detection
+
+  // ── Pass charge system: limits how often Q/E passing can be used ──
+  PASS_CHARGE_MAX: 3,
+  PASS_RECHARGE_SECS: 4,
+  passChargesP1: 3, passChargesP2: 3,
+  passRechargeP1: 0, passRechargeP2: 0, // seconds until next charge regenerates
+
+  // ── Charged / lofted shot mechanics (mouse-driven, local player only) ──
+  _chargeActive: false, _chargeFrames: 0,
+  CHARGE_MAX_FRAMES: 72, // ~1.2s at 60fps to reach full charge
+  CHARGE_BASE_POW: 7.5, CHARGE_MAX_POW: 15,
+  ballZ: 0, ballVZ: 0,   // airborne height state for the lofted shot arc
+  // Tuned for a short controlled "chip" — peak ~0.6 world units (a few ball-radii,
+  // well under the camera height of 4.6), landing in well under a second.
+  GRAVITY: 0.002,
+  LOFT_LAUNCH_VZ: 0.05,
+  LOFT_SPEED: 5,
+
+  // Score & time
+  score: {p1:0, p2:0},
+  timeLeft: CFG.MATCH_SECS,
+  timerID: null,
+  rafID: null,
+  lastTime: 0,
+
+  // Inputs (set by keyboard or server messages)
+  myInput: { up:false, down:false, kick:false },
+  oppInput: { up:false, down:false, kick:false },
+  myRole: 'p1',   // which side I control
+
+  reset(){
+    // On first spawn pick random side; after goals _kickDir is set by _localGoal
+    if(this._kickDir === undefined) this._kickDir = Math.random()>.5 ? 1 : -1;
+    const vy = this._kickDir * (2.5 + Math.random()*1);
+    const vx = (Math.random()-.5)*0.5;
+    this.ball={x:P.cx,y:P.cy,vx,vy};
+    this.ballHidden = false;
+    this.ballAngle = 0;
+    this.goalPause = false;
+    this.heldBy = null; this.holdTimer = 0; this.passAnim = null;
+    this.p1KickAngle=0; this.p2KickAngle=0;
+    this.slowTick=0;
+    this.ballZ = 0; this.ballVZ = 0;
+    this._chargeActive = false; this._chargeFrames = 0;
+    RENDERER.clearTrail();
+  },
+
+  start(role, testMode=false, botMode=false){
+    this.running=true; this.testMode=testMode; this.botMode=botMode; this.myRole=role;
+    this.score={p1:0,p2:0}; this.timeLeft=CFG.MATCH_SECS;
+    this.p1Off=0; this.p2Off=0;
+    this.holdCooldownP1=0; this.holdCooldownP2=0;
+    this.passChargesP1=this.PASS_CHARGE_MAX; this.passChargesP2=this.PASS_CHARGE_MAX;
+    this.passRechargeP1=0; this.passRechargeP2=0;
+    this.reset();
+    this._startTimer();
+    CG.gameplayStart();
+    this.rafID=requestAnimationFrame(ts=>this._loop(ts));
+  },
+
+  stop(){
+    this.running=false;
+    cancelAnimationFrame(this.rafID);
+    clearInterval(this.timerID);
+    CG.gameplayStop();
+  },
+
+  _startTimer(){
+    clearInterval(this.timerID);
+    this.timerID=setInterval(()=>{
+      if(!this.running || this.countdownActive) return;
+      // In server-authoritative mode, timer is driven by server state
+      if(!this.testMode && !this.botMode) return;
+      this.timeLeft--;
+      this._updateTimerHUD();
+      if(this.timeLeft<=0) this._localGameEnd();
+    },1000);
+  },
+
+  _updateTimerHUD(){
+    const m=Math.floor(this.timeLeft/60), s=this.timeLeft%60;
+    const el=document.getElementById('timer');
+    el.textContent=`${m}:${s.toString().padStart(2,'0')}`;
+    el.style.color=this.timeLeft<=30?'#ff3864':'#ffe53b';
+  },
+
+  _loop(now){
+    if(!this.running){return;}
+    const dt=Math.min((now-this.lastTime)/16.67,2.5);
+    this.lastTime=now;
+    this._update(dt);
+    RENDERER.draw();
+    this.rafID=requestAnimationFrame(ts=>this._loop(ts));
+  },
+
+  _update(dt){
+    if(this.goalPause || this.countdownActive) return;
+    // ── Hold-ability cooldowns ──
+    if(this.holdCooldownP1 > 0) this.holdCooldownP1 = Math.max(0, this.holdCooldownP1 - dt/60);
+    if(this.holdCooldownP2 > 0) this.holdCooldownP2 = Math.max(0, this.holdCooldownP2 - dt/60);
+    // ── Hold input buffer: forgives presses slightly early/late ──
+    if(this._holdBufferP1 > 0) this._holdBufferP1 = Math.max(0, this._holdBufferP1 - dt);
+    if(this._holdBufferP2 > 0) this._holdBufferP2 = Math.max(0, this._holdBufferP2 - dt);
+    // ── Pass charge regeneration: one charge every PASS_RECHARGE_SECS ──
+    if(this.passChargesP1 < this.PASS_CHARGE_MAX){
+      this.passRechargeP1 += dt/60;
+      if(this.passRechargeP1 >= this.PASS_RECHARGE_SECS){
+        this.passRechargeP1 = 0; this.passChargesP1++;
+      }
+    } else { this.passRechargeP1 = 0; }
+    if(this.passChargesP2 < this.PASS_CHARGE_MAX){
+      this.passRechargeP2 += dt/60;
+      if(this.passRechargeP2 >= this.PASS_RECHARGE_SECS){
+        this.passRechargeP2 = 0; this.passChargesP2++;
+      }
+    } else { this.passRechargeP2 = 0; }
+    // ── Charge-bar UI ticking (client-side prediction for instant visual feedback;
+    // ── the server independently computes the authoritative charge duration). ──
+    if(this._chargeActive){
+      this._chargeFrames = Math.min(this.CHARGE_MAX_FRAMES, this._chargeFrames + dt);
+    }
+    // ── Rod lateral movement ──
+    const p1In = (this.testMode||this.botMode) ? KEY_P1 : (this.myRole==='p1'?this.myInput:this.oppInput);
+    const p2In = this.testMode ? KEY_P2 : (this.myRole==='p2'?this.myInput:this.oppInput);
+    const spd = CFG.ROD_SPD * dt;
+    if(p1In.up)   this.p1Off=Math.max(LIM.p1.min, this.p1Off-spd);
+    if(p1In.down) this.p1Off=Math.min(LIM.p1.max, this.p1Off+spd);
+    if(!this.botMode){
+      if(p2In.up)   this.p2Off=Math.max(LIM.p2.min, this.p2Off-spd);
+      if(p2In.down) this.p2Off=Math.min(LIM.p2.max, this.p2Off+spd);
+    } else {
+      this._botThink(dt);
+    }
+
+    // ── Kick angle: snaps to max on ball contact, decays back to 0 ──
+    const ANG_RET = 0.14;
+    this.p1KickAngle = Math.max(0, this.p1KickAngle - ANG_RET*dt);
+    this.p2KickAngle = Math.max(0, this.p2KickAngle - ANG_RET*dt);
+
+    // ── Held ball: freeze physics, follow rod, throw on release ──
+    if(this.heldBy){
+      // Local physics only runs in test/bot mode — online, the server is the
+      // sole authority for held-ball state (position, pass anim, release);
+      // running _updateHeld() here too would double-simulate and desync.
+      if(this.testMode || this.botMode) this._updateHeld(dt);
+      if(!this.testMode && !this.botMode && NET.connected){
+        const off=this.myRole==='p1'?this.p1Off:this.p2Off;
+        NET.sendInput(off, this.myInput.kick, this.myInput.up, this.myInput.down);
+      }
+      return;
+    }
+
+    // ── Ball physics: local in test/bot mode ──
+    // In online mode the server is authoritative; applyServerState() drives ball + ballAngle.
+    if(this.testMode||this.botMode){
+      const b=this.ball;
+      // Defensive: sanitize any NaN/Infinity that could otherwise permanently freeze the ball
+      if(!Number.isFinite(b.vx) || !Number.isFinite(b.vy)){ b.vx=0; b.vy=0; }
+      if(!Number.isFinite(b.x) || !Number.isFinite(b.y)){ b.x=P.cx; b.y=P.cy; }
+
+      this._ballPrevX = b.x; this._ballPrevY = b.y;
+      b.x+=b.vx*dt; b.y+=b.vy*dt;
+      b.vx*=0.998; b.vy*=0.998;
+
+      // Airborne arc for the lofted shot (right-click) — gravity pulls it back down
+      if(this.ballZ > 0 || this.ballVZ !== 0){
+        this.ballVZ -= this.GRAVITY * dt;
+        this.ballZ += this.ballVZ * dt;
+        if(this.ballZ <= 0){ this.ballZ = 0; this.ballVZ = 0; }
+      }
+
+      if(b.y-CFG.BALL_R<P.y){ b.y=P.y+CFG.BALL_R; b.vy=Math.abs(b.vy)*.92; AUDIO.wall(); }
+      if(b.y+CFG.BALL_R>P.bottom){ b.y=P.bottom-CFG.BALL_R; b.vy=-Math.abs(b.vy)*.92; AUDIO.wall(); }
+
+      // Goal only counts if the ball is actually on the ground crossing the line —
+      // a lofted shot sailing over the goal (still airborne) must not score.
+      const gz1=b.y>P.cy-P.goalH/2 && b.y<P.cy+P.goalH/2 && this.ballZ<=0.05;
+      if(b.x-CFG.BALL_R<P.x && gz1){ this._localGoal('p2'); return; }
+      if(b.x+CFG.BALL_R>P.right && gz1){ this._localGoal('p1'); return; }
+
+      if(b.x-CFG.BALL_R<P.x){ b.x=P.x+CFG.BALL_R; b.vx=Math.abs(b.vx)*.75; AUDIO.wall(); }
+      if(b.x+CFG.BALL_R>P.right){ b.x=P.right-CFG.BALL_R; b.vx=-Math.abs(b.vx)*.75; AUDIO.wall(); }
+
+      // While airborne (lofted shot) the ball flies clear over the figures —
+      // skip figure collision entirely until it lands.
+      if(this.ballZ <= 0){
+        this._updateCatchIndicator();
+        this._collideFigs(dt);
+      } else {
+        this.catchIndicator = null;
+      }
+
+      const spd2=Math.hypot(b.vx,b.vy);
+      if(spd2<CFG.MIN_BALL_SPD && spd2>0.05){ const s=CFG.MIN_BALL_SPD/spd2; b.vx*=s; b.vy*=s; }
+      // Slow-tick rescue: ball barely moving — shortened window + stronger kick
+      // so a stalled ball recovers quickly instead of sitting stuck.
+      if(spd2<2.0){ this.slowTick+=dt; } else { this.slowTick=0; }
+      if(this.slowTick>10){
+        const dir=(b.x<P.cx?1:-1);
+        b.vx=dir*(5+Math.random()*3);
+        b.vy=(Math.random()-.5)*6;
+        this.slowTick=0;
+      }
+      // Wall-trap rescue: ball pinned against top or bottom wall
+      const nearTop = b.y < P.y + CFG.BALL_R + 8;
+      const nearBot = b.y > P.bottom - CFG.BALL_R - 8;
+      if((nearTop || nearBot) && spd2 < 6){
+        b.vy = nearTop ? Math.abs(b.vy) + 4 : -(Math.abs(b.vy) + 4);
+        b.vx += (Math.random()-.5) * 4;
+      }
+      this.ballAngle = (this.ballAngle + b.vx * 0.015) % (Math.PI * 2);
+    }
+
+    // Online: send my input to server every frame. Was previously reading
+    // this.p1Kick/this.p2Kick, which don't exist on GAME (always undefined) —
+    // meaning the server saw kick:false at all times during free-ball play,
+    // so catching and powered kicks were effectively impossible online except
+    // in the brief instant right after releasing a hold.
+    if(!this.testMode && !this.botMode && NET.connected){
+      const off=this.myRole==='p1'?this.p1Off:this.p2Off;
+      NET.sendInput(off, this.myInput.kick, this.myInput.up, this.myInput.down);
+    }
+  },
+
+  _updateHeld(dt){
+    const h = this.heldBy;
+    const b = this.ball;
+    const off = h.team==='p1' ? this.p1Off : this.p2Off;
+    const dir = h.team==='p1' ? 1 : -1;
+    const ballGx = P.x + h.rod.xFrac * P.w + dir * (CFG.FIG_W/2 + CFG.BALL_R + 2);
+
+    // ── Pass animation: ball travels smoothly between figures on the same rod ──
+    if(this.passAnim){
+      const pa = this.passAnim;
+      pa.t = Math.min(1, pa.t + dt / pa.frames);
+      const e = pa.t < 0.5 ? 2*pa.t*pa.t : 1 - Math.pow(-2*pa.t + 2, 2) / 2; // ease-in-out
+      const baseY = pa.fromBaseY + (pa.toBaseY - pa.fromBaseY) * e;
+      b.x = ballGx;
+      b.y = Math.max(P.y + CFG.BALL_R, Math.min(P.bottom - CFG.BALL_R, baseY + off));
+      b.vx = 0; b.vy = 0;
+      if(pa.t >= 1){
+        h.figIdx = pa.newFigIdx;
+        this.holdTimer = 0;
+        this.passAnim = null;
+      }
+      return;
+    }
+
+    const sp  = P.h / (h.rod.nFigs + 1);
+    const figBaseY = P.y + sp * (h.figIdx + 1);
+
+    // Ball stays just ahead of the holding figure
+    b.x = ballGx;
+    b.y = Math.max(P.y + CFG.BALL_R, Math.min(P.bottom - CFG.BALL_R,
+          figBaseY + off));
+    b.vx = 0; b.vy = 0;
+
+    // Advance hold timer; force-release after 3.0s
+    this.holdTimer += dt / 60;
+    const forceRelease = this.holdTimer > 3.0;
+
+    // Mouse-charge (LMB): _chargeFrames ticks centrally in _update() now.
+    if(this._chargeActive){
+      if(forceRelease){
+        // Hold-timer expired mid-charge — fire whatever charge was built up
+        this._releaseGroundShot(this._chargeFrames / this.CHARGE_MAX_FRAMES);
+        return;
+      }
+    }
+
+    // Determine the controlling input
+    const inp = h.team==='p1'
+      ? (this.testMode ? KEY_P1 : this.myInput)
+      : (this.testMode ? KEY_P2 : (this.botMode ? this._botInput : null));
+
+    // Handle pass request (edge-triggered from keydown)
+    if(!forceRelease && this._passRequest){
+      const delta = this._passRequest === 'prev' ? -1 : 1;
+      this._passRequest = null;
+      this._doPass(delta);
+      return;
+    }
+    this._passRequest = null;
+
+    // Ball stays held if either Space is down OR a mouse charge is in progress —
+    // lets the player switch from "catch with Space" to "aim with the mouse".
+    const spaceStillHeld = ((inp && inp.kick) || this._chargeActive) && !forceRelease;
+
+    if(!spaceStillHeld){
+      // Throw: aim based on W/S at release; full power
+      const rodDir = inp ? (inp.up ? -1 : inp.down ? 1 : 0) : 0;
+      b.vx = dir * 7.5;
+      b.vy = rodDir * 6;
+      if(h.team==='p1') this.p1KickAngle = 0.65; else this.p2KickAngle = 0.65;
+      this.lastTouchTeam = h.team;
+      if(h.team==='p1') this.holdCooldownP1 = this.HOLD_COOLDOWN_MAX;
+      else              this.holdCooldownP2 = this.HOLD_COOLDOWN_MAX;
+      this.heldBy = null; this.holdTimer = 0; this.passAnim = null;
+      RENDERER.triggerHitEffect(b, 0.85);
+      AUDIO.kick();
+    }
+  },
+
+  // ── Charged ground shot (Left Mouse Button): power scales with charge time ──
+  _releaseGroundShot(frac){
+    const h = this.heldBy;
+    if(!h) return;
+    const b = this.ball;
+    const dir = h.team==='p1' ? 1 : -1;
+    frac = Math.max(0, Math.min(1, frac));
+    const power = this.CHARGE_BASE_POW + (this.CHARGE_MAX_POW - this.CHARGE_BASE_POW) * frac;
+    const inp = h.team==='p1'
+      ? (this.testMode ? KEY_P1 : this.myInput)
+      : (this.testMode ? KEY_P2 : (this.botMode ? this._botInput : null));
+    const rodDir = inp ? (inp.up ? -1 : inp.down ? 1 : 0) : 0;
+    b.vx = dir * power;
+    b.vy = rodDir * (6 + frac * 2);
+    if(h.team==='p1') this.p1KickAngle = 0.9; else this.p2KickAngle = 0.9;
+    this.lastTouchTeam = h.team;
+    if(h.team==='p1') this.holdCooldownP1 = this.HOLD_COOLDOWN_MAX;
+    else              this.holdCooldownP2 = this.HOLD_COOLDOWN_MAX;
+    this.heldBy = null; this.holdTimer = 0; this.passAnim = null;
+    this._chargeActive = false; this._chargeFrames = 0;
+    RENDERER.triggerHitEffect(b, Math.min(1, 0.6 + frac * 0.4));
+    AUDIO.kick();
+    AUDIO.tone(180 + frac * 140, 0.14, 0.18 + frac * 0.16); // charged "whoosh" — pitch rises with power
+  },
+
+  // ── Lofted shot (Right Mouse Button): arcs over the pitch, clears figures ──
+  _releaseLoftedShot(){
+    const h = this.heldBy;
+    if(!h) return;
+    const b = this.ball;
+    const dir = h.team==='p1' ? 1 : -1;
+    const inp = h.team==='p1'
+      ? (this.testMode ? KEY_P1 : this.myInput)
+      : (this.testMode ? KEY_P2 : (this.botMode ? this._botInput : null));
+    const rodDir = inp ? (inp.up ? -1 : inp.down ? 1 : 0) : 0;
+    b.vx = dir * this.LOFT_SPEED;
+    b.vy = rodDir * 3;
+    this.ballZ = 0.02;
+    this.ballVZ = this.LOFT_LAUNCH_VZ;
+    if(h.team==='p1') this.p1KickAngle = 0.9; else this.p2KickAngle = 0.9;
+    this.lastTouchTeam = h.team;
+    if(h.team==='p1') this.holdCooldownP1 = this.HOLD_COOLDOWN_MAX;
+    else              this.holdCooldownP2 = this.HOLD_COOLDOWN_MAX;
+    this.heldBy = null; this.holdTimer = 0; this.passAnim = null;
+    this._chargeActive = false; this._chargeFrames = 0;
+    RENDERER.triggerHitEffect(b, 0.8);
+    AUDIO.kick();
+    AUDIO.tone(560, 0.1, 0.2); // distinct rising chime for the lofted shot
+  },
+
+  _doPass(delta){
+    const h = this.heldBy;
+    const newIdx = h.figIdx + delta;
+    if(newIdx < 0 || newIdx >= h.rod.nFigs) return;
+    const charges = h.team==='p1' ? this.passChargesP1 : this.passChargesP2;
+    if(charges <= 0){ AUDIO.tone(140, 0.08, 0.12); return; } // denied — out of pass charges
+    if(h.team==='p1') this.passChargesP1--; else this.passChargesP2--;
+    const sp = P.h / (h.rod.nFigs + 1);
+    const fromBaseY = P.y + sp * (h.figIdx + 1);
+    const toBaseY   = P.y + sp * (newIdx + 1);
+    this.passAnim = { fromBaseY, toBaseY, newFigIdx: newIdx, t: 0, frames: 20 };
+    AUDIO.tone(350, 0.05, 0.1);
+  },
+
+  // Minimum distance from point (px,py) to the segment (x1,y1)-(x2,y2).
+  // Used for swept catch/indicator detection so a fast ball that would
+  // otherwise "tunnel" past a figure within a single frame is still caught.
+  _segPointDist(x1, y1, x2, y2, px, py){
+    const dx = x2 - x1, dy = y2 - y1;
+    const lenSq = dx*dx + dy*dy;
+    let t = lenSq > 1e-6 ? ((px - x1) * dx + (py - y1) * dy) / lenSq : 0;
+    t = Math.max(0, Math.min(1, t));
+    const cx = x1 + t * dx, cy = y1 + t * dy;
+    return Math.hypot(px - cx, py - cy);
+  },
+
+  // Detect which player-controlled figure the ball is approaching and close enough to catch.
+  // Uses the same generous swept radius as the actual catch so the indicator
+  // never promises a catch that _collideFigs then fails to deliver.
+  _updateCatchIndicator(){
+    // "My" cooldown/rods — myRole is always 'p1' in local/bot/test mode, and
+    // p1-or-p2 online, so this generalizes cleanly across every mode.
+    const myCooldown = this.myRole==='p1' ? this.holdCooldownP1 : this.holdCooldownP2;
+    if(this.heldBy || myCooldown > 0){ this.catchIndicator = null; return; }
+    const b = this.ball;
+    const px = this._ballPrevX ?? b.x, py = this._ballPrevY ?? b.y;
+    const minD = CFG.BALL_R + CFG.FIG_W/2 + 3;
+    const catchR = minD + this.HOLD_CATCH_BONUS;
+    let best = null, bestDist = Infinity;
+    for(const rod of ROD_DEFS_2V2){
+      // Only show for the local player's own rods (not the opponent's)
+      const isPlayerRod = rod.team===this.myRole;
+      if(!isPlayerRod) continue;
+      const off = rod.team==='p1' ? this.p1Off : this.p2Off;
+      const rx  = P.x + rod.xFrac * P.w;
+      const sp  = P.h / (rod.nFigs + 1);
+      for(let i = 0; i < rod.nFigs; i++){
+        const fy  = P.y + sp*(i+1) + off;
+        const dist = this._segPointDist(px, py, b.x, b.y, rx, fy);
+        if(dist < catchR && dist < bestDist){
+          bestDist = dist;
+          best = { team: rod.team, rod, figIdx: i };
+        }
+      }
+    }
+    this.catchIndicator = best;
+  },
+
+  _collideFigs(dt){
+    const b = this.ball;
+    const prevX = this._ballPrevX ?? b.x, prevY = this._ballPrevY ?? b.y;
+    const minD   = CFG.BALL_R + CFG.FIG_W/2 + 3;      // tight radius: normal bounce/kick contact
+    const catchR = minD + this.HOLD_CATCH_BONUS;      // generous radius: catching only
+    let pinchCount = 0, pinchDX = 0, pinchDY = 0;      // track simultaneous collisions this frame
+
+    for(const rod of ROD_DEFS_2V2){
+      if(this.heldBy) break;
+      const off = rod.team==='p1' ? this.p1Off : this.p2Off;
+      const rx  = P.x + rod.xFrac * P.w;
+      const sp  = P.h / (rod.nFigs+1);
+      const dir = rod.team==='p1' ? 1 : -1;
+      const inp = rod.team==='p1'
+        ? (this.testMode ? KEY_P1 : this.myInput)
+        : (this.testMode ? KEY_P2 : (this.botMode ? this._botInput : null));
+      const bufferedKick = rod.team==='p1' ? (this._holdBufferP1 > 0) : (this._holdBufferP2 > 0);
+      const powered = (inp ? !!inp.kick : false) || bufferedKick;
+      const teamCooldown = rod.team==='p1' ? this.holdCooldownP1 : this.holdCooldownP2;
+
+      for(let i=0;i<rod.nFigs;i++){
+        if(this.heldBy) break;
+        const fy = P.y + sp*(i+1) + off;
+
+        // ── Catch: generous swept radius + buffered input, so a ball that ──
+        // ── clearly passed near the figure this frame is always caught.   ──
+        if(powered && teamCooldown <= 0){
+          const segDist = this._segPointDist(prevX, prevY, b.x, b.y, rx, fy);
+          if(segDist < catchR){
+            this.heldBy = { team: rod.team, rod, figIdx: i };
+            this.holdTimer = 0;
+            this.catchIndicator = null; // opportunity consumed — hide immediately, don't wait for next frame
+            b.vx = 0; b.vy = 0;
+            if(rod.team==='p1') this._holdBufferP1 = 0; else this._holdBufferP2 = 0;
+            AUDIO.tone(420, 0.06, 0.18); // soft catch thud
+            break;
+          }
+        }
+
+        // ── Normal tight-radius contact: bounce / kick ──
+        const dx=b.x-rx, dy=b.y-fy;
+        const dist=Math.hypot(dx,dy);
+        if(dist<minD && dist>0.1){
+          // Push ball out of overlap
+          const nx=dx/dist, ny=dy/dist;
+          const overlap=minD-dist;
+          b.x+=nx*overlap*1.1;
+          b.y+=ny*overlap*1.1;
+          pinchCount++; pinchDX+=nx; pinchDY+=ny;
+          // Reflect velocity
+          const dot=b.vx*nx+b.vy*ny;
+          if(dot<0){ // only resolve if moving toward figure
+            b.vx-=2*dot*nx;
+            b.vy-=2*dot*ny;
+            b.vx*=0.88; b.vy*=0.88;
+          }
+          // Snap kick angle + record last touch
+          if(rod.team==='p1') this.p1KickAngle = 0.65;
+          else                this.p2KickAngle = 0.65;
+          this.lastTouchTeam = rod.team;
+
+          const rodDir = inp ? (inp.up ? -1 : inp.down ? 1 : 0) : 0;
+          const power = powered ? 7.5 : 4.5;
+          b.vx = dir * power + dir * Math.abs(b.vx) * 0.12;
+          b.vy = rodDir * 5.5 + (Math.random()-.5) * 1.5;
+          RENDERER.triggerHitEffect(b, powered ? 0.9 : 0.45);
+
+          // Cap speed
+          const sp2=Math.hypot(b.vx,b.vy);
+          if(sp2>CFG.MAX_BALL_SPD){ const sc=CFG.MAX_BALL_SPD/sp2; b.vx*=sc; b.vy*=sc; }
+          AUDIO.kick();
+        }
+      }
+    }
+
+    // ── Pinch escape: ball wedged against 2+ figures in the same frame ──
+    // (e.g. squeezed between two adjacent figures on a rod). Rather than
+    // waiting for the slow-tick timer, force a decisive break-out now so
+    // the ball can never remain trapped bouncing between collision zones.
+    if(pinchCount >= 2){
+      let ex = pinchDX, ey = pinchDY;
+      const mag = Math.hypot(ex, ey);
+      if(mag < 0.3){
+        // Separation vectors nearly cancel out (squeezed dead-center) —
+        // force it out perpendicular to the rod line, toward the open side.
+        ex = 0; ey = (b.y < P.cy) ? -1 : 1;
+      } else {
+        ex /= mag; ey /= mag;
+      }
+      b.x += ex * 6; b.y += ey * 6;
+      b.vx = ex * 8; b.vy = ey * 8;
+      this.slowTick = 0;
+    }
+  },
+
+  // ── Bot AI ──────────────────────────────────────────────────
+  _botThink(dt){
+    const b = this.ball;
+    this._botInput = { up: false, down: false, kick: false };
+
+    // ── Difficulty knobs ──
+    const BOT_SPD    = CFG.ROD_SPD * dt * 0.50;  // 50% of player speed (was 72%)
+    const JITTER_AMP = 40;                         // ±40px positional error (was ±12)
+    const JITTER_SPDS= [310, 870];                 // two slow sine waves for natural wobble
+    const REACT_MS   = 260;                        // 260ms reaction delay (was 0)
+    const KICK_PROB  = 0.65;                       // only kicks 65% of contacts (was 100%)
+    const REST_PROB  = 0.0018;                     // random brief hesitation per frame
+
+    // Reaction-time delay: track ball history and use a stale position
+    if(!this._botHist) this._botHist = [];
+    const now = Date.now();
+    this._botHist.push({ y: b.y, t: now });
+    if(this._botHist.length > 60) this._botHist.shift();
+    const delayed = this._botHist.find(h => now - h.t >= REACT_MS) || { y: b.y };
+
+    // Occasional random rest (bot hesitates briefly)
+    if(!this._botResting && Math.random() < REST_PROB){
+      this._botResting = true;
+      setTimeout(() => { this._botResting = false; }, 300 + Math.random() * 400);
+    }
+    if(this._botResting) return;
+
+    // Sinusoidal jitter on target — two frequencies for unpredictable wobble
+    const jitter = Math.sin(now / JITTER_SPDS[0]) * JITTER_AMP * 0.7
+                 + Math.sin(now / JITTER_SPDS[1]) * JITTER_AMP * 0.3;
+    const targetY = delayed.y + jitter;
+
+    // Find best offset to align nearest p2 figure with targetY
+    let bestOff = this.p2Off;
+    let bestDist = Infinity;
+    const p2Rods = ROD_DEFS_2V2.filter(r => r.team === 'p2');
+    for(const rod of p2Rods){
+      const sp = P.h / (rod.nFigs + 1);
+      for(let i = 0; i < rod.nFigs; i++){
+        const naturalY = P.y + sp * (i + 1);
+        const needed = targetY - naturalY;
+        const clamped = Math.max(LIM.p2.min, Math.min(LIM.p2.max, needed));
+        const dist = Math.abs(targetY - (naturalY + clamped));
+        if(dist < bestDist){ bestDist = dist; bestOff = clamped; }
+      }
+    }
+
+    // Move toward target at limited speed
+    const delta = bestOff - this.p2Off;
+    if(Math.abs(delta) > 0.5){
+      const step = Math.sign(delta) * Math.min(Math.abs(delta), BOT_SPD);
+      this.p2Off += step;
+      this.p2Off = Math.max(LIM.p2.min, Math.min(LIM.p2.max, this.p2Off));
+      const willKick = Math.random() < KICK_PROB;
+      this._botInput = { up: delta < -1, down: delta > 1, kick: willKick };
+    }
+  },
+
+  _localGoal(scorer){
+    this.goalPause = true;
+    // Ball kicks off toward the team that conceded: p1 conceded → go right (+1), p2 conceded → go left (-1)
+    this._kickDir = scorer === 'p2' ? 1 : -1;
+    setTimeout(()=>{ this.ballHidden = true; }, 350);
+    this.score[scorer]++;
+    document.getElementById(`sc${scorer==='p1'?'1':'2'}`).textContent=this.score[scorer];
+    AUDIO.goal(); CG.happyTime();
+    this._showGoalOverlay(scorer);
+    setTimeout(()=>{
+      document.getElementById('goal-overlay').classList.remove('show');
+      AUDIO.stopApplause();
+      if(this.timeLeft>0 && this.running) this.reset();
+      else this._localGameEnd();
+    },3000);
+  },
+
+  _localGameEnd(){
+    this.stop();
+    AUDIO.stopMusic();
+    const t1=STATE.p1Team, t2=STATE.p2Team;
+    const _fi=(t)=>`<img src="${t.flag}" alt="${t.name}" style="width:28px;height:19px;object-fit:cover;border-radius:2px;vertical-align:middle;margin-right:5px">`;
+    let winner;
+    if(this.score.p1>this.score.p2) winner=`${_fi(t1)}${t1.name} wins!`;
+    else if(this.score.p2>this.score.p1) winner=`${_fi(t2)}${t2.name} wins!`;
+    else winner="It's a draw! 🤝";
+    APP._playMatchEndSequence(winner, `${this.score.p1} — ${this.score.p2}`);
+  },
+
+  // Called by server messages:
+  applyServerState(m){
+    this._ballPrevX = this.ball.x; this._ballPrevY = this.ball.y;
+    this.ball={x:m.bx,y:m.by,vx:m.bvx,vy:m.bvy};
+    this.ballZ = m.bz || 0;
+    this.ballAngle = (this.ballAngle + (m.bvx||0) * 0.04) % (Math.PI * 2);
+    this.p1Off=m.p1Off; this.p2Off=m.p2Off;
+    this.score={p1:m.s1,p2:m.s2};
+    this.timeLeft=m.t;
+
+    // Hold/catch/pass/charge state — the server is fully authoritative for
+    // these mechanics online, so just mirror whatever it broadcasts.
+    this.heldBy = m.heldBy ? { team: m.heldBy.team, rod: ROD_DEFS_2V2[m.heldBy.rodIdx], figIdx: m.heldBy.figIdx } : null;
+    this.holdTimer = m.holdTimer || 0;
+    this.holdCooldownP1 = m.holdCdP1 || 0;
+    this.holdCooldownP2 = m.holdCdP2 || 0;
+    this.passChargesP1 = m.passChP1 ?? this.passChargesP1;
+    this.passChargesP2 = m.passChP2 ?? this.passChargesP2;
+    this.passRechargeP1 = m.passRcP1 || 0;
+    this.passRechargeP2 = m.passRcP2 || 0;
+    this.passAnim = m.passAnimActive ? true : null; // only a truthy/falsy stub is needed client-side
+    if(m.lastTouch) this.lastTouchTeam = m.lastTouch;
+
+    // Sound/hit-effect/kick-angle: the server signals a one-shot typed event
+    // whenever a figure kicks, catches, passes, or releases the ball, so the
+    // client can play the exact same distinct audio cue as offline instead
+    // of a single generic "kick" sound for every interaction.
+    if(m.fx){
+      const { type, team, frac, powered } = m.fx;
+      const snapAngle = (type==='charged' || type==='lofted') ? 0.9 : 0.65;
+      switch(type){
+        case 'kick':
+          if(team==='p1') this.p1KickAngle = snapAngle; else this.p2KickAngle = snapAngle;
+          RENDERER.triggerHitEffect(this.ball, powered ? 0.9 : 0.45);
+          AUDIO.kick();
+          break;
+        case 'throw':
+          if(team==='p1') this.p1KickAngle = snapAngle; else this.p2KickAngle = snapAngle;
+          RENDERER.triggerHitEffect(this.ball, 0.85);
+          AUDIO.kick();
+          break;
+        case 'charged':
+          if(team==='p1') this.p1KickAngle = snapAngle; else this.p2KickAngle = snapAngle;
+          RENDERER.triggerHitEffect(this.ball, Math.min(1, 0.6 + (frac||0) * 0.4));
+          AUDIO.kick();
+          AUDIO.tone(180 + (frac||0) * 140, 0.14, 0.18 + (frac||0) * 0.16);
+          break;
+        case 'lofted':
+          if(team==='p1') this.p1KickAngle = snapAngle; else this.p2KickAngle = snapAngle;
+          RENDERER.triggerHitEffect(this.ball, 0.8);
+          AUDIO.kick();
+          AUDIO.tone(560, 0.1, 0.2);
+          break;
+        case 'catch':
+          AUDIO.tone(420, 0.06, 0.18);
+          break;
+        case 'pass':
+          AUDIO.tone(350, 0.05, 0.1);
+          break;
+        case 'passDenied':
+          AUDIO.tone(140, 0.08, 0.12);
+          break;
+      }
+    }
+
+    // Local-only preview of "can I catch this" — the server still makes the
+    // real catch decision; this purely drives the on-screen hold indicator.
+    if(!this.heldBy) this._updateCatchIndicator(); else this.catchIndicator = null;
+
+    document.getElementById('sc1').textContent=m.s1;
+    document.getElementById('sc2').textContent=m.s2;
+    this._updateTimerHUD();
+  },
+  onServerGoal(m){
+    setTimeout(()=>{ this.ballHidden = true; }, 350);
+    this.score={p1:m.s1,p2:m.s2};
+    AUDIO.goal(); CG.happyTime();
+    this._showGoalOverlay(m.scorer);
+    setTimeout(()=>{
+      document.getElementById('goal-overlay').classList.remove('show');
+      AUDIO.stopApplause();
+      // Server respawns the ball 3s after a goal (matching this same delay) —
+      // reveal it again here, since applyServerState() never touches ballHidden.
+      this.ballHidden = false;
+    },3000);
+  },
+  _showGoalOverlay(scorer){
+    const team=scorer==='p1'?STATE.p1Team:STATE.p2Team;
+    document.getElementById('goal-sub').innerHTML=`<img src="${team.flag}" alt="${team.name}" style="width:28px;height:19px;object-fit:cover;border-radius:2px;vertical-align:middle;margin-right:5px">${team.name} scores!`;
+    document.getElementById('goal-overlay').classList.add('show');
+  },
+};
+
+// ═══════════════════════════════════════════════════════════════
+//  RENDERER  — Three.js 3D engine
+// ═══════════════════════════════════════════════════════════════
+const RENDERER = {
+  _ok: false, _s: null, _cam: null, _gl: null,
+  _ball: null, _rods: [],
+  // Trail
+  _trailCtx: null, _trailPts: [], TRAIL_MAX: 26, _trailAlpha: 0,
+
+  // ── coord helpers ─────────────────────────────────────────────
+  _tx(px){ return (px - P.cx) / (P.w * 0.5) * 4; },
+  _tz(py){ return (py - P.cy) / (P.h * 0.5) * 2.5; },
+
+  draw(){ if(this._ok) this._gl.render(this._s, this._cam); },
+
+  // ── Init: build full 3D scene ─────────────────────────────────
+  init(){
+    const T = window.THREE;
+    if(!T){ console.error('Three.js failed to load'); return; }
+
+    // Scene
+    this._s = new T.Scene();
+    this._s.background = new T.Color(0x87CEEB); // cartoon sky blue
+
+    // Camera — slightly more forward for better field readability
+    this._cam = new T.PerspectiveCamera(65, W/H, 0.1, 50);
+    this._cam.position.set(0, 4.6, 3.2);
+    this._cam.lookAt(0, 0.0, -0.4);
+
+    // WebGL renderer
+    this._gl = new T.WebGLRenderer({ canvas: CV, antialias: true });
+    this._gl.setSize(W, H);
+    this._gl.setPixelRatio(Math.min(devicePixelRatio, 2));
+    this._gl.shadowMap.enabled = true;
+    this._gl.shadowMap.type = T.PCFSoftShadowMap;
+    // No ACESFilmic — keep colors vivid and bright
+    this._gl.toneMapping = T.NoToneMapping;
+    this._gl.toneMappingExposure = 1.0;
+
+    // Lighting — bright and flat, cartoon look
+    this._s.add(new T.AmbientLight(0xffffff, 1.6));
+    const sun = new T.DirectionalLight(0xffffff, 1.8);
+    sun.position.set(2, 9, 5);
+    sun.castShadow = true;
+    sun.shadow.mapSize.setScalar(2048);
+    Object.assign(sun.shadow.camera, {near:1,far:30,left:-7,right:7,top:5,bottom:-5});
+    sun.shadow.bias = -0.0008;
+    this._s.add(sun);
+    const fill = new T.DirectionalLight(0xffffff, 0.6);
+    fill.position.set(-3, 4, 7);
+    this._s.add(fill);
+
+    this._buildFloor(T);
+    this._buildTable(T);
+    this._buildPitch(T);
+    this._buildMarkings(T);
+    this._buildGoals(T);
+    this._buildRods(T);
+    this._buildBall(T);
+    this.initTrail();
+    this._ok = true;
+  },
+
+  _buildFloor(T){
+    // Bright cartoon floor — checkered sky-blue / light pattern
+    const m = new T.Mesh(new T.PlaneGeometry(60,60),
+      new T.MeshStandardMaterial({color:0x5BB8F5,roughness:0.7,metalness:0.0}));
+    m.rotation.x = -Math.PI/2; m.position.y = -0.55; m.receiveShadow = true;
+    this._s.add(m);
+  },
+
+  _buildTable(T){
+    // Bright cartoon table — vivid red body, yellow top trim
+    const body  = new T.MeshStandardMaterial({color:0xE02020,roughness:0.6,metalness:0.0});
+    const trim  = new T.MeshStandardMaterial({color:0xFFD700,roughness:0.5,metalness:0.1});
+    const leg   = new T.MeshStandardMaterial({color:0xCC1010,roughness:0.7,metalness:0.0});
+    const add   = (geo,mat,x,y,z,rx=0,ry=0,rz=0)=>{
+      const m=new T.Mesh(geo,mat); m.position.set(x,y,z);
+      m.rotation.set(rx,ry,rz); m.castShadow=true; m.receiveShadow=true;
+      this._s.add(m); return m;
+    };
+
+    const wt = 0.55;
+    const ex = 4 + wt/2;
+    const rz = 2.5 + wt/2;
+    const tw = ex*2;
+    const td = rz*2;
+
+    // Base slab
+    add(new T.BoxGeometry(tw,0.42,td), body, 0,-0.26,0);
+    // Table legs — bright red, chunky & rounded look
+    [[-ex+0.1,-rz+0.1],[ex-0.1,-rz+0.1],[-ex+0.1,rz-0.1],[ex-0.1,rz-0.1]].forEach(([x,z])=>{
+      add(new T.BoxGeometry(0.32,3.6,0.32), leg, x,-2.2,z);
+    });
+
+    // Far rail
+    add(new T.BoxGeometry(tw,0.65,wt), body, 0,0.17,-rz);
+    add(new T.BoxGeometry(tw,0.10,wt), trim, 0,0.52,-rz);
+
+    // Near rail
+    add(new T.BoxGeometry(tw,0.65,wt), body, 0,0.17, rz);
+    add(new T.BoxGeometry(tw,0.10,wt), trim, 0,0.52,rz);
+
+    // End walls
+    const gHz = (P.goalH/P.h)*2.5;
+    const sideLen = rz - gHz;
+    [-ex, ex].forEach(x=>{
+      [-(gHz+sideLen/2), gHz+sideLen/2].forEach(zc=>{
+        add(new T.BoxGeometry(wt,0.65,sideLen), body, x,0.17,zc);
+        add(new T.BoxGeometry(wt,0.10,sideLen), trim, x,0.52,zc);
+      });
+      add(new T.BoxGeometry(wt,0.18,td), trim, x,0.48,0);
+    });
+  },
+
+  _buildPitch(T){
+    const pw = 8, pd = 5;
+    // Bright vivid green — matches menu grass
+    const felt = new T.Mesh(new T.PlaneGeometry(pw, pd),
+      new T.MeshStandardMaterial({color:0x2ECC40,roughness:0.85,metalness:0.0}));
+    felt.rotation.x=-Math.PI/2; felt.receiveShadow=true;
+    this._s.add(felt);
+    // Mow stripes — slightly darker green
+    const dk = new T.MeshStandardMaterial({color:0x25A835,roughness:0.85,transparent:true,opacity:0.5});
+    const nStripes = 8, sw = pw / nStripes;
+    for(let i=0;i<nStripes;i+=2){
+      const s=new T.Mesh(new T.PlaneGeometry(sw*0.97, pd), dk);
+      s.rotation.x=-Math.PI/2; s.position.set(-pw/2 + sw*(i+0.5), 0.001, 0);
+      this._s.add(s);
+    }
+  },
+
+  _buildMarkings(T){
+    const mat=new T.LineBasicMaterial({color:0xffffff,transparent:true,opacity:0.68});
+    const pts=[];
+    const L=(x1,z1,x2,z2)=>{
+      pts.push(new T.Vector3(x1,0.012,z1),new T.Vector3(x2,0.012,z2));
+    };
+    // Border
+    L(-4,-2.5,4,-2.5);L(4,-2.5,4,2.5);L(4,2.5,-4,2.5);L(-4,2.5,-4,-2.5);
+    // Centre line
+    L(0,-2.5,0,2.5);
+    // Centre circle (ellipse in 3D because X and Z scales differ slightly)
+    const crX=62/(P.w/2)*4, crZ=62/(P.h/2)*2.5;
+    for(let i=0;i<36;i++){
+      const a1=Math.PI*2*i/36,a2=Math.PI*2*(i+1)/36;
+      L(Math.cos(a1)*crX,Math.sin(a1)*crZ,Math.cos(a2)*crX,Math.sin(a2)*crZ);
+    }
+    // Centre dot
+    L(-0.06,0,0.06,0);L(0,-0.06,0,0.06);
+    // Penalty areas
+    const paX=90/(P.w/2)*4, paZ=(P.goalH/2+35)/(P.h/2)*2.5;
+    L(-4,-paZ,-4+paX,-paZ);L(-4+paX,-paZ,-4+paX,paZ);L(-4+paX,paZ,-4,paZ);
+    L(4,-paZ,4-paX,-paZ);L(4-paX,-paZ,4-paX,paZ);L(4-paX,paZ,4,paZ);
+    const geo=new T.BufferGeometry().setFromPoints(pts);
+    this._s.add(new T.LineSegments(geo,mat));
+  },
+
+  _buildGoals(T){
+    const postMat = new T.MeshStandardMaterial({color:0xFFFFFF,metalness:0.1,roughness:0.3});
+    const wallMat = new T.MeshStandardMaterial({color:0xCC1010,roughness:0.6,metalness:0.0});
+    const floorMat= new T.MeshStandardMaterial({color:0x1a7a2a,roughness:0.9,metalness:0.0});
+    const netMat  = new T.LineBasicMaterial({color:0xffffff,transparent:true,opacity:0.7});
+    const gHz = P.goalH/P.h*2.5;
+    const gD  = 0.5;   // flush with table outer face
+    const wT  = 0.07;
+    const pr  = 0.038;
+    const h   = 0.52;
+
+    const add=(geo,mat,x,y,z,rx=0,ry=0,rz=0)=>{
+      const m=new T.Mesh(geo,mat);
+      m.position.set(x,y,z); m.rotation.set(rx,ry,rz);
+      m.castShadow=true; m.receiveShadow=true; this._s.add(m);
+    };
+
+    [-4,4].forEach(x=>{
+      const d = x<0 ? -1 : 1;
+      const xOut = x + d*gD;
+      const xMid = x + d*gD/2;
+
+      // Front mouth posts (vertical)
+      [[x,-gHz],[x,gHz]].forEach(([px,pz])=>{
+        add(new T.CylinderGeometry(pr,pr,h,10), postMat, px,h/2,pz);
+      });
+      // Front crossbar
+      const fb=new T.Mesh(new T.CylinderGeometry(pr,pr,gHz*2,10),postMat);
+      fb.rotation.x=Math.PI/2; fb.position.set(x,h,0); this._s.add(fb);
+
+      // Side rails (top edge)
+      [-gHz, gHz].forEach(pz=>{
+        add(new T.BoxGeometry(gD,wT,wT), wallMat, xMid, h+wT/2, pz);
+      });
+      // Back post + top rail
+      add(new T.BoxGeometry(wT,h,gHz*2),       wallMat, xOut, h/2,    0);
+      add(new T.BoxGeometry(wT,wT,gHz*2+wT*2), wallMat, xOut, h+wT/2, 0);
+
+      // Goal floor (dark)
+      const fl=new T.Mesh(new T.PlaneGeometry(gD,gHz*2), floorMat);
+      fl.rotation.x=-Math.PI/2; fl.position.set(xMid, 0.005, 0); this._s.add(fl);
+
+      // ── Diamond-pattern net (like real loose foosball net) ──
+      const netPts=[];
+      const L=(ax,ay,az,bx,by,bz)=>{ netPts.push(new T.Vector3(ax,ay,az),new T.Vector3(bx,by,bz)); };
+      const dS=0.085; // diamond cell size
+
+      // Back net — diamond grid on plane at xOut, z:[-gHz..gHz], y:[0..h]
+      for(let s=-(gHz*2+h);s<(gHz*2+h);s+=dS){
+        // diagonal /   z increases with y
+        const z0a=Math.max(-gHz,-gHz+s), y0a=Math.max(0,-s);
+        const z0b=Math.min( gHz,-gHz+s+h), y0b=Math.min(h,-s+h);
+        if(z0a<z0b) L(xOut,y0a,z0a, xOut,y0b,z0b);
+        // diagonal \   z decreases with y
+        const z1a=Math.min(gHz,gHz-s), y1a=Math.max(0,-s);
+        const z1b=Math.max(-gHz,gHz-s-h), y1b=Math.min(h,-s+h);
+        if(z1b<z1a) L(xOut,y1a,z1a, xOut,y1b,z1b);
+      }
+
+      // Side nets — simple square grid on z=±gHz (cleaner view from above)
+      const nc=Math.round(gD/dS), nr=Math.round(h/dS);
+      [-gHz,gHz].forEach(pz=>{
+        for(let r=0;r<=nr;r++){ const py=r*h/nr; L(x,py,pz, xOut,py,pz); }
+        for(let c=0;c<=nc;c++){ const px=x+d*c*gD/nc; L(px,0,pz, px,h,pz); }
+      });
+
+      // Roof net — square grid on y=h
+      const ncR=Math.round(gD/dS), nzR=Math.round(gHz*2/dS);
+      for(let c=0;c<=ncR;c++){ const px=x+d*c*gD/ncR; L(px,h,-gHz, px,h,gHz); }
+      for(let r=0;r<=nzR;r++){ const pz=-gHz+r*gHz*2/nzR; L(x,h,pz, xOut,h,pz); }
+
+      const netGeo=new T.BufferGeometry().setFromPoints(netPts);
+      this._s.add(new T.LineSegments(netGeo,netMat));
+    });
+  },
+
+  _buildRods(T){
+    // Bright yellow rods, red grips — cartoon toy look
+    const rodMat=new T.MeshStandardMaterial({color:0xFFD700,metalness:0.2,roughness:0.4});
+    const gripMat=new T.MeshStandardMaterial({color:0xFF3030,roughness:0.8,metalness:0.0});
+    this._rods=[];
+
+    for(const rod of ROD_DEFS_2V2){
+      const rx=this._tx(P.x+rod.xFrac*P.w);
+      const rodM=new T.Mesh(new T.CylinderGeometry(0.05,0.05,7.2,14),rodMat);
+      rodM.rotation.x=Math.PI/2; rodM.position.set(rx,0.28,0); rodM.castShadow=true;
+      this._s.add(rodM);
+      // Grip handles — chunky red
+      [-3.7,3.7].forEach(gz=>{
+        const g=new T.Mesh(new T.CylinderGeometry(0.12,0.12,0.30,12),gripMat);
+        g.rotation.x=Math.PI/2; g.position.set(rx,0.28,gz); this._s.add(g);
+        const c=new T.Mesh(new T.CylinderGeometry(0.135,0.135,0.07,12),gripMat);
+        c.rotation.x=Math.PI/2; c.position.set(rx,0.28,gz+(gz>0?0.18:-0.18)); this._s.add(c);
+      });
+
+      // Figures — real foosball figure shape, face toward camera (+Z)
+      const defColor=rod.team==='p1'?0xDD2222:0x1E88E5;
+      const sp=P.h/(rod.nFigs+1);
+      const figs=[];
+      const skinMat=new T.MeshStandardMaterial({color:0xF0B47A,roughness:0.7});
+      const baseMat=new T.MeshStandardMaterial({color:0xdddddd,roughness:0.6});
+      const hairMat=new T.MeshStandardMaterial({color:0x1a0a00,roughness:0.8});
+      for(let i=0;i<rod.nFigs;i++){
+        const grp=new T.Group();
+        const bodyMat=new T.MeshStandardMaterial({color:defColor,roughness:0.5});
+        const capMat =new T.MeshStandardMaterial({color:defColor,roughness:0.4});
+        const srtMat =new T.MeshStandardMaterial({color:0xffffff,roughness:0.6});
+
+        // ── Base block (attaches to rod) ──
+        const base=new T.Mesh(new T.BoxGeometry(0.26,0.07,0.20),baseMat);
+        base.position.set(0,-0.18,0); grp.add(base);
+
+        // fd: +1 for P1 (faces right/+X), -1 for P2 (faces left/-X)
+        const fd = rod.team==='p1' ? 1 : -1;
+
+        // ── Legs along Z (left/right of player facing X) ──
+        [-0.07,0.07].forEach(lz=>{
+          const leg=new T.Mesh(new T.CylinderGeometry(0.045,0.05,0.20,8),skinMat);
+          leg.position.set(0,-0.05,lz); leg.castShadow=true; grp.add(leg);
+        });
+
+        // ── Shorts (white band at hip) ──
+        const srt=new T.Mesh(new T.CylinderGeometry(0.115,0.115,0.09,10),srtMat);
+        srt.position.set(0,0.06,0); grp.add(srt);
+
+        // ── Jersey / torso ──
+        const torso=new T.Mesh(new T.CylinderGeometry(0.115,0.105,0.22,10),bodyMat);
+        torso.position.set(0,0.22,0); torso.castShadow=true; grp.add(torso);
+
+        // ── Arms along Z (sides of player) ──
+        [-1,1].forEach(side=>{
+          const arm=new T.Mesh(new T.CylinderGeometry(0.04,0.035,0.18,8),skinMat);
+          arm.rotation.x = side * 0.55; // tilt along Z-axis (player's side)
+          arm.position.set(0, 0.20, side*0.145); grp.add(arm);
+        });
+
+        // ── Neck ──
+        const neck=new T.Mesh(new T.CylinderGeometry(0.04,0.04,0.07,8),skinMat);
+        neck.position.set(0,0.35,0); grp.add(neck);
+
+        // ── Head ──
+        const head=new T.Mesh(new T.SphereGeometry(0.11,14,10),skinMat);
+        head.position.set(0,0.46,0); head.castShadow=true; grp.add(head);
+
+        // ── Hair cap ──
+        const capGeo=new T.SphereGeometry(0.113,14,6,0,Math.PI*2,0,Math.PI*0.52);
+        const cap=new T.Mesh(capGeo,hairMat);
+        cap.position.set(0,0.46,0); grp.add(cap);
+
+        // ── Eyes facing along X toward opponent (fd = face direction) ──
+        // P1 faces +X → eyes at +X side; P2 faces -X → eyes at -X side
+        [[fd*0.09,0.475,-0.04],[fd*0.09,0.475,0.04]].forEach(([ex,ey,ez])=>{
+          const eye=new T.Mesh(new T.SphereGeometry(0.022,6,4),new T.MeshStandardMaterial({color:0xffffff}));
+          eye.position.set(ex,ey,ez); grp.add(eye);
+          const pupil=new T.Mesh(new T.SphereGeometry(0.012,6,4),new T.MeshStandardMaterial({color:0x111111}));
+          pupil.position.set(ex+fd*0.012,ey,ez); grp.add(pupil);
+        });
+
+        const fy0=P.y+sp*(i+1);
+        grp.position.set(rx,0.18,this._tz(fy0));
+        grp.userData={bodyMat,capMat,srtMat,rod,lastTeam:null};
+        this._s.add(grp);
+        figs.push(grp);
+      }
+      this._rods.push({rod,rodIdx:ROD_DEFS_2V2.indexOf(rod),figs});
+    }
+  },
+
+  _buildBall(T){
+    // Ball shadow blob on pitch (always stays at y=0)
+    const shadowMat=new T.MeshStandardMaterial({color:0x000000,transparent:true,opacity:0.28,roughness:1,depthWrite:false});
+    this._ballShadow=new T.Mesh(new T.CircleGeometry(0.14,16),shadowMat);
+    this._ballShadow.rotation.x=-Math.PI/2; this._ballShadow.position.y=0.002;
+    this._s.add(this._ballShadow);
+
+    // Bigger, cartoon-style ball
+    const mat=new T.MeshStandardMaterial({color:0xffffff,roughness:0.3,metalness:0.0});
+    this._ball=new T.Mesh(new T.SphereGeometry(0.13,20,16),mat);
+    this._ball.castShadow=true; this._ball.position.y=0.13;
+    // Bold black pentagon patches
+    const pm=new T.MeshStandardMaterial({color:0x111111,roughness:0.3});
+    [[0,1,0],[1,0,0],[-1,0,0],[0,0,1],[0,0,-1],
+     [0.7,0.7,0],[-0.7,0.7,0],[0.7,-0.7,0]].forEach(([nx,ny,nz])=>{
+      const p=new T.Mesh(new T.SphereGeometry(0.046,5,4),pm);
+      const len=Math.hypot(nx,ny,nz)||1;
+      p.position.set(nx/len*0.098,ny/len*0.098,nz/len*0.098);
+      this._ball.add(p);
+    });
+    this._s.add(this._ball);
+
+    // Hold ring — flat ring on the pitch that pulses while ball is caught
+    const ringMat = new T.MeshBasicMaterial({color:0xffdd00, transparent:true, opacity:0, side:T.DoubleSide, depthWrite:false});
+    this._holdRing = new T.Mesh(new T.RingGeometry(0.17, 0.24, 40), ringMat);
+    this._holdRing.rotation.x = -Math.PI/2;
+    this._holdRing.position.y = 0.005;
+    this._holdRing.visible = false;
+    this._s.add(this._holdRing);
+  },
+
+  // ── Hit effect: brief flash light only (no player-emitted particles) ──
+  triggerHitEffect(ball, power){
+    if(!this._ok || power<0.15) return;
+    const T=THREE;
+    const bx=this._tx(ball.x), bz=this._tz(ball.y);
+    // Flash point light — gives impact feedback without spawning sprites
+    if(!this._hitLight){
+      this._hitLight=new T.PointLight(0xff6600,0,4);
+      this._s.add(this._hitLight);
+    }
+    this._hitLight.position.set(bx, 0.5, bz);
+    this._hitLight.intensity = 4 + power*8;
+    this._hitLight.color.setHex(power>0.7 ? 0xff2200 : 0xff9900);
+  },
+
+  // ── Trail: 2D canvas ribbon ───────────────────────────────────
+  initTrail(){
+    const tc = document.getElementById('trailCanvas');
+    if(!tc) return;
+    this._trailCtx = tc.getContext('2d');
+  },
+  clearTrail(){
+    this._trailPts = [];
+    if(this._trailCtx){
+      const c = this._trailCtx.canvas;
+      this._trailCtx.clearRect(0,0,c.width,c.height);
+    }
+  },
+  _project(gx, gy){
+    const T = THREE;
+    const v = new T.Vector3(this._tx(gx), 0.13, this._tz(gy));
+    v.project(this._cam);
+    const c = this._trailCtx.canvas;
+    return { x: (v.x+1)/2*c.width, y: (-v.y+1)/2*c.height };
+  },
+  _drawTrail(){
+    const ctx = this._trailCtx;
+    if(!ctx) return;
+    const c = ctx.canvas;
+    ctx.clearRect(0,0,c.width,c.height);
+    const pts = this._trailPts;
+    if(pts.length < 2) return;
+    const N = pts.length;
+
+    // Pick color from last touch team
+    let teamColor = '#ffffff';
+    if(GAME.lastTouchTeam){
+      const _tt = GAME.lastTouchTeam;
+      const t = STATE[_tt==='p1'?'p1Team':'p2Team'];
+      const kit = STATE[_tt==='p1'?'p1Kit':'p2Kit'] || 'home';
+      if(t) teamColor = t[kit] || t.home || teamColor;
+    }
+    const h = teamColor.replace('#','');
+    const r = parseInt(h.slice(0,2),16), g = parseInt(h.slice(2,4),16), b = parseInt(h.slice(4,6),16);
+
+    const a = this._trailAlpha;
+    if(a < 0.01) return;
+
+    // Skip first 3 pts so trail begins behind the ball, not on top of it
+    const SKIP = 3;
+    if(pts.length <= SKIP + 1) return;
+    const drawPts = pts.slice(SKIP);
+    const M = drawPts.length;
+
+    // Project stored game coords to screen
+    const sp = drawPts.map(p => this._project(p.x, p.y));
+
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+
+    // Pass 1 — wide soft glow
+    for(let i=0; i<M-1; i++){
+      const t0 = (1 - i/(M-1)) * a;
+      ctx.beginPath();
+      ctx.moveTo(sp[i].x, sp[i].y);
+      ctx.lineTo(sp[i+1].x, sp[i+1].y);
+      ctx.strokeStyle = `rgba(${r},${g},${b},${(t0*0.18).toFixed(3)})`;
+      ctx.lineWidth = t0 * 22;
+      ctx.stroke();
+    }
+    // Pass 2 — sharp core ribbon
+    for(let i=0; i<M-1; i++){
+      const t0 = (1 - i/(M-1)) * a;
+      ctx.beginPath();
+      ctx.moveTo(sp[i].x, sp[i].y);
+      ctx.lineTo(sp[i+1].x, sp[i+1].y);
+      ctx.strokeStyle = `rgba(${r},${g},${b},${(t0*0.75).toFixed(3)})`;
+      ctx.lineWidth = t0 * 7;
+      ctx.stroke();
+    }
+    // Pass 3 — bright white highlight along leading quarter
+    for(let i=0; i<Math.floor(M/3); i++){
+      const t0 = (1 - i/(M-1)) * a;
+      ctx.beginPath();
+      ctx.moveTo(sp[i].x, sp[i].y);
+      ctx.lineTo(sp[i+1].x, sp[i+1].y);
+      ctx.strokeStyle = `rgba(255,255,255,${(t0*0.45).toFixed(3)})`;
+      ctx.lineWidth = t0 * 2.5;
+      ctx.stroke();
+    }
+  },
+
+  // ── Possession timer bar (drawn on trail canvas) ──────────────
+  _drawCatchIndicator(){
+    const ctx = this._trailCtx;
+    const ci = GAME.catchIndicator;
+    // GAME.heldBy is checked defensively here too: _updateCatchIndicator() stops
+    // running the instant the ball is held (the update loop early-returns into
+    // _updateHeld), so this guards against ever drawing a stale opportunity.
+    if(!ctx || !ci || GAME.heldBy) return;
+    const off = ci.team==='p1' ? GAME.p1Off : GAME.p2Off;
+    const sp  = P.h / (ci.rod.nFigs + 1);
+    const figGx = P.x + ci.rod.xFrac * P.w;
+    const figGy = P.y + sp * (ci.figIdx + 1) + off;
+    const sc = this._project(figGx, figGy);
+
+    const t = Date.now();
+    const pulse  = 0.5 + 0.5 * Math.sin(t / 140);   // fast, energetic throb
+
+    ctx.save();
+
+    // ── Ground spotlight: big soft white/cyan glow — reads against green grass ──
+    // ── AND white pitch lines, unlike the previous yellow which blended into both.
+    const spotR = 46;
+    const grad = ctx.createRadialGradient(sc.x, sc.y, 0, sc.x, sc.y, spotR);
+    grad.addColorStop(0,    `rgba(255,255,255,${0.42 + pulse*0.18})`);
+    grad.addColorStop(0.55, `rgba(90,210,255,${0.22 + pulse*0.1})`);
+    grad.addColorStop(1,    'rgba(90,210,255,0)');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(sc.x, sc.y, spotR, 0, Math.PI * 2);
+    ctx.fill();
+
+    // ── Expanding radar "ping" rings — reads as an active, urgent opportunity ──
+    for(let i = 0; i < 3; i++){
+      const phase = ((t / 650) + i / 3) % 1;
+      const r = 15 + phase * 32;
+      ctx.globalAlpha = (1 - phase) * 0.6;
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 2.5;
+      ctx.shadowColor = '#5ad2ff';
+      ctx.shadowBlur = 14;
+      ctx.beginPath();
+      ctx.arc(sc.x, sc.y, r, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+
+    // ── Core disc: bright white, pulsing scale + heavy bloom for max visibility ──
+    const coreR = 16 + pulse * 4;
+    ctx.globalAlpha = 1;
+    ctx.shadowColor = '#ffffff';
+    ctx.shadowBlur = 24 + pulse * 12;
+    const coreGrad = ctx.createRadialGradient(sc.x, sc.y, 0, sc.x, sc.y, coreR);
+    coreGrad.addColorStop(0,    '#ffffff');
+    coreGrad.addColorStop(0.55, '#eaf9ff');
+    coreGrad.addColorStop(1,    '#8fe0ff');
+    ctx.fillStyle = coreGrad;
+    ctx.beginPath();
+    ctx.arc(sc.x, sc.y, coreR, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Bold dark navy rim — keeps the white disc readable even over white pitch lines
+    ctx.shadowBlur = 0;
+    ctx.lineWidth = 2.5;
+    ctx.strokeStyle = 'rgba(10,30,45,0.85)';
+    ctx.beginPath();
+    ctx.arc(sc.x, sc.y, coreR, 0, Math.PI * 2);
+    ctx.stroke();
+
+    // Hand glyph inside the core
+    ctx.font = `bold ${16 + pulse*2}px sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#0a2540';
+    ctx.fillText('✋', sc.x, sc.y + 1);
+
+    // ── Large "SPACE" keycap above the core — explicit key prompt so players ──
+    // ── never have to guess which button makes the hold happen.              ──
+    const capW = 76, capH = 32, capR = 9;
+    const capBounce = pulse * 3;
+    const capX = sc.x - capW / 2;
+    const capY = sc.y - coreR - 44 - capBounce;
+
+    ctx.shadowColor = '#ffffff';
+    ctx.shadowBlur = 16 + pulse * 10;
+
+    // 3D bottom "depth" layer, like a real keyboard key
+    ctx.fillStyle = '#8fb8c8';
+    ctx.beginPath();
+    ctx.roundRect(capX, capY + 5, capW, capH, capR);
+    ctx.fill();
+
+    // Top face
+    const capGrad = ctx.createLinearGradient(capX, capY, capX, capY + capH);
+    capGrad.addColorStop(0, '#ffffff');
+    capGrad.addColorStop(1, '#dff3ff');
+    ctx.fillStyle = capGrad;
+    ctx.beginPath();
+    ctx.roundRect(capX, capY, capW, capH, capR);
+    ctx.fill();
+
+    ctx.shadowBlur = 0;
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = 'rgba(10,30,45,0.85)';
+    ctx.stroke();
+
+    ctx.font = '900 14px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#0a2540';
+    ctx.fillText('SPACE', sc.x, capY + capH / 2 + 1);
+
+    // Big bold "HOLD!" callout — white with dark outline, bouncing for urgency
+    const bounce = Math.sin(t / 140) * 2;
+    const labelY = sc.y + coreR + 11 + bounce;
+    ctx.font = '900 16px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'top';
+    ctx.lineWidth = 4;
+    ctx.strokeStyle = 'rgba(0,20,30,0.85)';
+    ctx.strokeText('HOLD!', sc.x, labelY);
+    ctx.fillStyle = '#ffffff';
+    ctx.fillText('HOLD!', sc.x, labelY);
+
+    ctx.restore();
+  },
+
+  _drawPossBar(){
+    const ctx = this._trailCtx;
+    if(!ctx || !GAME.heldBy) return;
+    const sp = this._project(GAME.ball.x, GAME.ball.y);
+    const BAR_W = 52, BAR_H = 8, R = 4;
+    const x = sp.x - BAR_W / 2;
+    const y = sp.y - 36; // above the ball
+    const fill = Math.max(0, 1 - GAME.holdTimer / 3.0);
+
+    // Background
+    ctx.fillStyle = 'rgba(0,0,0,0.55)';
+    ctx.beginPath(); ctx.roundRect(x - 1, y - 1, BAR_W + 2, BAR_H + 2, R + 1); ctx.fill();
+
+    // Depleting fill — green → orange → red
+    const r = fill > 0.5 ? Math.round(255 * (1 - fill) * 2) : 255;
+    const g = fill > 0.5 ? 220 : Math.round(220 * fill * 2);
+    ctx.fillStyle = `rgb(${r},${g},0)`;
+    const fw = Math.max(0, (BAR_W - 2) * fill);
+    if(fw > 0){
+      ctx.beginPath(); ctx.roundRect(x + 1, y + 1, fw, BAR_H - 2, Math.min(R, fw / 2)); ctx.fill();
+    }
+
+    // Border
+    ctx.strokeStyle = 'rgba(255,255,255,0.4)';
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.roundRect(x, y, BAR_W, BAR_H, R); ctx.stroke();
+  },
+
+  // ── Charged-shot radial meter: fills up as LMB is held, colors ramp cool→hot ──
+  _drawChargeBar(){
+    const ctx = this._trailCtx;
+    if(!ctx || !GAME._chargeActive) return;
+    const sp = this._project(GAME.ball.x, GAME.ball.y);
+    const frac = Math.max(0, Math.min(1, GAME._chargeFrames / GAME.CHARGE_MAX_FRAMES));
+    const R_OUTER = 24;
+    const pulse = 0.6 + 0.4 * Math.sin(Date.now() / 90);
+
+    ctx.save();
+    // Backing ring
+    ctx.beginPath();
+    ctx.arc(sp.x, sp.y, R_OUTER, 0, Math.PI * 2);
+    ctx.lineWidth = 4;
+    ctx.strokeStyle = 'rgba(0,0,0,0.4)';
+    ctx.stroke();
+
+    // Radial fill — sweeps clockwise from the top, cool cyan → hot orange as it charges
+    const r = Math.round(80 + frac * 175);
+    const g = Math.round(210 - frac * 120);
+    const bl = Math.round(255 - frac * 235);
+    ctx.beginPath();
+    ctx.arc(sp.x, sp.y, R_OUTER, -Math.PI/2, -Math.PI/2 + Math.PI*2*frac);
+    ctx.lineWidth = 5;
+    ctx.strokeStyle = `rgb(${r},${g},${bl})`;
+    ctx.shadowColor = `rgb(${r},${g},${bl})`;
+    ctx.shadowBlur = 6 + frac * 14;
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+
+    // At full charge, pulse the ring to signal "max power ready"
+    if(frac >= 1){
+      ctx.globalAlpha = pulse * 0.7;
+      ctx.beginPath();
+      ctx.arc(sp.x, sp.y, R_OUTER + 4, 0, Math.PI * 2);
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+    }
+    ctx.restore();
+  },
+
+  // ── Pass direction indicator: shows ↑Q / ↓E while holding, hides missing directions ──
+  _drawPassDirIndicator(){
+    const ctx = this._trailCtx;
+    const h = GAME.heldBy;
+    if(!ctx || !h || GAME.passAnim) return;
+    const canUp   = h.figIdx > 0;
+    const canDown = h.figIdx < h.rod.nFigs - 1;
+    if(!canUp && !canDown) return;
+
+    const sp = this._project(GAME.ball.x, GAME.ball.y);
+    const pulse = 0.6 + 0.4 * Math.sin(Date.now() / 260);
+    const hasCharges = (h.team==='p1' ? GAME.passChargesP1 : GAME.passChargesP2) > 0;
+
+    const drawChip = (label, y, active) => {
+      if(!active) return; // hide the direction entirely when no teammate that way
+      ctx.save();
+      // Out of pass charges — dim and greyed out so players don't press for nothing
+      ctx.globalAlpha = hasCharges ? (0.55 + pulse * 0.35) : 0.35;
+      ctx.strokeStyle = hasCharges ? '#8fe0ff' : 'rgba(255,255,255,0.3)';
+      ctx.fillStyle = 'rgba(0,0,0,0.5)';
+      ctx.beginPath(); ctx.roundRect(sp.x - 18, y - 9, 36, 18, 9); ctx.fill();
+      ctx.lineWidth = 1.3;
+      ctx.stroke();
+      ctx.font = 'bold 10px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillStyle = hasCharges ? '#bff0ff' : 'rgba(255,255,255,0.4)';
+      ctx.fillText(label, sp.x, y + 1);
+      ctx.restore();
+    };
+
+    drawChip('▲ Q', sp.y - 54, canUp);
+    drawChip('▼ E', sp.y + 26, canDown);
+  },
+
+  // ── Hold-ability card (DOM, bottom-right, shares style with Pass card) ──
+  _updateHoldAbilityUI(){
+    const card = document.getElementById('hold-ability-card');
+    const ring = document.getElementById('hold-ability-ring');
+    if(!card || !ring) return;
+    const cd = GAME.myRole==='p1' ? GAME.holdCooldownP1 : GAME.holdCooldownP2, maxCd = GAME.HOLD_COOLDOWN_MAX;
+    const ready = cd <= 0;
+    const readyPct = ready ? 100 : Math.max(0, 100 - (cd / maxCd) * 100);
+    ring.style.setProperty('--rdy', readyPct);
+    card.classList.toggle('cd-ready', ready);
+    card.classList.toggle('cd-cooling', !ready);
+  },
+
+  // ── Pass-charge pips in the top HUD bar (DOM, not canvas) ──────
+  _updatePassChargesUI(){
+    const el = document.getElementById('pass-charges');
+    const card = document.getElementById('pass-ability-card');
+    if(!el) return;
+    const isP1 = GAME.myRole==='p1';
+    const charges = isP1 ? GAME.passChargesP1 : GAME.passChargesP2, max = GAME.PASS_CHARGE_MAX;
+    const recharge = isP1 ? GAME.passRechargeP1 : GAME.passRechargeP2;
+    const pips = el.querySelectorAll('.charge-pip');
+    pips.forEach((pip, i) => {
+      pip.classList.remove('filled', 'recharging');
+      if(i < charges){
+        pip.classList.add('filled');
+      } else if(i === charges && charges < max){
+        pip.classList.add('recharging');
+        const pct = Math.min(1, recharge / GAME.PASS_RECHARGE_SECS);
+        pip.style.setProperty('--pct', (pct * 100) + '%');
+      }
+    });
+    if(card){
+      const ready = charges > 0;
+      card.classList.toggle('cd-ready', ready);
+      card.classList.toggle('cd-cooling', !ready);
+    }
+  },
+
+  // ── Per-frame: update dynamic objects + render ───────────────
+  draw(){
+    if(!this._ok) return;
+
+    // Trail: push current ball position, update speed-based alpha, draw ribbon
+    if(!GAME.ballHidden && GAME.running){
+      const b = GAME.ball;
+      this._trailPts.unshift({x: b.x, y: b.y});
+      if(this._trailPts.length > this.TRAIL_MAX) this._trailPts.length = this.TRAIL_MAX;
+      // Speed-based visibility: 0 below threshold, ramps up to 1 at full speed.
+      // Thresholds tuned to the current ball-speed range (MAX_BALL_SPD=9): soft
+      // touches (~4.5) stay invisible, powered hits (~7.5-9) reach full brightness.
+      const spd = Math.hypot(b.vx, b.vy);
+      const target = Math.max(0, Math.min(1, (spd - 4.5) / 3.5));
+      this._trailAlpha += (target - this._trailAlpha) * 0.18;
+      this._drawTrail();
+      this._drawCatchIndicator();
+      this._drawPossBar();
+      this._drawChargeBar();
+      this._drawPassDirIndicator();
+    } else if(GAME.ballHidden){
+      this.clearTrail();
+      this._trailAlpha = 0;
+    }
+    if(GAME.running) this._updateHoldAbilityUI();
+    this._updatePassChargesUI();
+
+    // Ball shadow follows ball X/Z position — shrinks & fades while airborne
+    // (lofted shot) so its height above the pitch reads clearly.
+    if(this._ballShadow){
+      this._ballShadow.position.x = this._tx(GAME.ball.x);
+      this._ballShadow.position.z = this._tz(GAME.ball.y);
+      this._ballShadow.visible = !GAME.ballHidden;
+      const z = GAME.ballZ || 0;
+      const shrink = Math.max(0.4, 1 - z * 1.8);
+      this._ballShadow.scale.setScalar(shrink);
+      this._ballShadow.material.opacity = 0.28 * shrink;
+    }
+
+    // Ball visibility + position + rotation
+    this._ball.visible = !GAME.ballHidden;
+    const b=GAME.ball;
+    this._ball.position.x = this._tx(b.x);
+    this._ball.position.y = 0.13 + (GAME.ballZ || 0);
+    this._ball.position.z = this._tz(b.y);
+    this._ball.rotation.y = GAME.ballAngle || 0;
+    this._ball.rotation.z = (GAME.ballAngle || 0) * 0.4;
+
+    // Hold effect: pulsing ring + ball glow while ball is caught
+    if(GAME.heldBy && this._holdRing){
+      const pulse = Math.sin(performance.now() * 0.009) * 0.5 + 0.5;
+      const expand = 1.0 + pulse * 0.35;
+      this._holdRing.scale.setScalar(expand);
+      this._holdRing.position.x = this._tx(b.x);
+      this._holdRing.position.z = this._tz(b.y);
+      this._holdRing.material.opacity = 0.55 + pulse * 0.3;
+      this._holdRing.visible = true;
+      // Time-pressure: ring turns red as hold limit approaches
+      const urgency = Math.min(1, GAME.holdTimer / 3.0);
+      this._holdRing.material.color.setRGB(1, 1 - urgency * 0.85, 0);
+      this._ball.material.emissive.setRGB(0.35 + pulse * 0.25, 0.28 + pulse * 0.2, 0);
+      this._ball.scale.setScalar(1.0 + pulse * 0.07);
+    } else if(this._holdRing){
+      this._holdRing.visible = false;
+      this._ball.material.emissive.setRGB(0, 0, 0);
+      this._ball.scale.setScalar(1.0);
+    }
+
+    // Rods + figures
+    for(const {rod,rodIdx,figs} of this._rods){
+      const off       = rod.team==='p1' ? GAME.p1Off : GAME.p2Off;
+      const kickAngle = rod.team==='p1' ? GAME.p1KickAngle : GAME.p2KickAngle;
+      const team      = STATE[rod.team==='p1'?'p1Team':'p2Team'];
+      const sp        = P.h / (rod.nFigs+1);
+      // P1 kicks toward +x (rotation.z positive), P2 toward -x (negative)
+      const figAngle  = kickAngle * (rod.team==='p1' ? 1 : -1);
+
+      figs.forEach((g,i)=>{
+        const kit = STATE[rod.team==='p1'?'p1Kit':'p2Kit'] || 'home';
+        const shirtHex = team?.[kit] || team?.home || '#888888';
+        const shortsHex = team?.[kit+'S'] || team?.homeS || '#888888';
+        const cacheKey = shirtHex;
+        if(g.userData.lastTeam !== cacheKey){
+          g.userData.lastTeam = cacheKey;
+          g.userData.bodyMat.color.setHex(parseInt(shirtHex.replace('#',''),16));
+          g.userData.capMat.color.setHex(parseInt(shirtHex.replace('#',''),16));
+          g.userData.srtMat.color.setHex(parseInt(shortsHex.replace('#',''),16));
+        }
+        g.position.z = this._tz(P.y + sp*(i+1) + off);
+        g.rotation.z = figAngle;
+        g.userData.bodyMat.emissive?.setHex(0);
+      });
+    }
+    // Hit effect: flash light decay only (no player-emitted particles)
+    if(this._hitLight) this._hitLight.intensity *= 0.78;
+
+    this._gl.render(this._s, this._cam);
+  },
+};
+
+
+// ═══════════════════════════════════════════════════════════════
+//  KEYBOARD INPUT
+// ═══════════════════════════════════════════════════════════════
+const KEYS={};
+// P1 test controls (WASD)
+const KEY_P1={ get up(){return KEYS['w']||KEYS['W']}, get down(){return KEYS['s']||KEYS['S']}, get kick(){return KEYS[' ']}, get pass_prev(){return KEYS['q']||KEYS['Q']}, get pass_next(){return KEYS['e']||KEYS['E']} };
+// P2 test controls (Arrow keys)
+const KEY_P2={ get up(){return KEYS['ArrowUp']}, get down(){return KEYS['ArrowDown']}, get kick(){return KEYS['Enter']}, get pass_prev(){return KEYS['ArrowLeft']}, get pass_next(){return KEYS['ArrowRight']} };
+
+window.addEventListener('keydown',e=>{
+  KEYS[e.key]=true;
+  if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].includes(e.key)) e.preventDefault();
+  // Online: map online player keys to myInput
+  if(GAME.running && !GAME.testMode){
+    if(e.key==='w'||e.key==='W'||e.key==='ArrowUp')   GAME.myInput.up=true;
+    if(e.key==='s'||e.key==='S'||e.key==='ArrowDown') GAME.myInput.down=true;
+    if(e.key===' '||e.key==='Enter') GAME.myInput.kick=true;
+  }
+  // Hold-input buffer: refresh whenever the kick key is pressed, so a slightly
+  // early or late press still registers as "held" for catch detection.
+  if(GAME.running){
+    if(e.key===' ')      GAME._holdBufferP1 = GAME.HOLD_BUFFER_FRAMES;
+    if(e.key==='Enter')  GAME._holdBufferP2 = GAME.HOLD_BUFFER_FRAMES;
+  }
+  // Pass trigger: edge-triggered, only fires once per keydown while holding ball
+  if(GAME.running && GAME.heldBy && !GAME.passAnim){
+    const h = GAME.heldBy;
+    const isMyTeam = GAME.testMode || h.team===GAME.myRole;
+    if(isMyTeam){
+      let dir = null;
+      if(e.key==='q'||e.key==='Q'||e.key==='ArrowLeft')  dir='prev';
+      if(e.key==='e'||e.key==='E'||e.key==='ArrowRight') dir='next';
+      if(dir){
+        if(GAME.testMode || GAME.botMode) GAME._passRequest = dir;
+        else NET.sendPass(dir); // online — server is authoritative for the pass
+      }
+    }
+  }
+});
+window.addEventListener('keyup',e=>{
+  KEYS[e.key]=false;
+  if(GAME.running && !GAME.testMode){
+    if(e.key==='w'||e.key==='W'||e.key==='ArrowUp')   GAME.myInput.up=false;
+    if(e.key==='s'||e.key==='S'||e.key==='ArrowDown') GAME.myInput.down=false;
+    if(e.key===' '||e.key==='Enter') GAME.myInput.kick=false;
+  }
+});
+// Clear keys on window blur (fixes stuck key bug)
+window.addEventListener('blur',()=>{
+  Object.keys(KEYS).forEach(k=>KEYS[k]=false);
+  GAME.myInput={up:false,down:false,kick:false};
+  GAME._chargeActive=false; GAME._chargeFrames=0; // don't leave a charge stuck if the tab loses focus
+});
+
+// ── Charged (LMB) / lofted (RMB) shot mouse controls — local player only, while holding the ball ──
+const CV_EL = document.getElementById('gameCanvas');
+function _canShoot(){
+  const h = GAME.heldBy;
+  if(!GAME.running || !h) return false;
+  if(GAME.testMode) return h.team==='p1'; // test mode: mouse always represents p1's perspective
+  return h.team===GAME.myRole; // bot mode (always p1) and online (p1 or p2)
+}
+CV_EL.addEventListener('contextmenu', e => e.preventDefault());
+CV_EL.addEventListener('mousedown', e => {
+  if(!_canShoot()) return;
+  const isLocal = GAME.testMode || GAME.botMode;
+  if(e.button === 0){          // Left click: start charging a ground shot
+    GAME._chargeActive = true;
+    GAME._chargeFrames = 0;
+    if(!isLocal) NET.sendChargeStart(); // online: server independently times the charge
+  } else if(e.button === 2){   // Right click: immediate lofted shot
+    if(isLocal) GAME._releaseLoftedShot();
+    else NET.sendLofted();
+  }
+});
+window.addEventListener('mouseup', e => {
+  if(e.button === 0 && GAME._chargeActive){
+    const isLocal = GAME.testMode || GAME.botMode;
+    if(isLocal){
+      const frac = GAME._chargeFrames / GAME.CHARGE_MAX_FRAMES;
+      GAME._releaseGroundShot(frac);
+    } else {
+      NET.sendChargeRelease(); // online: server computes the authoritative charge power
+      GAME._chargeActive = false; GAME._chargeFrames = 0;
+    }
+  }
+});
+
+// ═══════════════════════════════════════════════════════════════
+//  APP STATE
+// ═══════════════════════════════════════════════════════════════
+const STATE = {
+  mode: '1v1',
+  myRole: 'p1',
+  p1Team: TEAMS[0],   // Brazil
+  p2Team: TEAMS[3],   // Germany
+  p1Kit: 'home',      // 'home' | 'away' — set by selectKits()
+  p2Kit: 'home',
+  myTeamConfirmed: false,
+  roomId: null,
+};
+
+// ═══════════════════════════════════════════════════════════════
+//  APP CONTROLLER
+// ═══════════════════════════════════════════════════════════════
+const APP = {
+  showScreen(id){
+    document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    // Music routing: menu screens get menu music, game screen gets gameplay music
+    const menuScreens = ['screen-menu','screen-lobby','screen-teams','screen-waiting','screen-end'];
+    if(menuScreens.includes(id)) AUDIO.playMenuMusic();
+    else if(id === 'screen-game') AUDIO.stopMenuMusic();
+    else AUDIO.stopMenuMusic(); // end screen, etc.
+  },
+
+
+  toast(msg, dur=3000){
+    const el=document.getElementById('toast');
+    el.textContent=msg; el.classList.add('show');
+    setTimeout(()=>el.classList.remove('show'),dur);
+  },
+
+  copyRoomCode(){
+    const code=document.getElementById('room-code-val').textContent;
+    // On file:// there's no real origin/hostname to share — copy just the code
+    const isFile=location.protocol==='file:';
+    const text=isFile ? code : `${location.origin}${location.pathname}?room=${code}`;
+    const msg=isFile ? `Room code copied: ${code}` : 'Invite link copied!';
+    navigator.clipboard?.writeText(text).then(()=>this.toast(msg)).catch(()=>this.toast('Room code: '+code));
+  },
+
+  showTeamSelect(myRole, oppUsername){
+    STATE.myRole=myRole; GAME.myRole=myRole; NET.myRole=myRole;
+    this._voteState = { myLocked: false, oppLocked: false, conflict: false };
+    const myLabel = myRole==='p1' ? 'Player 1 (You)' : 'Player 2 (You)';
+    document.getElementById('team-sub').innerHTML=`You are <b style="color:${myRole==='p1'?'#ffe53b':'#ff3864'}">${myLabel}</b>`;
+    this._buildTeamGrids(myRole);
+    ['p1','p2'].forEach(s=>{
+      this._setVoteStatus(s,'waiting','Choosing…');
+      document.getElementById(`preview-${s}`).classList.remove('has-conflict');
+    });
+    const btn=document.getElementById('btn-ready');
+    btn.dataset.sent=''; btn.textContent='▶ READY'; btn.style.opacity=''; btn.style.cursor='';
+    this._startVoteTimer();
+    this.showScreen('screen-teams');
+  },
+
+  _startVoteTimer(){
+    clearInterval(this._voteTimerID);
+    let t=20;
+    document.getElementById('vote-timer').textContent=t;
+    this._voteTimerID=setInterval(()=>{
+      t--;
+      document.getElementById('vote-timer').textContent=t;
+      if(t<=0){
+        clearInterval(this._voteTimerID);
+        // Auto-lock if player hasn't voted yet
+        if(!this._voteState?.myLocked) this._autoPickTeam();
+      }
+    },1000);
+  },
+
+  _autoPickTeam(){
+    const oppRole=STATE.myRole==='p1'?'p2':'p1';
+    const oppTeamId=STATE[`${oppRole}Team`]?.id;
+    // Pick a random team that opponent hasn't taken
+    const available=TEAMS.filter(t=>t.id!==oppTeamId);
+    const pick=available[Math.floor(Math.random()*available.length)];
+    this._pickTeam(STATE.myRole, pick, null);
+    this.toast(`⏱ Time's up! Auto-assigned: ${pick.name}`, 3000);
+    this.confirmTeam();
+  },
+
+  _buildTeamGrids(myRole){
+    ['p1','p2'].forEach(side=>{
+      const grid=document.getElementById(`grid-${side}`);
+      grid.innerHTML='';
+      let isMyGrid=(side===myRole)||GAME.testMode;
+      if(STATE._botPick){
+        // Two-phase bot flow: phase 1 = pick your own team (p1 grid),
+        // phase 2 = pick the AI opponent's team (p2 grid) — same local player both times.
+        isMyGrid = STATE._botPickPhase===1 ? side==='p1' : side==='p2';
+      }
+      TEAMS.forEach(team=>{
+        const btn=document.createElement('div');
+        btn.className='team-btn';
+        btn.innerHTML=`<img class="tf" src="${team.flag}" alt="${team.name}"><span class="tn">${team.name}</span><span class="tc" style="background:${team.home}"></span>`;
+        if(STATE[`${side}Team`]?.id===team.id) btn.classList.add(`s${side==='p1'?'1':'2'}`);
+        if(isMyGrid){
+          btn.onclick=()=>this._pickTeam(side,team,btn);
+        } else {
+          btn.style.opacity='.4'; btn.style.cursor='default';
+        }
+        grid.appendChild(btn);
+      });
+    });
+    this._refreshTeamDisplay('p1'); this._refreshTeamDisplay('p2');
+  },
+
+  _pickTeam(side,team,btn){
+    STATE[`${side}Team`]=team;
+    document.querySelectorAll(`#grid-${side} .team-btn`).forEach(b=>b.classList.remove(`s${side==='p1'?'1':'2'}`));
+    if(btn) btn.classList.add(`s${side==='p1'?'1':'2'}`);
+    this._refreshTeamDisplay(side);
+    // Clear any conflict on this side
+    document.getElementById(`preview-${side}`).classList.remove('has-conflict');
+    if(this._voteState) this._voteState.conflict=false;
+  },
+
+  _setVoteStatus(side, type, text){
+    const el=document.getElementById(`vstatus-${side}`);
+    if(!el) return;
+    el.className=`vote-status ${type}`;
+    el.textContent=text;
+  },
+
+  _refreshTeamDisplay(side){
+    const t=STATE[`${side}Team`];
+    document.getElementById(`${side}-pf`).innerHTML=`<img src="${t.flag}" alt="${t.name}" style="width:38px;height:26px;object-fit:cover;border-radius:3px;vertical-align:middle">`;
+    document.getElementById(`${side}-pn`).textContent=t.name;
+  },
+
+  confirmTeam(){
+    if(!GAME.testMode && !STATE._botPick && NET.ws?.readyState!==WebSocket.OPEN){
+      this.toast('⚠ Not connected to server. Refresh and try again.');
+      return;
+    }
+    if(this._voteState?.myLocked) return;
+
+    // Two-phase bot flow: phase 1 picks your own team, phase 2 picks the AI's team
+    if(STATE._botPick && STATE._botPickPhase===1){
+      if(!STATE.p1Team){ this.toast('Pick a country first!'); return; }
+      this._advanceBotPick();
+      return;
+    }
+    if(STATE._botPick && STATE._botPickPhase===2){
+      if(!STATE.p2Team){ this.toast('Pick an opponent first!'); return; }
+      clearInterval(this._voteTimerID);
+      document.getElementById('vote-timer').textContent='';
+      this._refreshTeamDisplay('p2');
+      document.getElementById('p2-pn').textContent = `${STATE.p2Team.name} 🤖`;
+      setTimeout(()=>{ STATE._botPick=false; this.enterBotMode(); },600);
+      return;
+    }
+
+    const myTeam = STATE[`${STATE.myRole}Team`];
+    if(!myTeam){ this.toast('Pick a country first!'); return; }
+    const oppRole=STATE.myRole==='p1'?'p2':'p1';
+    const oppTeam=STATE[`${oppRole}Team`];
+    if(this._voteState?.oppLocked && oppTeam?.id===myTeam?.id){
+      document.getElementById(`preview-${STATE.myRole}`).classList.add('has-conflict');
+      this._setVoteStatus(STATE.myRole,'conflict','⚠ Team taken!');
+      this.toast(`⚠ ${myTeam.name} is already taken! Pick a different team.`, 4000);
+      return;
+    }
+    this._voteState.myLocked=true;
+    this._setVoteStatus(STATE.myRole,'voted','✓ Ready!');
+    const btn=document.getElementById('btn-ready');
+    btn.dataset.sent='1'; btn.textContent='⏳ Waiting…'; btn.style.opacity='0.6'; btn.style.cursor='default';
+    document.querySelectorAll(`#grid-${STATE.myRole} .team-btn`).forEach(b=>{
+      b.style.pointerEvents='none'; b.style.opacity='0.45';
+    });
+    if(GAME.testMode){
+      this._voteState.oppLocked=true;
+      this._setVoteStatus(oppRole,'voted','✓ Ready!');
+      clearInterval(this._voteTimerID);
+      document.getElementById('vote-timer').textContent='';
+      setTimeout(()=>this._resolveVote(),600);
+    } else {
+      NET.sendTeam(myTeam.id);
+      if(this._voteState.oppLocked) this._resolveVote();
+    }
+  },
+
+  // Bot-pick phase transition: after picking your own team, unlock the p2 grid
+  // so the same local player can now choose which national team the AI plays as.
+  _advanceBotPick(){
+    STATE._botPickPhase = 2;
+    if(!STATE.p2Team || STATE.p2Team.id === STATE.p1Team.id){
+      STATE.p2Team = TEAMS.find(t=>t.id!==STATE.p1Team.id);
+    }
+    document.getElementById('team-sub').innerHTML=`Now choose your <b style="color:#a855f7">🤖 opponent's</b> team`;
+    this._buildTeamGrids('p1');
+    const btn=document.getElementById('btn-ready');
+    btn.dataset.sent=''; btn.textContent='▶ PLAY!'; btn.style.opacity=''; btn.style.cursor='';
+    this._setVoteStatus('p1','voted', `✓ ${STATE.p1Team.name}`);
+    this._setVoteStatus('p2','waiting','Choose opponent…');
+  },
+
+  _resolveVote(){
+    // Final conflict check (edge case: both sent same team simultaneously)
+    const myTeam=STATE[`${STATE.myRole}Team`];
+    const oppRole=STATE.myRole==='p1'?'p2':'p1';
+    const oppTeam=STATE[`${oppRole}Team`];
+    if(myTeam?.id===oppTeam?.id){
+      // I arrived second — force me to repick
+      this._voteState.myLocked=false;
+      document.getElementById(`preview-${STATE.myRole}`).classList.add('has-conflict');
+      this._setVoteStatus(STATE.myRole,'conflict','⚠ Team taken!');
+      const btn=document.getElementById(STATE.mode==='4v4'?'btn-ready':'btn-ready-2v2');
+      btn.dataset.sent=''; btn.textContent='▶ READY'; btn.style.opacity=''; btn.style.cursor='';
+      document.querySelectorAll(`#grid-${STATE.myRole} .team-btn`).forEach(b=>{
+        b.style.pointerEvents=''; b.style.opacity='';
+      });
+      this.toast(`⚠ ${myTeam.name} was taken simultaneously! Pick another team.`, 5000);
+    }
+    // Otherwise server will send game_start — nothing to do
+  },
+
+  onOppTeam(teamId){
+    const team=TEAMS.find(t=>t.id===teamId);
+    if(!team) return;
+    const oppRole=STATE.myRole==='p1'?'p2':'p1';
+    STATE[`${oppRole}Team`]=team;
+    this._refreshTeamDisplay(oppRole);
+    if(this._voteState) this._voteState.oppLocked=true;
+    this._setVoteStatus(oppRole,'voted',`✓ ${team.name}`);
+    if(!this._voteState?.myLocked){
+      this.toast(`Opponent chose ${team.name}. Pick your team and hit READY!`, 4000);
+    } else {
+      this._resolveVote();
+    }
+  },
+
+  onGameStart(m){
+    console.log('[onGameStart]', m);
+    try {
+      if(m.p1Team) STATE.p1Team=TEAMS.find(t=>t.id===m.p1Team)||STATE.p1Team;
+      if(m.p2Team) STATE.p2Team=TEAMS.find(t=>t.id===m.p2Team)||STATE.p2Team;
+      this.startMatch();
+    } catch(e){
+      console.error('[onGameStart] error:', e);
+      this.toast('⚠ Error starting match: '+e.message, 6000);
+    }
+  },
+
+  // ── Countdown 3-2-1-GO ──────────────────────────────────────
+  runCountdown(onGo){
+    // Onset times (ms) detected from 321_GO_sound_effect.mp3
+    const STEPS = [
+      { t: 660,  label: '3', cls: 'cd-pop' },
+      { t: 1700, label: '2', cls: 'cd-pop' },
+      { t: 2620, label: '1', cls: 'cd-pop' },
+      { t: 3600, label: 'GO!', cls: 'cd-go' },
+    ];
+
+    const overlay = document.getElementById('countdown-overlay');
+    const numEl   = document.getElementById('countdown-num');
+    GAME.countdownActive = true;
+    overlay.classList.add('show');
+    numEl.textContent = '';
+    numEl.className = '';
+
+    // Play the countdown voice
+    const cdAudio = document.getElementById('snd-countdown');
+    cdAudio.currentTime = 0;
+    cdAudio.volume = 0.9;
+    cdAudio.play().catch(()=>{});
+
+    const t0 = performance.now();
+    STEPS.forEach(step => {
+      setTimeout(() => {
+        numEl.textContent = step.label;
+        numEl.className = step.cls;
+        // Retrigger animation
+        void numEl.offsetWidth;
+        numEl.className = step.cls;
+
+        if(step.label === 'GO!'){
+          // Play first 1 s of whistle
+          const w = document.getElementById('snd-whistle-full');
+          w.currentTime = 0; w.volume = 0.75;
+          w.play().catch(()=>{});
+          setTimeout(() => { w.pause(); w.currentTime = 0; }, 1000);
+
+          // Unlock game
+          GAME.countdownActive = false;
+          onGo();
+
+          // Hide overlay
+          setTimeout(() => { overlay.classList.remove('show'); }, 700);
+        }
+      }, step.t);
+    });
+  },
+
+  startMatch(){
+    clearInterval(this._voteTimerID);
+    document.getElementById('vote-timer').textContent='';
+    // Update HUD
+    const t1=STATE.p1Team, t2=STATE.p2Team;
+    document.getElementById('hud-f1').innerHTML=`<img src="${t1.flag}" alt="${t1.name}" style="width:32px;height:22px;object-fit:cover;border-radius:2px">`;
+    document.getElementById('hud-n1').textContent=CG.username||'Player 1';
+    document.getElementById('hud-f2').innerHTML=`<img src="${t2.flag}" alt="${t2.name}" style="width:32px;height:22px;object-fit:cover;border-radius:2px">`;
+    document.getElementById('hud-n2').textContent='Opponent';
+    document.getElementById('mode-badge').textContent='1vs1 Online';
+    document.getElementById('test-banner').style.display='none';
+    document.getElementById('goal-overlay').classList.remove('show');
+    document.getElementById('dc-overlay').classList.remove('show');
+    document.getElementById('sc1').textContent='0';
+    document.getElementById('sc2').textContent='0';
+    AUDIO.stopApplause();
+    selectKits(STATE.p1Team, STATE.p2Team);
+    GAME.lastTime=performance.now();
+    GAME.start(STATE.myRole, false);
+    this.showScreen('screen-game');
+    CG.updateRoom(NET.roomId||'', false);
+    this.runCountdown(()=>{ AUDIO.playMusic(); });
+  },
+
+  onGameEnd(m){
+    GAME.stop();
+    AUDIO.stopMusic();
+    const t1=STATE.p1Team, t2=STATE.p2Team;
+    const _fi=(t)=>`<img src="${t.flag}" alt="${t.name}" style="width:28px;height:19px;object-fit:cover;border-radius:2px;vertical-align:middle;margin-right:5px">`;
+    let winner;
+    if(m.s1>m.s2) winner=`${_fi(t1)}${t1.name} wins!`;
+    else if(m.s2>m.s1) winner=`${_fi(t2)}${t2.name} wins!`;
+    else winner="It's a draw! 🤝";
+    this._playMatchEndSequence(winner, `${m.s1} — ${m.s2}`);
+  },
+
+  // Shared end-of-match sequence: freeze on the gameplay scene, show the big
+  // "GAME HAS ENDED" banner, play the full-length whistle, THEN go to screen-end.
+  _playMatchEndSequence(winnerHtml, scoreText){
+    document.getElementById('end-winner').innerHTML = winnerHtml;
+    document.getElementById('end-score').textContent = scoreText;
+    document.getElementById('matchend-overlay').classList.add('show');
+    AUDIO.fullTimeWhistle(() => {
+      document.getElementById('matchend-overlay').classList.remove('show');
+      this.showScreen('screen-end');
+    });
+  },
+
+  onOppDisconnected(){
+    // If still in-game, show the dc overlay (existing behaviour)
+    if(document.getElementById('screen-game').classList.contains('active')){
+      document.getElementById('dc-overlay').classList.add('show');
+      return;
+    }
+    // If on the end screen waiting for rematch, go straight to home
+    if(document.getElementById('screen-end').classList.contains('active')){
+      this.toast('Opponent left the game.', 3000);
+      setTimeout(()=>this.leaveMatch('screen-menu'),1500);
+    }
+  },
+
+  // Full cleanup when leaving an in-progress or just-ended match: stops the
+  // gameplay/RAF loop, stops gameplay music (menu music then starts via the
+  // showScreen routing below), and hides every match-related overlay so
+  // nothing (like the disconnect "Back to Lobby" card) stays stuck on top
+  // of the next screen.
+  leaveMatch(targetScreen){
+    GAME.stop();
+    AUDIO.stopMusic();
+    AUDIO.stopApplause();
+    document.getElementById('dc-overlay').classList.remove('show');
+    document.getElementById('goal-overlay').classList.remove('show');
+    document.getElementById('matchend-overlay').classList.remove('show');
+    NET.roomId = null;
+    this.showScreen(targetScreen);
+  },
+
+  requestRematch(){
+    // Bot/test mode has no online opponent to wait on — start a fresh match immediately.
+    if(GAME.botMode){ this.enterBotMode(); return; }
+    if(GAME.testMode){ this.enterTestMode(); return; }
+    NET.requestRematch();
+    this.toast('Waiting for opponent to rematch…');
+  },
+
+  // Route to team select for bot mode — two phases: pick your team, then pick the AI's team
+  startBotPick(){
+    STATE.myRole = 'p1';
+    STATE._botPick = true;
+    STATE._botPickPhase = 1;
+    this._voteState = { myLocked: false, oppLocked: true, conflict: false };
+    const btn = document.getElementById('btn-ready');
+    btn.dataset.sent=''; btn.textContent='▶ NEXT'; btn.style.opacity=''; btn.style.cursor='';
+    document.getElementById('team-sub').innerHTML=`Pick your team — then choose your <b style="color:#a855f7">🤖 opponent</b>`;
+    this._buildTeamGrids('p1');
+    // P2 preview placeholder until phase 2
+    document.getElementById('p2-pf').textContent='❔';
+    document.getElementById('p2-pn').textContent='Choose next…';
+    this._setVoteStatus('p1','waiting','Choose your team…');
+    this._setVoteStatus('p2','waiting','Pick next');
+    document.getElementById('vote-timer').textContent='';
+    this.showScreen('screen-teams');
+  },
+
+  // Bot mode — offline vs AI
+  enterBotMode(){
+    STATE.p1Team = STATE.p1Team || TEAMS[0];
+    STATE.p2Team = STATE.p2Team || TEAMS.find(t=>t.id!==STATE.p1Team.id) || TEAMS[0];
+    STATE.myRole = 'p1';
+    selectKits(STATE.p1Team, STATE.p2Team);
+    const t1=STATE.p1Team, t2=STATE.p2Team;
+    document.getElementById('hud-f1').innerHTML=`<img src="${t1.flag}" alt="${t1.name}" style="width:32px;height:22px;object-fit:cover;border-radius:2px">`;
+    document.getElementById('hud-n1').textContent=CG.username||'You';
+    document.getElementById('hud-f2').innerHTML=`<img src="${t2.flag}" alt="${t2.name}" style="width:32px;height:22px;object-fit:cover;border-radius:2px">`;
+    document.getElementById('hud-n2').textContent='🤖 Bot';
+    document.getElementById('mode-badge').textContent='vs Bot';
+    document.getElementById('test-banner').style.display='none';
+    document.getElementById('goal-overlay').classList.remove('show');
+    document.getElementById('sc1').textContent='0';
+    document.getElementById('sc2').textContent='0';
+    AUDIO.stopApplause();
+    GAME.lastTime=performance.now();
+    GAME.start('p1', false, true);
+    this.showScreen('screen-game');
+    this.runCountdown(()=>{ AUDIO.playMusic(); });
+  },
+
+  // Test mode — offline physics test (no server needed)
+  enterTestMode(){
+    STATE.p1Team=TEAMS[0]; STATE.p2Team=TEAMS[3];
+    STATE.myRole='p1';
+    selectKits(STATE.p1Team, STATE.p2Team);
+    const t1=STATE.p1Team, t2=STATE.p2Team;
+    document.getElementById('hud-f1').innerHTML=`<img src="${t1.flag}" alt="${t1.name}" style="width:32px;height:22px;object-fit:cover;border-radius:2px">`;
+    document.getElementById('hud-n1').textContent=t1.name;
+    document.getElementById('hud-f2').innerHTML=`<img src="${t2.flag}" alt="${t2.name}" style="width:32px;height:22px;object-fit:cover;border-radius:2px">`;
+    document.getElementById('hud-n2').textContent=t2.name;
+    document.getElementById('mode-badge').textContent='TEST MODE';
+    document.getElementById('test-banner').style.display='block';
+    document.getElementById('goal-overlay').classList.remove('show');
+    AUDIO.stopApplause();
+    GAME.lastTime=performance.now();
+    GAME.start('p1', true);
+    this.showScreen('screen-game');
+    this.runCountdown(()=>{ AUDIO.playMusic(); });
+  },
+
+  async init(){
+    // Show URL param room code
+    const params=new URLSearchParams(location.search);
+    const roomParam=params.get('room');
+
+    document.getElementById('load-msg').textContent='Initializing…';
+    await CG.init();
+
+    document.getElementById('load-msg').textContent=`Connecting to ${CFG.SERVER_URL}…`;
+
+    // Try server connection
+    try {
+      await NET.connect();
+      document.getElementById('load-msg').textContent='✅ Connected!';
+      await new Promise(r=>setTimeout(r,500));
+      if(roomParam){ NET.joinRoom(roomParam); this.showScreen('screen-waiting'); }
+      else { this.showScreen('screen-menu'); }
+    } catch(e){
+      console.warn('Server unreachable:', CFG.SERVER_URL, e);
+      document.getElementById('load-msg').textContent=`❌ Could not reach server`;
+      await new Promise(r=>setTimeout(r,1000));
+      // Still show menu — test mode available
+      document.getElementById('test-mode-btn').style.display='block';
+      this.showScreen('screen-menu');
+      this.toast(`Server offline. Use Test Mode to check physics.`, 5000);
+    }
+  }
+};
+
+// ═══════════════════════════════════════════════════════════════
+//  RESPONSIVE VIEWPORT SCALE
+//  Scales the whole #wrap up to 125% by default (the size players said
+//  felt best at browser zoom), shrinking only as far as needed to still
+//  fit the window. Pure CSS transform — no game-logic coordinates change,
+//  since #wrap stays a fixed 900×600 layout box underneath.
+// ═══════════════════════════════════════════════════════════════
+const _wrapEl = document.getElementById('wrap');
+function fitWrap(){
+  const margin = 0.96; // small breathing room so it never touches the edges
+  const scale = Math.min(1.25, (window.innerWidth * margin) / 900, (window.innerHeight * margin) / 600);
+  _wrapEl.style.transform = `scale(${scale})`;
+}
+window.addEventListener('resize', fitWrap);
+fitWrap();
+
+// ═══════════════════════════════════════════════════════════════
+//  BOOT
+// ═══════════════════════════════════════════════════════════════
+AUDIO.init();
+try { RENDERER.init(); } catch(e){ console.error('RENDERER.init error:', e); }
+APP.init();
+
+// Start menu music on first user gesture (browser autoplay policy requires this)
+(function(){
+  function onFirstInteraction(){
+    if(AUDIO._wantMenuMusic){
+      const el = document.getElementById('snd-menu-music');
+      if(el && el.paused){ el.volume=0.25; el.play().catch(()=>{}); }
+    }
+    document.removeEventListener('click',    onFirstInteraction);
+    document.removeEventListener('keydown',  onFirstInteraction);
+    document.removeEventListener('touchstart', onFirstInteraction);
+  }
+  document.addEventListener('click',     onFirstInteraction, { once: true });
+  document.addEventListener('keydown',   onFirstInteraction, { once: true });
+  document.addEventListener('touchstart',onFirstInteraction, { once: true });
+})();
+</script>
+</body>
+</html>

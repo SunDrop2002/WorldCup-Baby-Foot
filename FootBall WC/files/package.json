@@ -1,0 +1,15 @@
+{
+  "name": "worldcup-babyfoot",
+  "version": "1.0.0",
+  "description": "World Cup Babyfoot — online multiplayer browser game",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "ws": "^8.18.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

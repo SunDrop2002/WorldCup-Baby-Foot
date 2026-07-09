@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mkdir -p \"C:\\\\Users\\\\AMD\\\\.claude\\\\projects\\\\C--Users-AMD-Desktop-Projects-FootBall-WC-files\\\\memory\")",
+      "Bash(python3 -c ' *)",
+      "mcp__Claude_Preview__preview_start",
+      "Bash(cp \"C:/Users/AMD/Downloads/Applause Sound Effect.mp3\" \"C:/Users/AMD/Desktop/Projects/FootBall WC/files/applause.mp3\" && echo \"copied\")",
+      "Bash(node -e \"const net=require\\('net'\\);const c=net.connect\\(3000,'localhost',\\(\\)=>{console.log\\('open'\\);c.destroy\\(\\)}\\);c.on\\('error',e=>console.log\\('error:',e.code\\)\\)\")",
+      "Bash(node server.js)",
+      "Bash(node -e \"const net=require\\('net'\\);const c=net.connect\\(3000,'localhost',\\(\\)=>{console.log\\('Server is up'\\);c.destroy\\(\\)}\\);c.on\\('error',e=>console.log\\('error:',e.code\\)\\)\")",
+      "Bash(node -e \"const net=require\\('net'\\);const c=net.connect\\(3000,'localhost',\\(\\)=>{console.log\\('up'\\);c.destroy\\(\\)}\\);c.on\\('error',e=>console.log\\('down:',e.code\\)\\)\")",
+      "mcp__visualize__read_me",
+      "Bash(python -c \"import librosa, pydub, numpy; print\\('librosa:', librosa.__version__, 'pydub ok', 'numpy:', numpy.__version__\\)\")",
+      "Bash(python -c \"import pydub, numpy; print\\('pydub ok, numpy:', numpy.__version__\\)\")",
+      "Bash(ffmpeg -version)",
+      "Bash(pip --version)",
+      "Bash(pip install *)",
+      "Bash(python -c \"import pydub, numpy, scipy; print\\('all ok'\\)\")",
+      "Bash(python \"C:\\\\Users\\\\AMD\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--Users-AMD-Desktop-Projects-FootBall-WC-files\\\\9999e6d5-8071-4fa0-8906-ea8cda6d92ae\\\\scratchpad\\\\make_loop.py\" \"Menu.mp3\" \"Windmill Isle.mp3\")"
+    ]
+  }
+}
