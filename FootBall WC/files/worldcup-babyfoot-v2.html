@@ -10,7 +10,10 @@
 <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{background:#07090f;display:flex;align-items:center;justify-content:center;min-height:100vh;font-family:'Segoe UI',Arial,sans-serif;overflow:hidden}
+body{background:#07090f;display:flex;align-items:center;justify-content:center;min-height:100vh;font-family:'Segoe UI',Arial,sans-serif;overflow:hidden;
+  -webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none;
+  /* Respect device safe areas (notches / dynamic island) inside the CrazyGames App fullscreen shell */
+  padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
 
 /* ── CUSTOM CARTOON CURSOR (whole game) ── */
 /* White fill + dark outline + gold accent so it stays visible on any background */
@@ -652,6 +655,25 @@ function selectKits(t1,t2){
 }
 
 // ═══════════════════════════════════════════════════════════════
+//  CRAZYGAMES PLATFORM UX FIXES (required for HTML5 submission)
+//  Prevents page scroll/zoom from swallowing game input, and resumes
+//  iOS's AudioContext (which browsers suspend until a user gesture).
+// ═══════════════════════════════════════════════════════════════
+window.addEventListener('wheel', e => e.preventDefault(), { passive:false });
+window.addEventListener('keydown', e => {
+  if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].includes(e.key)) e.preventDefault();
+}, { passive:false });
+document.addEventListener('contextmenu', e => e.preventDefault());
+function _unlockAudioContext(){
+  if(AC && AC.state === 'suspended') AC.resume().catch(()=>{});
+}
+window.addEventListener('touchend', _unlockAudioContext);
+window.addEventListener('click', _unlockAudioContext);
+document.addEventListener('visibilitychange', () => {
+  if(document.hidden){ if(GAME.running) GAME.stop(); AUDIO.stopMusic(); AUDIO.stopMenuMusic(); }
+});
+
+// ═══════════════════════════════════════════════════════════════
 //  CRAZYGAMES SDK  (graceful fallback when not on CrazyGames)
 // ═══════════════════════════════════════════════════════════════
 const CG = {
@@ -665,17 +687,34 @@ const CG = {
       this.ready = true;
       const user = window.CrazyGames.SDK.user?.getUser?.();
       this.username = user?.username || null;
-      const ctx2 = window.CrazyGames.SDK.game?.gameContext;
-      if (ctx2?.isInstantMultiplayer) NET.findMatch();
-      const inv = ctx2?.inviteParam;
-      if (inv?.roomId)  NET.joinRoom(inv.roomId);
+      // Instant multiplayer: CrazyGames can launch us straight into a match
+      // (no menu) — the flag and any invited roomId live at the top level of
+      // the game object, not nested under gameContext.
+      const g = window.CrazyGames.SDK.game;
+      if (g?.isInstantMultiplayer) NET.findMatch();
+      const roomId = g?.getInviteParam?.('roomId');
+      if (roomId) NET.joinRoom(roomId);
+      // Room Join Listener: lets a player already in the app join a friend's
+      // room mid-session (via the CrazyGames UI) without a full page reload.
+      g?.addJoinRoomListener?.(params => {
+        const rid = params?.roomId;
+        if (rid) NET.joinRoom(rid);
+      });
     } catch(e){ console.warn('CG SDK:', e); }
   },
-  gameplayStart(){ try{ window.CrazyGames?.SDK?.game?.gameplayStart?.(); }catch(e){} },
-  gameplayStop() { try{ window.CrazyGames?.SDK?.game?.gameplayStop?.();  }catch(e){} },
-  happyTime()    { try{ window.CrazyGames?.SDK?.game?.happyTime?.();    }catch(e){} },
+  loadingStart()  { try{ window.CrazyGames?.SDK?.game?.loadingStart?.();  }catch(e){} },
+  loadingStop()   { try{ window.CrazyGames?.SDK?.game?.loadingStop?.();   }catch(e){} },
+  gameplayStart() { try{ window.CrazyGames?.SDK?.game?.gameplayStart?.(); }catch(e){} },
+  gameplayStop()  { try{ window.CrazyGames?.SDK?.game?.gameplayStop?.();  }catch(e){} },
+  happyTime()     { try{ window.CrazyGames?.SDK?.game?.happytime?.();    }catch(e){} },
   updateRoom(roomId, isJoinable){
-    try{ window.CrazyGames?.SDK?.game?.updateRoom?.({ roomId, isJoinable, inviteParam:{roomId} }); }catch(e){}
+    try{ window.CrazyGames?.SDK?.game?.updateRoom?.({ roomId, isJoinable, inviteParams:{roomId} }); }catch(e){}
+  },
+  leftRoom(){
+    try{ window.CrazyGames?.SDK?.game?.leftRoom?.(); }catch(e){}
+  },
+  inviteLink(roomId){
+    try{ return window.CrazyGames?.SDK?.game?.inviteLink?.({ roomId }) || null; }catch(e){ return null; }
   },
   async showMidAd(){
     if(!this.ready) return;
@@ -2865,6 +2904,7 @@ const APP = {
     document.getElementById('dc-overlay').classList.remove('show');
     document.getElementById('goal-overlay').classList.remove('show');
     document.getElementById('matchend-overlay').classList.remove('show');
+    CG.leftRoom();
     NET.roomId = null;
     this.showScreen(targetScreen);
   },
@@ -2946,6 +2986,9 @@ const APP = {
 
     document.getElementById('load-msg').textContent='Initializing…';
     await CG.init();
+    // loadingStart/Stop must be called only after SDK.init() has resolved —
+    // calling game.* methods any earlier throws "SDK is not initialized yet".
+    CG.loadingStart();
 
     document.getElementById('load-msg').textContent=`Connecting to ${CFG.SERVER_URL}…`;
 
@@ -2956,6 +2999,7 @@ const APP = {
       await new Promise(r=>setTimeout(r,500));
       if(roomParam){ NET.joinRoom(roomParam); this.showScreen('screen-waiting'); }
       else { this.showScreen('screen-menu'); }
+      CG.loadingStop();
     } catch(e){
       console.warn('Server unreachable:', CFG.SERVER_URL, e);
       document.getElementById('load-msg').textContent=`❌ Could not reach server`;
@@ -2964,6 +3008,7 @@ const APP = {
       document.getElementById('test-mode-btn').style.display='block';
       this.showScreen('screen-menu');
       this.toast(`Server offline. Use Test Mode to check physics.`, 5000);
+      CG.loadingStop();
     }
   }
 };
