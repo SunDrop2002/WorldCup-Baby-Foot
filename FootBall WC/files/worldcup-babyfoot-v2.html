@@ -218,6 +218,12 @@ button:hover, .btn:hover, #btn-mute:hover, [onclick]:hover{transform:scale(1.06)
 @keyframes gpop{from{transform:scale(.2);opacity:0}to{transform:scale(1);opacity:1}}
 #matchend-overlay{background:rgba(0,0,0,.72);z-index:25}
 .matchend-msg{font-size:42px;font-weight:900;color:#ffe53b;text-shadow:0 4px 0 rgba(0,0,0,.5),0 0 40px rgba(255,220,0,.5);text-align:center;padding:0 30px;animation:gpop .4s cubic-bezier(.34,1.56,.64,1)}
+/* ── PAUSE ── */
+#pause-overlay{background:rgba(0,0,0,.72);z-index:28}
+.pause-title{font-size:56px;font-weight:900;color:#fff;text-shadow:0 5px 0 rgba(0,0,0,.4),0 0 40px rgba(255,220,0,.4);letter-spacing:2px;animation:gpop .35s cubic-bezier(.34,1.56,.64,1)}
+.pause-btns{display:flex;flex-direction:column;gap:12px;align-items:center;margin-top:26px}
+.pause-hint{color:rgba(255,255,255,.6);font-size:12px;margin-top:18px;font-weight:600;letter-spacing:1px}
+.pause-hint b{color:#ffe53b}
 /* ── COUNTDOWN ── */
 #countdown-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.55);border-radius:18px;z-index:30;opacity:0;pointer-events:none;transition:opacity .2s}
 #countdown-overlay.show{opacity:1;pointer-events:all}
@@ -314,7 +320,7 @@ button:hover, .btn:hover, #btn-mute:hover, [onclick]:hover{transform:scale(1.06)
     </div>
     <div class="hud-center">
       <div class="hud-score"><span id="sc1">0</span> : <span id="sc2">0</span></div>
-      <div id="timer">3:00</div>
+      <div id="timer">5:00</div>
       <div class="hud-badge" id="mode-badge">vs Bot</div>
     </div>
     <div class="hud-side right">
@@ -393,6 +399,16 @@ button:hover, .btn:hover, #btn-mute:hover, [onclick]:hover{transform:scale(1.06)
   <div class="matchend-msg">🏁 THE GAME HAS ENDED! 🏁</div>
 </div>
 
+<!-- PAUSE OVERLAY: Esc toggles it while in a match -->
+<div id="pause-overlay" class="overlay">
+  <div class="pause-title">⏸ PAUSED</div>
+  <div class="pause-btns">
+    <button class="btn-lobby btn-create" style="width:auto;padding:14px 40px" onclick="GAME.resume()">▶ Resume</button>
+    <button class="btn-back-lnk" onclick="APP.quitToMenu()">✖ Quit to Menu</button>
+  </div>
+  <div class="pause-hint">Press <b>Esc</b> to resume</div>
+</div>
+
 <!-- TOAST -->
 <div id="toast"></div>
 <audio id="snd-applause" src="applause.mp3" preload="auto"></audio>
@@ -409,7 +425,7 @@ button:hover, .btn:hover, #btn-mute:hover, [onclick]:hover{transform:scale(1.06)
 //  CONFIG
 // ═══════════════════════════════════════════════════════════════
 const CFG = {
-  MATCH_SECS: 180,
+  MATCH_SECS: 300,
   BALL_R: 10,
   FIG_W: 13,
   FIG_H: 34,
@@ -710,6 +726,7 @@ const AUDIO = {
 // ═══════════════════════════════════════════════════════════════
 const GAME = {
   running: false,
+  paused: false,
   testMode: false,
 
   // Ball state
@@ -788,7 +805,7 @@ const GAME = {
   },
 
   start(role, testMode=false, botMode=false){
-    this.running=true; this.testMode=testMode; this.botMode=botMode; this.myRole=role;
+    this.running=true; this.paused=false; this.testMode=testMode; this.botMode=botMode; this.myRole=role;
     this.score={p1:0,p2:0}; this.timeLeft=CFG.MATCH_SECS;
     this.p1Off=0; this.p2Off=0;
     this.holdCooldownP1=0; this.holdCooldownP2=0;
@@ -802,15 +819,38 @@ const GAME = {
 
   stop(){
     this.running=false;
+    this.paused=false;
     cancelAnimationFrame(this.rafID);
     clearInterval(this.timerID);
     CG.gameplayStop();
   },
 
+  // ── Pause / resume (Esc) ──
+  // Physics freezes because _update() and the match timer both bail while
+  // paused; the RAF loop keeps running so the frozen scene stays rendered.
+  togglePause(){ this.paused ? this.resume() : this.pause(); },
+  pause(){
+    if(!this.running || this.paused || this.countdownActive) return;
+    this.paused = true;
+    const mus = document.getElementById('snd-music');
+    this._musicWasPlaying = mus && !mus.paused;
+    if(mus) mus.pause();
+    document.getElementById('pause-overlay').classList.add('show');
+  },
+  resume(){
+    if(!this.paused) return;
+    this.paused = false;
+    document.getElementById('pause-overlay').classList.remove('show');
+    // Reset the frame clock so the long paused gap doesn't produce one huge dt.
+    this.lastTime = performance.now();
+    const mus = document.getElementById('snd-music');
+    if(this._musicWasPlaying && mus) mus.play().catch(()=>{});
+  },
+
   _startTimer(){
     clearInterval(this.timerID);
     this.timerID=setInterval(()=>{
-      if(!this.running || this.countdownActive) return;
+      if(!this.running || this.paused || this.countdownActive) return;
       // In server-authoritative mode, timer is driven by server state
       if(!this.testMode && !this.botMode) return;
       this.timeLeft--;
@@ -836,7 +876,7 @@ const GAME = {
   },
 
   _update(dt){
-    if(this.goalPause || this.countdownActive) return;
+    if(this.paused || this.goalPause || this.countdownActive) return;
     // ── Hold-ability cooldowns ──
     if(this.holdCooldownP1 > 0) this.holdCooldownP1 = Math.max(0, this.holdCooldownP1 - dt/60);
     if(this.holdCooldownP2 > 0) this.holdCooldownP2 = Math.max(0, this.holdCooldownP2 - dt/60);
@@ -1374,6 +1414,7 @@ const RENDERER = {
     fill.position.set(-3, 4, 7);
     this._s.add(fill);
 
+    this._buildEnvMap(T);
     this._buildFloor(T);
     this._buildTable(T);
     this._buildPitch(T);
@@ -1385,6 +1426,96 @@ const RENDERER = {
     this._ok = true;
   },
 
+  // Cheap fake reflections for metallic materials — no external HDR needed.
+  // A striped light/dark "chrome bar" gradient (the same trick behind classic
+  // CSS/SVG chrome-text effects) makes polished metal read as reflective —
+  // but the gradient must stay MOSTLY bright with only a couple of thin dark
+  // accent lines, not half-and-half, or the metal reads as black instead of
+  // shiny (which is what happened: mixing that with full metalness=1, which
+  // has zero diffuse fallback, meant any angle sampling a dark band went
+  // fully black with nothing to brighten it back up).
+  _buildEnvMap(T){
+    const cv = document.createElement('canvas');
+    cv.width = 8; cv.height = 128;
+    const cx = cv.getContext('2d');
+    const grad = cx.createLinearGradient(0,0,0,128);
+    grad.addColorStop(0.00,'#f2f2f2');
+    grad.addColorStop(0.15,'#ffffff');
+    grad.addColorStop(0.28,'#3a3a3a'); // thin dark accent line
+    grad.addColorStop(0.34,'#ffffff');
+    grad.addColorStop(0.48,'#ffffff');
+    grad.addColorStop(0.52,'#4a4a4a'); // thin dark accent line
+    grad.addColorStop(0.58,'#ffffff');
+    grad.addColorStop(0.75,'#ffffff');
+    grad.addColorStop(0.85,'#e0e0e0');
+    grad.addColorStop(1.00,'#cfcfcf');
+    cx.fillStyle = grad; cx.fillRect(0,0,8,128);
+    const tex = new T.CanvasTexture(cv);
+    tex.mapping = T.EquirectangularReflectionMapping;
+    tex.colorSpace = T.SRGBColorSpace;
+    this._s.environment = tex;
+  },
+
+  // Procedural fine-grain noise texture so the grip handles read as textured
+  // rubber/plastic (bump + roughness variation) instead of a flat black material.
+  _buildGripTexture(T){
+    const cv = document.createElement('canvas');
+    cv.width = 64; cv.height = 64;
+    const cx = cv.getContext('2d');
+    cx.fillStyle = '#808080'; cx.fillRect(0,0,64,64);
+    for(let i=0;i<1100;i++){
+      const v = 70 + Math.random()*140;
+      cx.fillStyle = `rgb(${v},${v},${v})`;
+      cx.fillRect(Math.random()*64, Math.random()*64, 1, 1);
+    }
+    const tex = new T.CanvasTexture(cv);
+    tex.wrapS = tex.wrapT = T.RepeatWrapping;
+    tex.repeat.set(3, 6);
+    return tex;
+  },
+
+  // Procedural light-wood grain (tan/beech tones like a real babyfoot cabinet):
+  // a warm base, long horizontal grain streaks of varying tone, plus a few
+  // darker knots/lines so the table edges read as natural wood, not flat plastic.
+  _buildWoodTexture(T){
+    const cv = document.createElement('canvas');
+    cv.width = 256; cv.height = 256;
+    const cx = cv.getContext('2d');
+    // Warm base gradient
+    const base = cx.createLinearGradient(0,0,0,256);
+    base.addColorStop(0,'#dcb072');
+    base.addColorStop(0.5,'#cca15e');
+    base.addColorStop(1,'#d7ab6a');
+    cx.fillStyle = base; cx.fillRect(0,0,256,256);
+    // Long horizontal grain streaks
+    for(let i=0;i<220;i++){
+      const y = Math.random()*256;
+      const shade = 60 + Math.random()*60;
+      cx.strokeStyle = `rgba(${90+shade*0.5},${60+shade*0.4},${25+shade*0.2},${0.05+Math.random()*0.12})`;
+      cx.lineWidth = 0.5 + Math.random()*1.8;
+      cx.beginPath();
+      cx.moveTo(0, y);
+      // gentle wave so the grain isn't perfectly straight
+      for(let x=0;x<=256;x+=32){
+        cx.lineTo(x, y + Math.sin((x/256)*Math.PI*2 + i)* (1.5+Math.random()*2));
+      }
+      cx.stroke();
+    }
+    // A couple of darker knot lines
+    for(let i=0;i<4;i++){
+      const y = Math.random()*256;
+      cx.strokeStyle = `rgba(120,80,35,${0.18+Math.random()*0.12})`;
+      cx.lineWidth = 1 + Math.random()*1.5;
+      cx.beginPath(); cx.moveTo(0,y);
+      for(let x=0;x<=256;x+=16) cx.lineTo(x, y + Math.sin(x*0.05+i)*3);
+      cx.stroke();
+    }
+    const tex = new T.CanvasTexture(cv);
+    tex.wrapS = tex.wrapT = T.RepeatWrapping;
+    tex.colorSpace = T.SRGBColorSpace;
+    return tex;
+  },
+
   _buildFloor(T){
     // Bright cartoon floor — checkered sky-blue / light pattern
     const m = new T.Mesh(new T.PlaneGeometry(60,60),
@@ -1394,10 +1525,12 @@ const RENDERER = {
   },
 
   _buildTable(T){
-    // Bright cartoon table — vivid red body, yellow top trim
-    const body  = new T.MeshStandardMaterial({color:0xE02020,roughness:0.6,metalness:0.0});
-    const trim  = new T.MeshStandardMaterial({color:0xFFD700,roughness:0.5,metalness:0.1});
-    const leg   = new T.MeshStandardMaterial({color:0xCC1010,roughness:0.7,metalness:0.0});
+    // Real-babyfoot look: natural light-wood cabinet edges, red top trim rails,
+    // black legs — matching a classic French foosball table.
+    const woodTex = this._buildWoodTexture(T);
+    const body  = new T.MeshStandardMaterial({map:woodTex,color:0xffffff,roughness:0.72,metalness:0.0});
+    const trim  = new T.MeshStandardMaterial({color:0xD42222,roughness:0.5,metalness:0.05});
+    const leg   = new T.MeshStandardMaterial({color:0x1a1a1a,roughness:0.6,metalness:0.1});
     const add   = (geo,mat,x,y,z,rx=0,ry=0,rz=0)=>{
       const m=new T.Mesh(geo,mat); m.position.set(x,y,z);
       m.rotation.set(rx,ry,rz); m.castShadow=true; m.receiveShadow=true;
@@ -1417,23 +1550,33 @@ const RENDERER = {
       add(new T.BoxGeometry(0.32,3.6,0.32), leg, x,-2.2,z);
     });
 
+    // The red top trim caps sit on top of the wood body rails. They must be
+    // slightly LARGER than the wood box they cover (ov overhang on every side)
+    // so their vertical faces never sit exactly coplanar with the wood's —
+    // coincident faces are what caused the wood/red z-fighting "bleed" near
+    // the goals. With the trim strictly larger, the red simply occludes the
+    // wood's top lip and there is nothing to flicker.
+    const ov = 0.04;
+
     // Far rail
     add(new T.BoxGeometry(tw,0.65,wt), body, 0,0.17,-rz);
-    add(new T.BoxGeometry(tw,0.10,wt), trim, 0,0.52,-rz);
+    add(new T.BoxGeometry(tw+ov,0.10,wt+ov), trim, 0,0.52,-rz);
 
     // Near rail
     add(new T.BoxGeometry(tw,0.65,wt), body, 0,0.17, rz);
-    add(new T.BoxGeometry(tw,0.10,wt), trim, 0,0.52,rz);
+    add(new T.BoxGeometry(tw+ov,0.10,wt+ov), trim, 0,0.52,rz);
 
-    // End walls
+    // End walls (wood segments either side of the goal mouth)
     const gHz = (P.goalH/P.h)*2.5;
     const sideLen = rz - gHz;
     [-ex, ex].forEach(x=>{
       [-(gHz+sideLen/2), gHz+sideLen/2].forEach(zc=>{
         add(new T.BoxGeometry(wt,0.65,sideLen), body, x,0.17,zc);
-        add(new T.BoxGeometry(wt,0.10,sideLen), trim, x,0.52,zc);
       });
-      add(new T.BoxGeometry(wt,0.18,td), trim, x,0.48,0);
+      // Single continuous red cap along the whole end edge — replaces the old
+      // per-segment caps (which shared the wood's coplanar faces) and spans the
+      // goal mouth too. Overhangs the wood in both x and z so nothing z-fights.
+      add(new T.BoxGeometry(wt+ov,0.18,td+ov), trim, x,0.48,0);
     });
   },
 
@@ -1557,9 +1700,17 @@ const RENDERER = {
   },
 
   _buildRods(T){
-    // Bright yellow rods, red grips — cartoon toy look
-    const rodMat=new T.MeshStandardMaterial({color:0xFFD700,metalness:0.2,roughness:0.4});
-    const gripMat=new T.MeshStandardMaterial({color:0xFF3030,roughness:0.8,metalness:0.0});
+    // Polished-chrome rods: bright white base + moderately-high metalness
+    // (not 1.0 — full metalness has zero diffuse fallback, so any angle that
+    // samples a darker part of the env map goes pure black with nothing to
+    // brighten it) + low roughness so the mostly-bright striped env map (see
+    // _buildEnvMap) reflects as clean highlight sweeps with just a couple of
+    // thin dark accent lines, instead of either a flat glow or going black.
+    const rodMat=new T.MeshStandardMaterial({color:0xFFFFFF,metalness:0.75,roughness:0.15,envMapIntensity:1.8});
+    // Black grip handles — bump + roughness noise maps give them a textured,
+    // grippy molded-rubber/plastic look instead of a flat black material.
+    const gripTex = this._buildGripTexture(T);
+    const gripMat=new T.MeshStandardMaterial({color:0x141414,roughness:0.78,metalness:0.05,bumpMap:gripTex,bumpScale:0.006,roughnessMap:gripTex});
     this._rods=[];
 
     for(const rod of ROD_DEFS_2V2){
@@ -1567,7 +1718,7 @@ const RENDERER = {
       const rodM=new T.Mesh(new T.CylinderGeometry(0.05,0.05,7.2,14),rodMat);
       rodM.rotation.x=Math.PI/2; rodM.position.set(rx,0.28,0); rodM.castShadow=true;
       this._s.add(rodM);
-      // Grip handles — chunky red
+      // Grip handles — chunky, black, grippy
       [-3.7,3.7].forEach(gz=>{
         const g=new T.Mesh(new T.CylinderGeometry(0.12,0.12,0.30,12),gripMat);
         g.rotation.x=Math.PI/2; g.position.set(rx,0.28,gz); this._s.add(g);
@@ -2163,6 +2314,14 @@ const KEY_P2={ get up(){return KEYS['ArrowUp']}, get down(){return KEYS['ArrowDo
 window.addEventListener('keydown',e=>{
   KEYS[e.key]=true;
   if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].includes(e.key)) e.preventDefault();
+  // Esc toggles pause while a match is on the screen (ignored during the countdown).
+  if(e.key==='Escape' && GAME.running && !GAME.countdownActive){
+    e.preventDefault();
+    GAME.togglePause();
+    return;
+  }
+  // While paused, swallow all other gameplay keys so nothing sneaks through.
+  if(GAME.paused) return;
   // Bot mode: map the local player's keys to myInput (local 2P mode reads KEY_P1/KEY_P2 directly instead)
   if(GAME.running && !GAME.testMode){
     if(e.key==='w'||e.key==='W'||e.key==='ArrowUp')   GAME.myInput.up=true;
@@ -2206,7 +2365,7 @@ window.addEventListener('blur',()=>{
 const CV_EL = document.getElementById('gameCanvas');
 function _canShoot(){
   const h = GAME.heldBy;
-  if(!GAME.running || !h) return false;
+  if(!GAME.running || GAME.paused || !h) return false;
   if(GAME.testMode) return h.team==='p1'; // local 2P: mouse always represents p1's perspective
   return h.team===GAME.myRole; // bot mode (always p1)
 }
@@ -2404,6 +2563,18 @@ const APP = {
 
   requestRematch(){
     this.enterBotMode();
+  },
+
+  // Quit an in-progress match (from the pause menu) back to the main menu.
+  quitToMenu(){
+    GAME.paused = false;
+    document.getElementById('pause-overlay').classList.remove('show');
+    GAME.stop();
+    AUDIO.stopMusic();
+    AUDIO.stopApplause();
+    document.getElementById('goal-overlay').classList.remove('show');
+    document.getElementById('matchend-overlay').classList.remove('show');
+    this.showScreen('screen-menu');
   },
 
   // Route to team select for bot mode — two phases: pick your team, then pick the AI's team
