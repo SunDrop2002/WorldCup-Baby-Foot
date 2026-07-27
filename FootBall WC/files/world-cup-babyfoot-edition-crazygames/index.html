@@ -4,10 +4,23 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
 <title>⚽ World Cup Babyfoot</title>
-<!-- CrazyGames SDK -->
+<!-- CrazyGames SDK (must load from crazygames.com — the one allowed external script) -->
 <script src="https://sdk.crazygames.com/crazygames-sdk-v3.js"></script>
-<!-- Three.js 3D engine -->
-<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+<!-- Three.js 3D engine — bundled locally so the game is self-contained (CrazyGames
+     blocks third-party CDNs). r0.160.0, same build previously loaded from jsDelivr. -->
+<script src="three.min.js"></script>
+<!-- Blender-authored asset data, dependency-free (no GLTFLoader/ES-modules needed —
+     three.min.js is the deprecated global/UMD build, and r160 only ships GLTFLoader as
+     an ES module, so hand-rolled BufferGeometry data files are the self-contained path
+     CrazyGames' no-third-party-CDN rule allows). Each file assigns window.MODEL_XXXX. -->
+<script src="models/ball.model.js?v=2"></script>
+<script src="models/player.model.js"></script>
+<script src="models/handle.model.js"></script>
+<script src="models/post.model.js"></script>
+<script src="models/stadium.model.js"></script>
+<script src="models/crowd.model.js"></script>
+<script src="models/screw.model.js"></script>
+<script src="models/bracket.model.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{background:#07090f;display:flex;align-items:center;justify-content:center;min-height:100vh;font-family:'Segoe UI',Arial,sans-serif;overflow:hidden;
@@ -45,6 +58,7 @@ button:hover, .btn:hover, #btn-mute:hover, [onclick]:hover{transform:scale(1.06)
 .spinner{width:44px;height:44px;border:3px solid rgba(255,255,255,.3);border-top-color:#ffe53b;border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 20px;position:relative;z-index:1}
 @keyframes spin{to{transform:rotate(360deg)}}
 .loading-text{color:rgba(255,255,255,.8);font-size:13px;letter-spacing:2px;position:relative;z-index:1;font-weight:600}
+.load-trophy{height:38px;vertical-align:-8px;filter:drop-shadow(0 3px 4px rgba(0,0,0,.35))}
 #screen-loading .logo-title{position:relative;z-index:1}
 #screen-loading .logo-sub{color:rgba(255,255,255,.8);position:relative;z-index:1}
 
@@ -58,6 +72,8 @@ button:hover, .btn:hover, #btn-mute:hover, [onclick]:hover{transform:scale(1.06)
 .menu-title{font-size:62px;font-weight:900;color:#fff;text-shadow:0 6px 0 #0a5c1e,0 3px 0 #0d7225,4px 4px 0 rgba(0,0,0,.3);letter-spacing:-1px;line-height:.9;text-align:center;position:relative;z-index:1;animation:titleBounce 2.5s ease-in-out infinite}
 @keyframes titleBounce{0%,100%{transform:translateY(0) rotate(-1deg)}50%{transform:translateY(-6px) rotate(1deg)}}
 .menu-ball{font-size:56px;display:inline-block;animation:ballSpin 3s linear infinite;margin-bottom:4px}
+.menu-ball img{width:66px;height:66px;display:block;filter:drop-shadow(0 4px 6px rgba(0,0,0,.35))}
+.sub-trophy{height:20px;vertical-align:-4px;filter:drop-shadow(0 2px 2px rgba(0,0,0,.3))}
 @keyframes ballSpin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
 .menu-sub{font-size:18px;font-weight:800;color:#ffd700;text-shadow:0 3px 0 #9a5000,2px 2px 0 rgba(0,0,0,.3);letter-spacing:3px;text-transform:uppercase;margin-bottom:28px;position:relative;z-index:1}
 .menu-sub span{color:#fff}
@@ -179,8 +195,13 @@ button:hover, .btn:hover, #btn-mute:hover, [onclick]:hover{transform:scale(1.06)
 .hud-audio-controls .hac-label{font-size:7px;font-weight:800;letter-spacing:.7px;text-transform:uppercase;text-shadow:0 1px 0 rgba(0,0,0,.4)}
 .hud-audio-controls button.muted{opacity:.5}
 #canvas-wrap{display:block;flex:1;position:relative}
-#gameCanvas{display:block;width:100%;height:100%}
+/* Light colour grade on the 3D layer only (not the UI/indicator canvas):
+   a touch more saturation + contrast for a vibrant, punchy stadium look. */
+#gameCanvas{display:block;width:100%;height:100%;filter:saturate(1.17) contrast(1.10) brightness(1.02) sepia(0.05) hue-rotate(-4deg)}
 #trailCanvas{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none}
+#vignette{position:absolute;inset:0;pointer-events:none;z-index:6;
+  background:radial-gradient(ellipse 78% 82% at 50% 45%, transparent 46%, rgba(0,0,0,.24) 76%, rgba(0,0,0,.50) 100%);
+  mix-blend-mode:multiply}
 /* ── ABILITY HUD: Hold + Pass share one system, bottom-right ── */
 #ability-hud{position:absolute;bottom:14px;right:14px;display:flex;gap:10px;z-index:15;pointer-events:none}
 .ability-card{display:flex;flex-direction:column;align-items:center;gap:3px;background:rgba(10,10,28,.62);border:2.5px solid rgba(255,255,255,.32);border-radius:16px;padding:8px 12px;backdrop-filter:blur(3px);box-shadow:0 5px 16px rgba(0,0,0,.35);transition:filter .25s,box-shadow .25s,border-color .25s}
@@ -237,6 +258,7 @@ button:hover, .btn:hover, #btn-mute:hover, [onclick]:hover{transform:scale(1.06)
 #screen-end{border-radius:18px}
 .end-box{text-align:center;width:460px}
 .end-trophy{font-size:64px;margin-bottom:8px;animation:float 2s ease-in-out infinite}
+.end-trophy img{width:84px;height:84px;display:inline-block;filter:drop-shadow(0 6px 10px rgba(0,0,0,.4))}
 @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
 .end-title{color:#ffe53b;font-size:30px;font-weight:900;text-shadow:0 3px 0 rgba(0,0,0,.3);letter-spacing:1px}
 .end-winner{color:#fff;font-size:18px;margin:8px 0 22px;font-weight:700;text-shadow:0 2px 0 rgba(0,0,0,.3)}
@@ -254,7 +276,7 @@ button:hover, .btn:hover, #btn-mute:hover, [onclick]:hover{transform:scale(1.06)
 <!-- LOADING -->
 <div id="screen-loading" class="screen active cartoon-screen">
   <div class="spinner"></div>
-  <div class="logo-title">🏆 WORLD CUP</div>
+  <div class="logo-title"><img class="load-trophy" src="models/trophy.png" alt=""> WORLD CUP</div>
   <div class="logo-sub">Babyfoot Edition</div>
   <div class="loading-text" id="load-msg">Connecting…</div>
 </div>
@@ -270,11 +292,11 @@ button:hover, .btn:hover, #btn-mute:hover, [onclick]:hover{transform:scale(1.06)
     <div class="mstar">⭐</div>
   </div>
   <div class="menu-inner">
-    <div class="menu-ball">⚽</div>
+    <div class="menu-ball"><img src="models/ball_icon.png" alt="" draggable="false"></div>
     <div class="menu-title">WORLD<br>CUP</div>
-    <div class="menu-sub"><span>🏆</span> Babyfoot Edition <span>🏆</span></div>
+    <div class="menu-sub"><img class="sub-trophy" src="models/trophy.png" alt=""> Babyfoot Edition <img class="sub-trophy" src="models/trophy.png" alt=""></div>
     <button class="btn-play" onclick="APP.startBotPick()">▶ PLAY NOW!</button>
-    <div class="menu-tagline">32 Nations • Solo vs AI</div>
+    <div class="menu-tagline">47 Nations • Solo vs AI</div>
   </div>
 </div>
 
@@ -286,7 +308,7 @@ button:hover, .btn:hover, #btn-mute:hover, [onclick]:hover{transform:scale(1.06)
       <div class="ts-panel">
         <div class="ts-label p1">🟡 Player 1</div>
         <div class="ts-preview" id="preview-p1">
-          <div class="pf" id="p1-pf">🇧🇷</div><div class="pn" id="p1-pn">Brazil</div>
+          <div class="pf" id="p1-pf"><img src="worldcup countries/Flag_of_Brazil.png" alt="Brazil" style="width:38px;height:26px;object-fit:cover;border-radius:3px;vertical-align:middle"></div><div class="pn" id="p1-pn">Brazil</div>
           <div class="conflict-badge">⚠ TAKEN — repick!</div>
         </div>
         <div class="vote-status waiting" id="vstatus-p1">Choosing…</div>
@@ -301,7 +323,7 @@ button:hover, .btn:hover, #btn-mute:hover, [onclick]:hover{transform:scale(1.06)
       <div class="ts-panel">
         <div class="ts-label p2">🔴 Player 2</div>
         <div class="ts-preview" id="preview-p2">
-          <div class="pf" id="p2-pf">🇩🇪</div><div class="pn" id="p2-pn">Germany</div>
+          <div class="pf" id="p2-pf"><img src="worldcup countries/Flag_of_germany.png" alt="Germany" style="width:38px;height:26px;object-fit:cover;border-radius:3px;vertical-align:middle"></div><div class="pn" id="p2-pn">Germany</div>
           <div class="conflict-badge">⚠ TAKEN — repick!</div>
         </div>
         <div class="vote-status waiting" id="vstatus-p2">Choosing…</div>
@@ -315,7 +337,7 @@ button:hover, .btn:hover, #btn-mute:hover, [onclick]:hover{transform:scale(1.06)
 <div id="screen-game" class="screen">
   <div id="hud">
     <div class="hud-side left">
-      <span class="hud-flag" id="hud-f1">🇧🇷</span>
+      <span class="hud-flag" id="hud-f1"><img src="worldcup countries/Flag_of_Brazil.png" alt="Brazil" style="width:32px;height:22px;object-fit:cover;border-radius:2px"></span>
       <span class="hud-uname" id="hud-n1">Player 1</span>
     </div>
     <div class="hud-center">
@@ -325,7 +347,7 @@ button:hover, .btn:hover, #btn-mute:hover, [onclick]:hover{transform:scale(1.06)
     </div>
     <div class="hud-side right">
       <div class="hud-opp-row">
-        <span class="hud-flag" id="hud-f2">🇩🇪</span>
+        <span class="hud-flag" id="hud-f2"><img src="worldcup countries/Flag_of_germany.png" alt="Germany" style="width:32px;height:22px;object-fit:cover;border-radius:2px"></span>
         <span class="hud-uname" id="hud-n2">Player 2</span>
       </div>
     </div>
@@ -333,6 +355,9 @@ button:hover, .btn:hover, #btn-mute:hover, [onclick]:hover{transform:scale(1.06)
   <div id="canvas-wrap">
     <canvas id="gameCanvas" width="900" height="548"></canvas>
     <canvas id="trailCanvas" width="900" height="548"></canvas>
+    <!-- Cinematic vignette + subtle top light-bloom: a cheap post-process substitute
+         (the bundled global three.min.js build can't load the ES-module EffectComposer). -->
+    <div id="vignette"></div>
     <div id="controls-hud">
       <div class="ctrl-row"><span class="keycap">W</span><span class="keycap">S</span><span class="ctrl-desc">Move Rod</span></div>
       <div class="ctrl-row"><span class="keycap wide">Space</span><span class="ctrl-desc">Tap: Shoot</span></div>
@@ -377,7 +402,7 @@ button:hover, .btn:hover, #btn-mute:hover, [onclick]:hover{transform:scale(1.06)
 <!-- END -->
 <div id="screen-end" class="screen cartoon-screen">
   <div class="end-box cartoon-card">
-    <div class="end-trophy">🏆</div>
+    <div class="end-trophy"><img src="models/trophy.png" alt="" draggable="false"></div>
     <div class="end-title">FULL TIME</div>
     <div class="end-winner" id="end-winner">Brazil wins!</div>
     <div class="end-score" id="end-score">3 — 1</div>
@@ -547,6 +572,64 @@ const TEAMS = [
   {id:'curacao',     name:'Curaçao',      flag:_F('Flag_of_Curaçao.png'),             home:'#002B7F', homeS:'#F9E814', away:'#FFFFFF', awayS:'#002B7F'},
 ];
 
+// ═══════════════════════════════════════════════════════════════
+//  JERSEY STYLES  — each nation's iconic home look. Applied as a
+//  cylindrical texture on the jersey so teams read at a glance.
+//  type: solid | vstripes | hoops | checker | sash | halves
+//  c2   = pattern secondary colour · trim = collar/cuff colour.
+//  Primary colour is taken from the kit shirt at runtime; away kits
+//  render solid (they are alternate strips) so kit-contrast still holds.
+// ═══════════════════════════════════════════════════════════════
+const JERSEY_STYLES = {
+  argentina:{type:'vstripes', c2:'#FFFFFF', trim:'#0A2A66'},
+  brazil:{type:'solid', trim:'#009C3B'},
+  france:{type:'solid', trim:'#ED2939'},
+  spain:{type:'solid', trim:'#FFC400'},
+  england:{type:'solid', trim:'#1C4E9D'},
+  germany:{type:'chestband', c2:'#111111', trim:'#111111'},
+  portugal:{type:'solid', trim:'#006600'},
+  netherlands:{type:'solid', trim:'#14110F'},
+  belgium:{type:'solid', trim:'#FDDA24'},
+  croatia:{type:'checker', c2:'#FFFFFF', trim:'#1C478A'},
+  switzerland:{type:'solid', trim:'#FFFFFF'},
+  austria:{type:'solid', trim:'#FFFFFF'},
+  norway:{type:'solid', trim:'#00205B'},
+  sweden:{type:'solid', trim:'#005293'},
+  turkey:{type:'solid', trim:'#FFFFFF'},
+  scotland:{type:'solid', trim:'#FFFFFF'},
+  czech:{type:'solid', trim:'#11457E'},
+  bosnia:{type:'sash', c2:'#FCD116', trim:'#FCD116'},
+  usa:{type:'hoops', c2:'#BF0A30', trim:'#0A2A66'},
+  mexico:{type:'solid', trim:'#FFFFFF'},
+  canada:{type:'solid', trim:'#FFFFFF'},
+  colombia:{type:'solid', trim:'#003087'},
+  uruguay:{type:'solid', trim:'#14110F'},
+  paraguay:{type:'vstripes', c2:'#FFFFFF', trim:'#0A2A66'},
+  panama:{type:'solid', trim:'#DA121A'},
+  haiti:{type:'solid', trim:'#00209F'},
+  morocco:{type:'solid', trim:'#006233'},
+  senegal:{type:'solid', trim:'#00853F'},
+  algeria:{type:'solid', trim:'#006233'},
+  ghana:{type:'solid', trim:'#CE1126'},
+  tunisia:{type:'solid', trim:'#FFFFFF'},
+  egypt:{type:'solid', trim:'#FFFFFF'},
+  southafrica:{type:'solid', trim:'#007A4D'},
+  ivorycoast:{type:'solid', trim:'#009A44'},
+  drc:{type:'solid', trim:'#F7D618'},
+  capeverde:{type:'solid', trim:'#CF2027'},
+  japan:{type:'solid', trim:'#FFFFFF'},
+  southkorea:{type:'solid', trim:'#003478'},
+  australia:{type:'solid', trim:'#00843D'},
+  iran:{type:'solid', trim:'#DA0000'},
+  iraq:{type:'solid', trim:'#007A3D'},
+  saudi:{type:'solid', trim:'#006C35'},
+  jordan:{type:'solid', trim:'#CE1126'},
+  qatar:{type:'solid', trim:'#FFFFFF'},
+  uzbekistan:{type:'solid', trim:'#1EB53A'},
+  newzealand:{type:'solid', trim:'#14110F'},
+  curacao:{type:'solid', trim:'#F9E814'},
+};
+
 // ── Kit auto-selection ───────────────────────────────────────────
 function _hexLum(hex){
   const h=hex.replace('#','').padEnd(6,'0');
@@ -598,7 +681,16 @@ function _unlockAudioContext(){
 window.addEventListener('touchend', _unlockAudioContext);
 window.addEventListener('click', _unlockAudioContext);
 document.addEventListener('visibilitychange', () => {
-  if(document.hidden){ if(GAME.running) GAME.stop(); AUDIO.stopMusic(); AUDIO.stopMenuMusic(); }
+  if(document.hidden){
+    // Auto-PAUSE, never GAME.stop(). stop() cancelled the RAF loop + timer with
+    // no way to restart them, so the first time the tab lost visibility (alt-tab,
+    // minimize, an ad, or focus shifting to the CrazyGames parent page) the whole
+    // game froze permanently and every control — W/S included — went dead.
+    // Pausing freezes physics but keeps the loop alive and recoverable via Esc /
+    // the Resume button, so movement always comes back.
+    if(GAME.running && !GAME.paused && !GAME.countdownActive) GAME.pause();
+    AUDIO.stopMenuMusic();
+  }
 });
 
 // ═══════════════════════════════════════════════════════════════
@@ -832,6 +924,9 @@ const GAME = {
   pause(){
     if(!this.running || this.paused || this.countdownActive) return;
     this.paused = true;
+    // Tell CrazyGames gameplay has stopped (required for correct SDK usage —
+    // gameplayStop must fire on every interruption, including pause).
+    CG.gameplayStop();
     const mus = document.getElementById('snd-music');
     this._musicWasPlaying = mus && !mus.paused;
     if(mus) mus.pause();
@@ -840,6 +935,8 @@ const GAME = {
   resume(){
     if(!this.paused) return;
     this.paused = false;
+    // Gameplay is active again — signal the SDK so start/stop stay balanced.
+    CG.gameplayStart();
     document.getElementById('pause-overlay').classList.remove('show');
     // Reset the frame clock so the long paused gap doesn't produce one huge dt.
     this.lastTime = performance.now();
@@ -1179,6 +1276,9 @@ const GAME = {
     const minD   = CFG.BALL_R + CFG.FIG_W/2 + 3;      // tight radius: normal bounce/kick contact
     const catchR = minD + this.HOLD_CATCH_BONUS;      // generous radius: catching only
     let pinchCount = 0, pinchDX = 0, pinchDY = 0;      // track simultaneous collisions this frame
+    // Post-kick lockout: once a figure kicks the ball, briefly suppress further
+    // powered kicks so a ball hugging a figure can't be machine-gunned.
+    this._figKickCd = Math.max(0, (this._figKickCd || 0) - dt);
 
     for(const rod of ROD_DEFS_2V2){
       if(this.heldBy) break;
@@ -1216,34 +1316,49 @@ const GAME = {
         const dx=b.x-rx, dy=b.y-fy;
         const dist=Math.hypot(dx,dy);
         if(dist<minD && dist>0.1){
-          // Push ball out of overlap
+          // Push ball out of overlap (always separate along contact normal)
           const nx=dx/dist, ny=dy/dist;
           const overlap=minD-dist;
-          b.x+=nx*overlap*1.1;
-          b.y+=ny*overlap*1.1;
+          b.x+=nx*overlap*1.15;
+          b.y+=ny*overlap*1.15;
           pinchCount++; pinchDX+=nx; pinchDY+=ny;
-          // Reflect velocity
+
+          // Which side of the figure is the ball on? p1 figures kick +x, p2 kick -x.
+          // A ball on the BACK side must never be power-kicked forward — that just
+          // slams it back into the post every frame ("stuck behind figure" jitter).
+          const onFront = (dx * dir) > 0;
+
+          // Reflect velocity off the contact normal if moving inward → clean bounce
           const dot=b.vx*nx+b.vy*ny;
-          if(dot<0){ // only resolve if moving toward figure
+          if(dot<0){
             b.vx-=2*dot*nx;
             b.vy-=2*dot*ny;
-            b.vx*=0.88; b.vy*=0.88;
+            b.vx*=0.9; b.vy*=0.9;
           }
-          // Snap kick angle + record last touch
-          if(rod.team==='p1') this.p1KickAngle = 0.65;
-          else                this.p2KickAngle = 0.65;
-          this.lastTouchTeam = rod.team;
 
-          const rodDir = inp ? (inp.up ? -1 : inp.down ? 1 : 0) : 0;
-          const power = powered ? 7.5 : 4.5;
-          b.vx = dir * power + dir * Math.abs(b.vx) * 0.12;
-          b.vy = rodDir * 5.5 + (Math.random()-.5) * 1.5;
-          RENDERER.triggerHitEffect(b, powered ? 0.9 : 0.45);
+          if(onFront && this._figKickCd<=0){
+            // Front-side contact → a real kick, but only once per short lockout window
+            if(rod.team==='p1') this.p1KickAngle = 0.65;
+            else                this.p2KickAngle = 0.65;
+            this.lastTouchTeam = rod.team;
+            const rodDir = inp ? (inp.up ? -1 : inp.down ? 1 : 0) : 0;
+            const power = powered ? 7.5 : 4.5;
+            b.vx = dir * power + dir * Math.abs(b.vx) * 0.12;
+            b.vy = rodDir * 5.5 + (Math.random()-.5) * 1.5;
+            RENDERER.triggerHitEffect(b, powered ? 0.9 : 0.45);
+            AUDIO.kick();
+            this._figKickCd = 5;   // ~5-frame lockout stops machine-gun re-hits
+          } else if(!onFront){
+            // Ball is BEHIND the figure → nudge it further out the back so it
+            // separates cleanly instead of being repeatedly driven into the post.
+            b.vx += nx * 3.2;
+            b.vy += ny * 3.2;
+            this.lastTouchTeam = rod.team;
+          }
 
           // Cap speed
           const sp2=Math.hypot(b.vx,b.vy);
           if(sp2>CFG.MAX_BALL_SPD){ const sc=CFG.MAX_BALL_SPD/sp2; b.vx*=sc; b.vy*=sc; }
-          AUDIO.kick();
         }
       }
     }
@@ -1359,6 +1474,7 @@ const GAME = {
     const team=scorer==='p1'?STATE.p1Team:STATE.p2Team;
     document.getElementById('goal-sub').innerHTML=`<img src="${team.flag}" alt="${team.name}" style="width:28px;height:19px;object-fit:cover;border-radius:2px;vertical-align:middle;margin-right:5px">${team.name} scores!`;
     document.getElementById('goal-overlay').classList.add('show');
+    if(RENDERER && RENDERER.triggerCrowdCheer) RENDERER.triggerCrowdCheer();  // crowd erupts + confetti
   },
 };
 
@@ -1375,6 +1491,59 @@ const RENDERER = {
   _tx(px){ return (px - P.cx) / (P.w * 0.5) * 4; },
   _tz(py){ return (py - P.cy) / (P.h * 0.5) * 2.5; },
 
+  // ── Build a flat-shaded, non-indexed BufferGeometry from a Blender-exported
+  // model data file (window.MODEL_XXXX — see models/*.model.js). Each file holds
+  // plain position/normal/color arrays, one entry per triangle-vertex, so no
+  // GLTFLoader/ES-module toolchain is needed to get real modeled assets on screen.
+  _geoFromModel(T, data){
+    const geo = new T.BufferGeometry();
+    geo.setAttribute('position', new T.Float32BufferAttribute(data.position, 3));
+    geo.setAttribute('normal',   new T.Float32BufferAttribute(data.normal, 3));
+    if(data.color) geo.setAttribute('color', new T.Float32BufferAttribute(data.color, 3));
+    if(data.uv)    geo.setAttribute('uv', new T.Float32BufferAttribute(data.uv, 2));
+    return geo;
+  },
+
+  // Load an image into a THREE.Texture WITHOUT setting crossOrigin. Three's
+  // TextureLoader forces crossOrigin='anonymous', which makes same-origin file://
+  // (and some offline) loads fail silently — the exact reason the pitch texture
+  // and flags were coming up blank. A plain <img> (like the HUD flags) just works.
+  _loadTex(T, url, onload){
+    const im = new Image();
+    im.onload = () => { const t = new T.Texture(im); t.needsUpdate = true; onload(t); };
+    im.onerror = () => console.warn('texture failed to load:', url);
+    im.src = url;
+    return im;
+  },
+
+  // ── Per-team jersey texture (cached). Renders the nation's iconic pattern in
+  // its kit colours onto a canvas that the jersey's cylindrical UVs map around
+  // the torso, so teams are distinguishable at a glance even from far away.
+  _jerseyTexCache:{},
+  _buildJerseyTexture(T, team, kit){
+    const key = team.id+'_'+kit;
+    if(this._jerseyTexCache[key]) return this._jerseyTexCache[key];
+    const st = JERSEY_STYLES[team.id] || {type:'solid'};
+    const type = kit==='away' ? 'solid' : (st.type||'solid');
+    const c1 = team[kit] || team.home || '#888888';                 // primary = kit shirt
+    const c2 = st.c2 || '#ffffff';
+    const trim = st.trim || (_hexLum(c1) > 0.35 ? '#12233f' : '#f2f2f2');
+    const W=128,H=128, cv=document.createElement('canvas'); cv.width=W; cv.height=H;
+    const x=cv.getContext('2d');
+    x.fillStyle=c1; x.fillRect(0,0,W,H);
+    if(type==='vstripes'){ const n=7; for(let i=0;i<n;i++) if(i%2){ x.fillStyle=c2; x.fillRect(Math.round(i*W/n),0,Math.ceil(W/n),H);} }
+    else if(type==='hoops'){ const n=6; for(let i=0;i<n;i++) if(i%2){ x.fillStyle=c2; x.fillRect(0,Math.round(i*H/n),W,Math.ceil(H/n));} }
+    else if(type==='checker'){ const n=8,s=W/n; for(let a=0;a<n;a++)for(let b=0;b<n;b++) if((a+b)%2){ x.fillStyle=c2; x.fillRect(Math.round(a*s),Math.round(b*s),Math.ceil(s),Math.ceil(s));} }
+    else if(type==='sash'){ x.strokeStyle=c2; x.lineWidth=20; x.beginPath(); x.moveTo(-4,H+4); x.lineTo(W+4,-4); x.stroke(); }
+    else if(type==='halves'){ x.fillStyle=c2; x.fillRect(W/2,0,W/2,H); }
+    else if(type==='chestband'){ x.fillStyle=c2; x.fillRect(0,Math.round(H*0.42),W,Math.round(H*0.13)); }
+    // collar band (canvas top → body neckline) + hem band (canvas bottom)
+    x.fillStyle=trim; x.fillRect(0,0,W,11); x.fillRect(0,H-8,W,8);
+    const tex=new T.CanvasTexture(cv);
+    tex.colorSpace=T.SRGBColorSpace; tex.anisotropy=4;
+    this._jerseyTexCache[key]=tex; return tex;
+  },
+
   draw(){ if(this._ok) this._gl.render(this._s, this._cam); },
 
   // ── Init: build full 3D scene ─────────────────────────────────
@@ -1382,48 +1551,93 @@ const RENDERER = {
     const T = window.THREE;
     if(!T){ console.error('Three.js failed to load'); return; }
 
-    // Scene
+    // Scene — gradient sky + matching fog so the pitch sits in a space with
+    // real depth instead of floating on a flat colour.
     this._s = new T.Scene();
-    this._s.background = new T.Color(0x87CEEB); // cartoon sky blue
+    this._s.background = this._buildSky(T);
+    // Deeper, slightly desaturated fog pushed further back: gives the scene real
+    // atmospheric depth without hazing the pitch to a washed-out grey-white.
+    this._s.fog = new T.Fog(0x8ea6bb, 30, 62);
 
-    // Camera — slightly more forward for better field readability
-    this._cam = new T.PerspectiveCamera(65, W/H, 0.1, 50);
-    this._cam.position.set(0, 4.6, 3.2);
-    this._cam.lookAt(0, 0.0, -0.4);
+    // Camera
+    this._cam = new T.PerspectiveCamera(62.5, W/H, 0.1, 60);  // slightly wider → a touch more perspective
+    this._cam.position.set(0, 4.25, 3.5);                     // lowered + pulled back a hair (also reveals the near-rail hardware)
+    this._cam.lookAt(0, 0.05, -0.4);
 
-    // WebGL renderer
+    // WebGL renderer — filmic tone mapping + sRGB output for a richer, graded
+    // image rather than the old flat, blown-out look.
     this._gl = new T.WebGLRenderer({ canvas: CV, antialias: true });
     this._gl.setSize(W, H);
     this._gl.setPixelRatio(Math.min(devicePixelRatio, 2));
     this._gl.shadowMap.enabled = true;
     this._gl.shadowMap.type = T.PCFSoftShadowMap;
-    // No ACESFilmic — keep colors vivid and bright
-    this._gl.toneMapping = T.NoToneMapping;
-    this._gl.toneMappingExposure = 1.0;
+    this._gl.toneMapping = T.ACESFilmicToneMapping;
+    this._gl.toneMappingExposure = 1.0;   // bright, vibrant stadium look (matches reference)
+    if('outputColorSpace' in this._gl) this._gl.outputColorSpace = T.SRGBColorSpace;
 
-    // Lighting — bright and flat, cartoon look
-    this._s.add(new T.AmbientLight(0xffffff, 1.6));
-    const sun = new T.DirectionalLight(0xffffff, 1.8);
-    sun.position.set(2, 9, 5);
-    sun.castShadow = true;
-    sun.shadow.mapSize.setScalar(2048);
-    Object.assign(sun.shadow.camera, {near:1,far:30,left:-7,right:7,top:5,bottom:-5});
-    sun.shadow.bias = -0.0008;
-    this._s.add(sun);
-    const fill = new T.DirectionalLight(0xffffff, 0.6);
-    fill.position.set(-3, 4, 7);
-    this._s.add(fill);
-
+    // Image-based lighting from a procedural studio environment (soft realistic
+    // reflections + ambient). Built after the renderer, before the pieces so
+    // every material picks it up.
     this._buildEnvMap(T);
+
+    // Three-point lighting tuned for punch: a strong warm sun key casts crisp
+    // shadows for contrast, a restrained cool fill keeps shadows readable but not
+    // flat, and a cool back/rim pops the edges. Ambient kept low (the main lift
+    // now comes from a dimmed IBL) so colours stay deep and saturated.
+    // Hemisphere fill: warm sky above + green pitch bounce below → natural ambient
+    // that keeps shadow sides readable and softly green-tints the undersides.
+    this._s.add(new T.HemisphereLight(0xcfe0f2, 0x2c4a20, 0.42));
+    this._s.add(new T.AmbientLight(0xa8c2dc, 0.05));      // tiny floor so nothing is pure black
+    const key = new T.DirectionalLight(0xffeabf, 2.6);    // warm stadium sun
+    key.position.set(4.5, 10, 6);
+    key.castShadow = true;
+    key.shadow.mapSize.setScalar(2048);
+    Object.assign(key.shadow.camera, {near:1,far:36,left:-8,right:8,top:6,bottom:-6});
+    key.shadow.bias = -0.0004; key.shadow.normalBias = 0.025; key.shadow.radius = 3.5;   // softer contact shadows
+    this._s.add(key);
+    const fill = new T.DirectionalLight(0xaecbee, 0.22);
+    fill.position.set(-6, 4, 5);
+    this._s.add(fill);
+    const rim = new T.DirectionalLight(0xd6e6ff, 0.58);
+    rim.position.set(-2, 6, -9);
+    this._s.add(rim);
+    const rim2 = new T.DirectionalLight(0xffe6c0, 0.34);  // warm opposite rim pops the far edges
+    rim2.position.set(7, 5, -6);
+    this._s.add(rim2);
+
     this._buildFloor(T);
+    this._buildStadium(T);
+    this._buildFloodlights(T);
+    this._buildStadiumProps(T);
+    this._buildAdBoards(T);
+    this._buildCrowdFlashes(T);
     this._buildTable(T);
     this._buildPitch(T);
     this._buildMarkings(T);
     this._buildGoals(T);
+    this._buildScoreCounters(T);
     this._buildRods(T);
     this._buildBall(T);
     this.initTrail();
     this._ok = true;
+  },
+
+  // Equirect gradient sky used both as the visible backdrop and as the base of
+  // the IBL environment.
+  _buildSky(T){
+    const cv=document.createElement('canvas'); cv.width=16; cv.height=256;
+    const c=cv.getContext('2d');
+    const g=c.createLinearGradient(0,0,0,256);
+    g.addColorStop(0.00,'#1b568f');  // deeper zenith blue for richness + depth
+    g.addColorStop(0.42,'#5f97c9');
+    g.addColorStop(0.53,'#a7c3d8');  // soft horizon glow
+    g.addColorStop(0.60,'#8ea6bb');  // matches fog so the horizon stays seamless
+    g.addColorStop(1.00,'#8ea6bb');
+    c.fillStyle=g; c.fillRect(0,0,16,256);
+    const t=new T.CanvasTexture(cv);
+    t.mapping=T.EquirectangularReflectionMapping;
+    t.colorSpace=T.SRGBColorSpace;
+    return t;
   },
 
   // Cheap fake reflections for metallic materials — no external HDR needed.
@@ -1434,26 +1648,39 @@ const RENDERER = {
   // shiny (which is what happened: mixing that with full metalness=1, which
   // has zero diffuse fallback, meant any angle sampling a dark band went
   // fully black with nothing to brighten it back up).
+  // Proper image-based lighting: render a tiny procedural "studio" (sky dome +
+  // a few bright soft-box light cards) into a pre-filtered cubemap via
+  // PMREMGenerator. This gives every PBR material soft, believable reflections
+  // and ambient light — the single biggest jump in perceived quality, and it
+  // needs no downloaded HDR file.
   _buildEnvMap(T){
-    const cv = document.createElement('canvas');
-    cv.width = 8; cv.height = 128;
-    const cx = cv.getContext('2d');
-    const grad = cx.createLinearGradient(0,0,0,128);
-    grad.addColorStop(0.00,'#f2f2f2');
-    grad.addColorStop(0.15,'#ffffff');
-    grad.addColorStop(0.28,'#3a3a3a'); // thin dark accent line
-    grad.addColorStop(0.34,'#ffffff');
-    grad.addColorStop(0.48,'#ffffff');
-    grad.addColorStop(0.52,'#4a4a4a'); // thin dark accent line
-    grad.addColorStop(0.58,'#ffffff');
-    grad.addColorStop(0.75,'#ffffff');
-    grad.addColorStop(0.85,'#e0e0e0');
-    grad.addColorStop(1.00,'#cfcfcf');
-    cx.fillStyle = grad; cx.fillRect(0,0,8,128);
-    const tex = new T.CanvasTexture(cv);
-    tex.mapping = T.EquirectangularReflectionMapping;
-    tex.colorSpace = T.SRGBColorSpace;
-    this._s.environment = tex;
+    const pmrem = new T.PMREMGenerator(this._gl);
+    const env = new T.Scene();
+    // Dome tinted DOWN (~0.5) so the sky contributes soft reflections without
+    // flooding every surface with bright ambient — that flat IBL wash was the
+    // main cause of the washed-out look. Kept just bright enough for depth.
+    const dome = new T.Mesh(new T.SphereGeometry(40,24,12),
+      new T.MeshBasicMaterial({ side:T.BackSide, map:this._buildSky(T), color:new T.Color(0.5,0.52,0.56) }));
+    env.add(dome);
+    // Dark ground half so polished metal reflects DARK below / bright above with a
+    // clean horizon line — the classic contrasty chrome look (a uniform-bright env
+    // makes chrome read as flat white plastic, which is what the rods were doing).
+    const ground = new T.Mesh(new T.SphereGeometry(39,24,8,0,Math.PI*2,Math.PI/2,Math.PI/2),
+      new T.MeshBasicMaterial({ side:T.BackSide, color:new T.Color(0.03,0.035,0.045) }));
+    env.add(ground);
+    // Bright soft-box cards give crisp specular glints on the chrome.
+    const card=(x,y,z,w,h,i)=>{
+      const m=new T.Mesh(new T.PlaneGeometry(w,h),
+        new T.MeshBasicMaterial({ color:new T.Color(i,i,i) }));
+      m.position.set(x,y,z); m.lookAt(0,0,0); env.add(m);
+    };
+    card(0,24,3, 30,30, 3.0);
+    card(-20,11,9, 18,24, 1.6);
+    card(18,10,-11, 18,24, 1.3);
+    card(0,6,20, 22,10, 1.2);
+    const rt = pmrem.fromScene(env, 0.03);
+    this._s.environment = rt.texture;
+    pmrem.dispose();
   },
 
   // Procedural fine-grain noise texture so the grip handles read as textured
@@ -1516,10 +1743,268 @@ const RENDERER = {
     return tex;
   },
 
+  // Stadium bowl (Blender-authored vertex-coloured mesh: tiered stands, packed
+  // crowd, roof, advertising boards). Wraps the table so it no longer floats in a
+  // void. Skipped gracefully if the (large) model file didn't load.
+  // Strip the baked colored corner-flag decorations: bright, saturated triangles
+  // sitting in a low band (y≈0.2–0.4) around the pitch. They read as cheap clutter;
+  // Phase-4 adds proper LED boards + banners instead. Returns a filtered model.
+  _stripCornerDeco(SM){
+    const p=SM.position, n=SM.normal, c=SM.color;
+    if(!c) return SM;
+    const P=[],N=[],C=[]; const ntri=(p.length/3)/3;
+    for(let t=0;t<ntri;t++){
+      let r=0,g=0,b=0,y=0,ax=0,az=0;
+      for(let k=0;k<3;k++){ const i=t*3+k; r+=c[i*3];g+=c[i*3+1];b+=c[i*3+2]; ax+=Math.abs(p[i*3]); y+=p[i*3+1]; az+=Math.abs(p[i*3+2]); }
+      r/=3;g/=3;b/=3;y/=3;ax/=3;az/=3;
+      const mx=Math.max(r,g,b), sat=mx-Math.min(r,g,b);
+      const inBand = y<0.9 && ax<5.2 && az<3.6;
+      // drop the colored flags AND their pure-white poles/backing (both ring the pitch low down)
+      if(inBand && ((mx>0.55 && sat>0.28) || (mx>0.85 && sat<0.12))) continue;
+      for(let k=0;k<3;k++){ const i=t*3+k;
+        P.push(p[i*3],p[i*3+1],p[i*3+2]); N.push(n[i*3],n[i*3+1],n[i*3+2]); C.push(c[i*3],c[i*3+1],c[i*3+2]);
+      }
+    }
+    return {position:P, normal:N, color:C};
+  },
+  _buildStadium(T){
+    const SM = window.MODEL_STADIUM;
+    if(SM){
+      const mat = new T.MeshStandardMaterial({ vertexColors:true, roughness:0.9, metalness:0.0 });
+      const bowl = new T.Mesh(this._geoFromModel(T, this._stripCornerDeco(SM)), mat);
+      bowl.receiveShadow = true;
+      this._s.add(bowl); this._stadium = bowl;
+    }
+    // Animated crowd — idle sway always, and a big cheer bounce when a goal is
+    // scored (uCheer ramped by triggerCrowdCheer). Uses onBeforeCompile so the
+    // spectators stay lit/tone-mapped like the rest of the scene.
+    const CM = window.MODEL_CROWD;
+    if(CM){
+      const cgeo = this._geoFromModel(T, CM);
+      cgeo.setAttribute('phase', new T.Float32BufferAttribute(CM.phase, 1));
+      const cmat = new T.MeshStandardMaterial({ vertexColors:true, roughness:0.85, metalness:0.0 });
+      cmat.onBeforeCompile = (shader)=>{
+        shader.uniforms.uTime  = { value:0 };
+        shader.uniforms.uCheer = { value:0 };
+        shader.vertexShader = 'attribute float phase;\nuniform float uTime;\nuniform float uCheer;\n' + shader.vertexShader;
+        shader.vertexShader = shader.vertexShader.replace('#include <begin_vertex>',
+          '#include <begin_vertex>\n float _b = uCheer*abs(sin(uTime*7.0+phase))*0.55;\n transformed.y += sin(uTime*2.0+phase)*0.03 + _b;\n transformed.x += sin(uTime*9.0+phase*1.7)*uCheer*0.06;');
+        // Mute + desaturate the crowd so it reads as a soft, realistic distant crowd
+        // rather than garish rainbow blocks (cleaner, more premium background).
+        shader.fragmentShader = shader.fragmentShader.replace('#include <color_fragment>',
+          '#include <color_fragment>\n float _lum=dot(diffuseColor.rgb,vec3(0.299,0.587,0.114));\n diffuseColor.rgb=mix(vec3(_lum),diffuseColor.rgb,0.55)*0.8;');
+        cmat.userData.shader = shader;
+      };
+      const crowd = new T.Mesh(cgeo, cmat);
+      this._s.add(crowd); this._crowdMat = cmat;
+    }
+    this._cheer = 0;
+    this._buildConfetti(T);
+  },
+
+  // Festive confetti burst that rains over the pitch on a goal.
+  _buildConfetti(T){
+    const N = 150;
+    const pos = new Float32Array(N*3), col = new Float32Array(N*3);
+    this._confVel = new Float32Array(N*3);
+    const pal = [[0.95,0.2,0.2],[0.2,0.5,0.95],[0.98,0.82,0.15],[0.2,0.8,0.35],[0.95,0.95,0.98],[0.7,0.3,0.85]];
+    for(let i=0;i<N;i++){ const c=pal[i%pal.length]; col[i*3]=c[0]; col[i*3+1]=c[1]; col[i*3+2]=c[2]; pos[i*3+1]=-50; }
+    const g=new T.BufferGeometry();
+    g.setAttribute('position', new T.BufferAttribute(pos,3));
+    g.setAttribute('color', new T.BufferAttribute(col,3));
+    const m=new T.PointsMaterial({ size:0.16, vertexColors:true, transparent:true, opacity:0.95, depthWrite:false });
+    this._confetti = new T.Points(g,m); this._confetti.frustumCulled=false; this._confetti.visible=false;
+    this._confN = N; this._confLife = 0;
+    this._s.add(this._confetti);
+  },
+
+  triggerCrowdCheer(){
+    this._cheer = 1;
+    // fresh confetti burst above the pitch
+    if(this._confetti){
+      const p=this._confetti.geometry.attributes.position.array, v=this._confVel;
+      for(let i=0;i<this._confN;i++){
+        p[i*3]   = (Math.random()*2-1)*4.2;
+        p[i*3+1] = 3.5 + Math.random()*2.5;
+        p[i*3+2] = (Math.random()*2-1)*2.6;
+        v[i*3]   = (Math.random()*2-1)*0.6;
+        v[i*3+1] = -(0.6+Math.random()*0.6);
+        v[i*3+2] = (Math.random()*2-1)*0.6;
+      }
+      this._confetti.geometry.attributes.position.needsUpdate=true;
+      this._confetti.visible=true; this._confetti.material.opacity=0.95;
+      this._confLife = 3.0;
+    }
+  },
+
+  // Floodlight pylons at the four diagonal corners — tall masts topped with a bank
+  // of emissive lamp panels. Purely presentational (no extra dynamic shadow lights,
+  // to keep the frame budget safe); the emissive banks read as lit floods.
+  _buildFloodlights(T){
+    const mast = new T.MeshStandardMaterial({color:0x2a2d33, roughness:0.5, metalness:0.6});
+    const lampOn = new T.MeshStandardMaterial({color:0xfffdf2, roughness:0.35, metalness:0.1,
+      emissive:0xfff4d0, emissiveIntensity:2.6});   // bright lit floodlamps
+    [[13,11],[13,-11],[-13,11],[-13,-11]].forEach(([x,z])=>{
+      const grp = new T.Group();
+      grp.position.set(x,0,z);
+      grp.rotation.y = Math.atan2(-x,-z);   // face the lamp bank toward the pitch centre
+      // Tall vertical mast (clears the taller stands)
+      const m = new T.Mesh(new T.CylinderGeometry(0.18,0.26,14,10), mast);
+      m.position.y = 7; m.castShadow = true; grp.add(m);
+      // Backing plate (dark) + a 4×2 grid of bright emissive lamp panels
+      const plate = new T.Mesh(new T.BoxGeometry(2.6,1.5,0.18), mast);
+      plate.position.set(0,13.7,0.10); grp.add(plate);
+      for(let r=0;r<2;r++) for(let c=0;c<4;c++){
+        const lp = new T.Mesh(new T.BoxGeometry(0.56,0.56,0.14), lampOn);
+        lp.position.set((c-1.5)*0.6, 13.35 + r*0.6, 0.20);
+        grp.add(lp);
+      }
+      this._s.add(grp);
+    });
+  },
+
+  // Background dressing: a bunting/pennant ring over the stands, a jumbotron big
+  // screen at the far end, and two flagpoles that fly the competing nations' flags
+  // — reinforces a lively football event without crowding the pitch.
+  // LED advertising boards ringing the pitch (emissive "FOOSBALL CUP").
+  _buildAdBoards(T){
+    const cv=document.createElement('canvas'); cv.width=1024; cv.height=128;
+    const c=cv.getContext('2d');
+    for(let i=0;i<4;i++){
+      const x0=i*256;
+      const g=c.createLinearGradient(x0,0,x0,128); g.addColorStop(0,'#0f3fb0'); g.addColorStop(1,'#08215e');
+      c.fillStyle=g; c.fillRect(x0,0,256,128);
+      c.textAlign='center'; c.textBaseline='middle';
+      c.fillStyle='#ffd23b'; c.font='bold 52px Arial'; c.fillText('FOOSBALL', x0+128, 45);
+      c.fillStyle='#ffffff'; c.font='bold 40px Arial'; c.fillText('CUP', x0+128, 92);
+    }
+    c.fillStyle='rgba(0,0,0,0.10)'; for(let x=0;x<1024;x+=4) c.fillRect(x,0,1.6,128);   // LED scan grid
+    const base=new T.CanvasTexture(cv); base.colorSpace=T.SRGBColorSpace;
+    const mkMat=(rep)=>{ const t=base.clone(); t.wrapS=T.RepeatWrapping; t.repeat.set(rep,1); t.needsUpdate=true;
+      return new T.MeshStandardMaterial({map:t, emissive:0xffffff, emissiveMap:t, emissiveIntensity:0.8, roughness:0.5, metalness:0.0, side:T.DoubleSide}); };
+    const H=0.62, y=0.66;
+    const add=(w,x,z,ry)=>{ const m=new T.Mesh(new T.PlaneGeometry(w,H), mkMat(Math.max(2,Math.round(w/2.4)))); m.position.set(x,y,z); m.rotation.y=ry; this._s.add(m); };
+    add(9.6, 0, -3.5, 0);          // far board (faces the pitch/camera)
+    add(9.6, 0,  3.5, Math.PI);    // near board
+    add(6.2, -4.9, 0,  Math.PI/2); // left end (behind goal)
+    add(6.2,  4.9, 0, -Math.PI/2); // right end (behind goal)
+  },
+  // Occasional camera flashes in the stands (more during a cheer) → live-broadcast feel.
+  _buildCrowdFlashes(T){
+    this._flashes=[];
+    const geo=new T.PlaneGeometry(0.24,0.24);
+    for(let i=0;i<12;i++){
+      const m=new T.Mesh(geo, new T.MeshBasicMaterial({color:0xffffff, transparent:true, opacity:0, depthWrite:false, blending:T.AdditiveBlending}));
+      m.visible=false; this._s.add(m); this._flashes.push({mesh:m, life:0});
+    }
+  },
+  _updateCrowdFlashes(){
+    if(!this._flashes) return;
+    const now=performance.now(); const dt=Math.min(0.05,(now-(this._lastFlashT||now))/1000); this._lastFlashT=now;
+    for(const f of this._flashes){
+      if(f.life>0){ f.life-=dt*4; f.mesh.material.opacity=Math.max(0,f.life)*0.9;
+        if(f.life<=0){ f.life=0; f.mesh.visible=false; } else if(this._cam) f.mesh.lookAt(this._cam.position); }
+    }
+    const pSpawn=(0.6 + (this._cheer||0)*6)*dt;   // ~0.6/s idle, up to ~6/s cheering
+    if(Math.random()<pSpawn){
+      const f=this._flashes.find(x=>x.life<=0);
+      if(f){ const ang=-Math.PI/2 + (Math.random()-0.5)*Math.PI*1.7; const r=4.8+Math.random()*1.8, y=1.5+Math.random()*2.8;
+        f.mesh.position.set(Math.cos(ang)*r, y, Math.sin(ang)*r - 0.5); f.mesh.visible=true; f.life=1; f.mesh.material.opacity=0.9; }
+    }
+  },
+  _buildStadiumProps(T){
+    // (Bunting removed — the busy pennant ring read as cheap/cluttered; the stands,
+    //  ad boards and crowd now carry a cleaner, more premium broadcast look.)
+
+    // ── Jumbotron big screen above the far stand ──
+    const jGrp=new T.Group(); jGrp.position.set(0, 7.8, -7.5);
+    const frameMat=new T.MeshStandardMaterial({color:0x181b22, roughness:0.6, metalness:0.4});
+    jGrp.add(new T.Mesh(new T.BoxGeometry(6.8,4.2,0.5), frameMat));
+    const scr=new T.Mesh(new T.PlaneGeometry(6.2,3.6),
+      new T.MeshBasicMaterial({map:this._buildJumboTexture(T)}));
+    scr.position.z=0.28; jGrp.add(scr);
+    // support legs
+    [-2.2,2.2].forEach(x=>{ const leg=new T.Mesh(new T.CylinderGeometry(0.18,0.22,6.4,8),frameMat); leg.position.set(x,-3.6,0); jGrp.add(leg); });
+    this._s.add(jGrp);
+
+    // ── Flagpoles flying the two competing nations' flags (textures set per match) ──
+    this._flagMats=[];
+    [[-5.0,-3.5],[5.0,-3.5]].forEach(([x,z],idx)=>{
+      const g=new T.Group(); g.position.set(x,0,z);
+      const pole=new T.Mesh(new T.CylinderGeometry(0.09,0.11,8.4,10),
+        new T.MeshStandardMaterial({color:0xd8dde3, metalness:0.8, roughness:0.3}));
+      pole.position.y=4.2; g.add(pole);
+      const fm=new T.MeshStandardMaterial({color:0xcccccc, roughness:0.7, side:T.DoubleSide});
+      const flag=new T.Mesh(new T.PlaneGeometry(2.2,1.4,12,1), fm);
+      flag.position.set(x<0?1.2:-1.2, 7.1, 0); flag.scale.x = x<0?1:-1;
+      g.add(flag); this._flagMats.push({mat:fm, mesh:flag, phase:idx*3});
+      this._s.add(g);
+    });
+
+    // ── Broadcast cameras on raised platforms at the far corners ──
+    const camBody=new T.MeshStandardMaterial({color:0x15171c, roughness:0.5, metalness:0.4});
+    const camLens=new T.MeshStandardMaterial({color:0x0a0a0c, roughness:0.2, metalness:0.6});
+    [[-6.5,-6.5],[6.5,-6.5]].forEach(([x,z])=>{
+      const g=new T.Group(); g.position.set(x,2.2,z); g.lookAt(0,1,0);
+      // tripod legs
+      for(let k=0;k<3;k++){ const leg=new T.Mesh(new T.CylinderGeometry(0.04,0.04,2.2,6),camBody); const a=k*2.094; leg.position.set(Math.cos(a)*0.25,-1.1,Math.sin(a)*0.25); leg.rotation.set(0.18*Math.cos(a),0,-0.18*Math.sin(a)); g.add(leg); }
+      const body=new T.Mesh(new T.BoxGeometry(0.5,0.42,0.8),camBody); g.add(body);
+      const lens=new T.Mesh(new T.CylinderGeometry(0.15,0.17,0.4,12),camLens); lens.rotation.x=Math.PI/2; lens.position.z=0.55; g.add(lens);
+      this._s.add(g);
+    });
+
+    // ── Photographers seated at the pitch far corners (small low-poly) ──
+    const photoBody=new T.MeshStandardMaterial({color:0x2a2f38, roughness:0.8, metalness:0.0});
+    const photoLens=new T.MeshStandardMaterial({color:0xdddfe4, roughness:0.3, metalness:0.5, emissive:0x111214});
+    [[-4.9,-3.3],[-3.2,-3.4],[4.9,-3.3],[3.2,-3.4]].forEach(([x,z])=>{
+      const g=new T.Group(); g.position.set(x,0.55,z); g.lookAt(0,0.4,0);
+      g.add(new T.Mesh(new T.SphereGeometry(0.22,10,8),photoBody));                 // torso
+      const head=new T.Mesh(new T.SphereGeometry(0.11,10,8),photoBody); head.position.set(0,0.3,0); g.add(head);
+      const cam=new T.Mesh(new T.BoxGeometry(0.16,0.13,0.2),photoBody); cam.position.set(0,0.18,0.18); g.add(cam);
+      const lens=new T.Mesh(new T.CylinderGeometry(0.06,0.07,0.18,10),photoLens); lens.rotation.x=Math.PI/2; lens.position.set(0,0.18,0.34); g.add(lens);
+      this._s.add(g);
+    });
+  },
+
+  // Jumbotron screen graphic — a stylised broadcast look (kept static + emissive).
+  _buildJumboTexture(T){
+    const cv=document.createElement('canvas'); cv.width=512; cv.height=300;
+    const c=cv.getContext('2d');
+    c.fillStyle='#0a1830'; c.fillRect(0,0,512,300);
+    const g=c.createLinearGradient(0,0,0,300); g.addColorStop(0,'#12488f'); g.addColorStop(1,'#0a1830');
+    c.fillStyle=g; c.fillRect(0,0,512,60);
+    c.fillStyle='#ffd23b'; c.font='bold 46px Arial'; c.textAlign='center';
+    c.fillText('⚽ WORLD CUP', 256, 130);
+    c.fillStyle='#ffffff'; c.font='bold 30px Arial'; c.fillText('BABYFOOT', 256, 180);
+    c.fillStyle='rgba(255,255,255,.15)';
+    for(let i=0;i<512;i+=8) c.fillRect(i,0,3,300);   // subtle screen scanlines
+    const t=new T.CanvasTexture(cv); t.colorSpace=T.SRGBColorSpace; return t;
+  },
+
+  // Load the two teams' flag images onto the flagpoles (called when a match starts).
+  setMatchFlags(t1,t2){
+    if(!this._flagMats) return;
+    [t1,t2].forEach((t,i)=>{
+      if(!t || !this._flagMats[i]) return;
+      this._loadTex(THREE, t.flag, tex=>{ tex.colorSpace=THREE.SRGBColorSpace; this._flagMats[i].mat.map=tex; this._flagMats[i].mat.color.setHex(0xffffff); this._flagMats[i].mat.needsUpdate=true; });
+    });
+  },
+
   _buildFloor(T){
-    // Bright cartoon floor — checkered sky-blue / light pattern
-    const m = new T.Mesh(new T.PlaneGeometry(60,60),
-      new T.MeshStandardMaterial({color:0x5BB8F5,roughness:0.7,metalness:0.0}));
+    // "Infinity cove" studio floor: a soft radial gradient from a bright pool
+    // under the table out to the fog colour, so the ground has no visible edge —
+    // it dissolves into the fog/backdrop like a product photo. Grounds the table
+    // instead of floating it on a flat blue void.
+    const cv=document.createElement('canvas'); cv.width=512; cv.height=512;
+    const c=cv.getContext('2d');
+    const g=c.createRadialGradient(256,256,40, 256,256,270);
+    g.addColorStop(0,'#aebeca');   // darker, richer surround so the bright pitch pops
+    g.addColorStop(0.55,'#9db0be');
+    g.addColorStop(1,'#8ea6bb');   // dissolves into the fog
+    c.fillStyle=g; c.fillRect(0,0,512,512);
+    const tex=new T.CanvasTexture(cv); tex.colorSpace=T.SRGBColorSpace;
+    const m = new T.Mesh(new T.PlaneGeometry(120,120),
+      new T.MeshStandardMaterial({map:tex,roughness:0.95,metalness:0.0}));
     m.rotation.x = -Math.PI/2; m.position.y = -0.55; m.receiveShadow = true;
     this._s.add(m);
   },
@@ -1527,10 +2012,28 @@ const RENDERER = {
   _buildTable(T){
     // Real-babyfoot look: natural light-wood cabinet edges, red top trim rails,
     // black legs — matching a classic French foosball table.
-    const woodTex = this._buildWoodTexture(T);
-    const body  = new T.MeshStandardMaterial({map:woodTex,color:0xffffff,roughness:0.72,metalness:0.0});
-    const trim  = new T.MeshStandardMaterial({color:0xD42222,roughness:0.5,metalness:0.05});
-    const leg   = new T.MeshStandardMaterial({color:0x1a1a1a,roughness:0.6,metalness:0.1});
+    const woodTex = this._buildWoodTexture(T);   // procedural fallback until baked maps load
+    const Phys = T.MeshPhysicalMaterial || T.MeshStandardMaterial;
+    const maxAniso = (this._gl && this._gl.capabilities && this._gl.capabilities.getMaxAnisotropy) ? this._gl.capabilities.getMaxAnisotropy() : 8;
+    // Premium Blender-baked walnut (albedo + normal + roughness), loaded async with
+    // the procedural grain as an immediate fallback so the frame is never blank.
+    const loadWood = (mat, opt)=>{
+      const o = Object.assign({albedo:true, tint:0xffffff, rx:3, ry:1, normStr:0.6}, opt||{});
+      if(o.albedo) this._loadTex(T,'models/wood_albedo.png?v=1',t=>{ t.colorSpace=T.SRGBColorSpace; t.wrapS=t.wrapT=T.RepeatWrapping; t.repeat.set(o.rx,o.ry); t.anisotropy=maxAniso; mat.map=t; mat.color.setHex(o.tint); mat.needsUpdate=true; });
+      this._loadTex(T,'models/wood_normal.png?v=1',t=>{ t.wrapS=t.wrapT=T.RepeatWrapping; t.repeat.set(o.rx,o.ry); mat.normalMap=t; if(mat.normalScale) mat.normalScale.set(o.normStr,o.normStr); mat.needsUpdate=true; });
+      this._loadTex(T,'models/wood_rough.png?v=1',t=>{ t.wrapS=t.wrapT=T.RepeatWrapping; t.repeat.set(o.rx,o.ry); mat.roughnessMap=t; mat.needsUpdate=true; });
+    };
+    // Walnut cabinet body + side panels
+    const body  = new Phys({map:woodTex,color:0xffffff,roughness:0.62,metalness:0.0,clearcoat:0.5,clearcoatRoughness:0.4,envMapIntensity:0.5});
+    loadWood(body, {albedo:true, tint:0xffffff, rx:3, ry:1, normStr:0.7});
+    // Red-mahogany lacquered top rails: solid mahogany + wood-grain relief + gloss
+    const trim  = new Phys({color:0xB0402C,roughness:0.34,metalness:0.0,clearcoat:0.9,clearcoatRoughness:0.14,envMapIntensity:0.7});
+    loadWood(trim, {albedo:false, rx:3, ry:1, normStr:0.35});
+    const leg   = new T.MeshStandardMaterial({color:0x141414,roughness:0.5,metalness:0.25});
+    // Brushed-chrome metal for posts, screws, brackets and edge banding.
+    const postMat  = new T.MeshStandardMaterial({color:0xEDEFF2,metalness:0.9,roughness:0.22,envMapIntensity:1.6});
+    const metalMat = new T.MeshStandardMaterial({color:0xC9CDD4,metalness:1.0,roughness:0.32,envMapIntensity:1.5});
+    const goldMat  = new T.MeshStandardMaterial({color:0xE7C04A,metalness:1.0,roughness:0.3,envMapIntensity:1.4});
     const add   = (geo,mat,x,y,z,rx=0,ry=0,rz=0)=>{
       const m=new T.Mesh(geo,mat); m.position.set(x,y,z);
       m.rotation.set(rx,ry,rz); m.castShadow=true; m.receiveShadow=true;
@@ -1578,23 +2081,275 @@ const RENDERER = {
       // goal mouth too. Overhangs the wood in both x and z so nothing z-fights.
       add(new T.BoxGeometry(wt+ov,0.18,td+ov), trim, x,0.48,0);
     });
+
+    // Chrome corner posts at the four outer cabinet corners (Blender model, with a
+    // primitive-cylinder fallback if the data file is missing).
+    const PM = window.MODEL_POST;
+    [[-ex,-rz],[ex,-rz],[-ex,rz],[ex,rz]].forEach(([x,z])=>{
+      let post;
+      if(PM){ post=new T.Mesh(this._geoFromModel(T, PM), postMat); }
+      else  { post=new T.Mesh(new T.CylinderGeometry(0.18,0.18,1.0,16), postMat); }
+      post.position.set(x,0.17,z); post.castShadow=true; this._s.add(post);
+    });
+
+    // ── Premium detailing: gold inner edge banding + rows of chrome bolts + corner
+    //    brackets. Shared geometries so the dozens of bolts cost one buffer.
+    const railTopY = 0.57;                          // just above the red caps
+    const inX = 4.02, inZ = 2.52;                    // inner rail edge (pitch side)
+    // Gold banding framing the pitch opening (thin beveled bars on the inner lip)
+    const bandMat = goldMat;
+    add(new T.BoxGeometry(inX*2, 0.03, 0.05), bandMat, 0, 0.55, -inZ);
+    add(new T.BoxGeometry(inX*2, 0.03, 0.05), bandMat, 0, 0.55,  inZ);
+    add(new T.BoxGeometry(0.05, 0.03, inZ*2), bandMat, -inX, 0.55, 0);
+    add(new T.BoxGeometry(0.05, 0.03, inZ*2), bandMat,  inX, 0.55, 0);
+
+    const SC = window.MODEL_SCREW, BR = window.MODEL_BRACKET;
+    const screwGeo  = SC ? this._geoFromModel(T, SC) : new T.CylinderGeometry(0.05,0.05,0.03,6);
+    const placeScrew=(x,z)=>{ const m=new T.Mesh(screwGeo, metalMat); m.position.set(x,railTopY,z); this._s.add(m); };
+    // Bolts along the near & far red rails
+    for(let x=-3.7; x<=3.7; x+=1.05){ placeScrew(x,-rz); placeScrew(x, rz); }
+    // Bolts along the end rails (skip the goal-mouth span)
+    [-ex, ex].forEach(x=>{ [-2.35,-1.55,1.55,2.35].forEach(z=> placeScrew(x,z)); });
+
+    // Chrome corner brackets nested at the four inner frame corners
+    if(BR){
+      const brGeo=this._geoFromModel(T, BR);
+      [[-1,-1],[1,-1],[-1,1],[1,1]].forEach(([sx,sz])=>{
+        const b=new T.Mesh(brGeo, metalMat);
+        b.position.set(sx*(ex-0.12), 0.56, sz*(rz-0.12));
+        b.rotation.y = Math.atan2(-sx, sz)*0 + (sx>0? (sz>0?Math.PI/2:0) : (sz>0?Math.PI:-Math.PI/2));
+        b.castShadow=true; this._s.add(b);
+      });
+    }
+
+    // ── Rod bearings (black plastic bushings) + rubber bumpers on every rod ──
+    const blackPlastic = new T.MeshStandardMaterial({color:0x0a0a0d, roughness:0.55, metalness:0.12, envMapIntensity:0.4});
+    const rubberMat    = new T.MeshStandardMaterial({color:0x0c0c0e, roughness:0.92, metalness:0.0, envMapIntensity:0.2});
+    const railOuterZ = rz + wt/2;                                  // outer face of near/far rails
+    const zBump      = rz - wt/2 - 0.06;                           // just inside the rails
+    const bushGeo   = new T.TorusGeometry(0.098, 0.052, 10, 22);   // rounded bushing (rod passes through the hole)
+    const flangeGeo = new T.TorusGeometry(0.138, 0.024, 8, 24);    // flat rim flush on the rail
+    const bumpGeo   = new T.CylinderGeometry(0.085, 0.085, 0.14, 16);
+    for(const rod of ROD_DEFS_2V2){
+      const rx = this._tx(P.x + rod.xFrac*P.w);
+      [-railOuterZ, railOuterZ].forEach(zc=>{
+        const bush=new T.Mesh(bushGeo, blackPlastic); bush.position.set(rx,0.28,zc); bush.castShadow=true; this._s.add(bush);
+        const fl  =new T.Mesh(flangeGeo, blackPlastic); fl.position.set(rx,0.28, zc + (zc>0?-0.02:0.02)); this._s.add(fl);
+      });
+      [-zBump, zBump].forEach(zc=>{
+        const bp=new T.Mesh(bumpGeo, rubberMat); bp.rotation.x=Math.PI/2; bp.position.set(rx,0.28,zc); bp.castShadow=true; this._s.add(bp);
+      });
+    }
+
+    // ── Chrome corner caps on the four top-outer corners ──
+    [[-ex,-rz],[ex,-rz],[-ex,rz],[ex,rz]].forEach(([x,z])=>{
+      const cap=new T.Mesh(new T.BoxGeometry(wt+0.14, 0.14, wt+0.14), metalMat);
+      cap.position.set(x, 0.56, z); cap.castShadow=true; this._s.add(cap);
+    });
+
+    // ── Ball-return: recessed black opening + plastic trim on the near rail front ──
+    const brX = 2.2, brZ = rz + wt/2 + 0.002;
+    const brDark = new T.MeshStandardMaterial({color:0x050506, roughness:0.85, metalness:0.0});
+    const brIn = new T.Mesh(new T.BoxGeometry(0.5,0.24,0.02), brDark); brIn.position.set(brX,0.14,brZ); this._s.add(brIn);
+    const tf=(w,h,x,y)=>{ const m=new T.Mesh(new T.BoxGeometry(w,h,0.05), blackPlastic); m.position.set(x,y,brZ+0.02); this._s.add(m); };
+    tf(0.60,0.055,brX,0.28); tf(0.60,0.055,brX,0.00); tf(0.055,0.30,brX-0.30,0.14); tf(0.055,0.30,brX+0.30,0.14);
+  },
+
+  // Detailed procedural turf: mow stripes + soft colour-variation patches + tens
+  // of thousands of fine blade streaks + tip highlights, so from the top-down
+  // camera the surface reads as a real, dense football pitch (the 3D blades on
+  // top add depth + the ball ripple). Returns {map, bump}.
+  _buildTurfTexture(T){
+    const W=1024, H=640;
+    const cv=document.createElement('canvas'); cv.width=W; cv.height=H;
+    const c=cv.getContext('2d');
+    // base
+    c.fillStyle='#2f9e3f'; c.fillRect(0,0,W,H);
+    // vertical mow stripes (alternating light/dark bands like a mown pitch)
+    const nS=10, sw=W/nS;
+    for(let i=0;i<nS;i++){
+      c.fillStyle = (i%2) ? 'rgba(255,255,255,0.10)' : 'rgba(0,40,0,0.12)';
+      c.fillRect(i*sw,0,sw,H);
+    }
+    // large soft colour-variation patches (natural unevenness)
+    for(let i=0;i<70;i++){
+      const x=Math.random()*W, y=Math.random()*H, r=60+Math.random()*160;
+      const light=Math.random()>0.5;
+      const g=c.createRadialGradient(x,y,0,x,y,r);
+      g.addColorStop(0, light?'rgba(150,220,120,0.14)':'rgba(10,70,25,0.16)');
+      g.addColorStop(1,'rgba(0,0,0,0)');
+      c.fillStyle=g; c.beginPath(); c.arc(x,y,r,0,Math.PI*2); c.fill();
+    }
+    // fine blade streaks — thousands of short vertical strokes of varying green
+    for(let i=0;i<42000;i++){
+      const x=Math.random()*W, y=Math.random()*H, len=3+Math.random()*7;
+      const g=90+Math.random()*130, rr=(g*0.35)|0, bb=(g*0.32)|0;
+      c.strokeStyle=`rgba(${rr},${g},${bb},${0.10+Math.random()*0.22})`;
+      c.lineWidth=0.8+Math.random()*0.8;
+      c.beginPath(); c.moveTo(x,y); c.lineTo(x+(Math.random()-0.5)*2, y-len); c.stroke();
+    }
+    // sparse bright tip highlights
+    for(let i=0;i<5000;i++){
+      c.fillStyle=`rgba(200,255,170,${0.05+Math.random()*0.12})`;
+      c.fillRect(Math.random()*W, Math.random()*H, 1, 1+Math.random()*2);
+    }
+    const map=new T.CanvasTexture(cv); map.colorSpace=T.SRGBColorSpace; map.anisotropy=8;
+    // bump from a grayscale blade-noise pass
+    const bcv=document.createElement('canvas'); bcv.width=W; bcv.height=H;
+    const bc=bcv.getContext('2d'); bc.fillStyle='#808080'; bc.fillRect(0,0,W,H);
+    for(let i=0;i<30000;i++){ const v=90+Math.random()*140; bc.strokeStyle=`rgba(${v},${v},${v},0.5)`; bc.lineWidth=1; const x=Math.random()*W,y=Math.random()*H; bc.beginPath(); bc.moveTo(x,y); bc.lineTo(x,y-(3+Math.random()*6)); bc.stroke(); }
+    const bump=new T.CanvasTexture(bcv);
+    return {map, bump};
   },
 
   _buildPitch(T){
     const pw = 8, pd = 5;
-    // Bright vivid green — matches menu grass
-    const felt = new T.Mesh(new T.PlaneGeometry(pw, pd),
-      new T.MeshStandardMaterial({color:0x2ECC40,roughness:0.85,metalness:0.0}));
+    // Deep, natural stadium turf: a 2K Blender-baked top-down render of ~120k curved
+    // blades in the target dark palette (#2E5D22/#3F6F2C/#557F39) as the albedo, a
+    // roughness map for uneven light response, and max anisotropic filtering.
+    // Robust pitch that CANNOT go black or white:
+    //  • mow stripes + grass detail are baked into the albedo (no normal map — a
+    //    normal map on this rotated plane made Three flip the surface dark).
+    //  • the albedo also drives an EMISSIVE floor, so the grass shows at close to
+    //    its true colour regardless of how ACES/exposure crush the diffuse — the
+    //    exact reason a dark albedo was rendering near-black. Diffuse (map) still
+    //    receives player shadows on top.
+    //  • deep-green diffuse + emissive fallbacks so an unloaded texture is still green.
+    const maxAniso = (this._gl && this._gl.capabilities && this._gl.capabilities.getMaxAnisotropy) ? this._gl.capabilities.getMaxAnisotropy() : 8;
+    const rough = this._buildTurfRough(T); rough.anisotropy = maxAniso;
+    const mat = new T.MeshStandardMaterial({
+      color:0x2f6f2c, roughness:0.82, metalness:0.0, envMapIntensity:0.35,
+      emissive:0x16401b, emissiveIntensity:1.0,
+      roughnessMap: rough
+    });
+    const felt = new T.Mesh(new T.PlaneGeometry(pw, pd, 1, 1), mat);
     felt.rotation.x=-Math.PI/2; felt.receiveShadow=true;
     this._s.add(felt);
-    // Mow stripes — slightly darker green
-    const dk = new T.MeshStandardMaterial({color:0x25A835,roughness:0.85,transparent:true,opacity:0.5});
-    const nStripes = 8, sw = pw / nStripes;
-    for(let i=0;i<nStripes;i+=2){
-      const s=new T.Mesh(new T.PlaneGeometry(sw*0.97, pd), dk);
-      s.rotation.x=-Math.PI/2; s.position.set(-pw/2 + sw*(i+0.5), 0.001, 0);
-      this._s.add(s);
+    this._loadTex(T, 'models/turf_albedo.jpg', tex=>{
+      tex.colorSpace = T.SRGBColorSpace; tex.anisotropy = maxAniso;
+      mat.map = tex;         mat.color.setHex(0xffffff);
+      // small emissive floor (dark grass safety so tone-mapping can't crush to black)
+      mat.emissiveMap = tex; mat.emissive.setHex(0xffffff); mat.emissiveIntensity = 0.14;
+      mat.needsUpdate = true;
+    });
+  },
+
+  // Roughness map: mostly rough (~0.8) with subtle low-frequency variation so the
+  // turf reflects light unevenly like real grass instead of a uniform sheen.
+  _buildTurfRough(T){
+    const W=512,H=320, cv=document.createElement('canvas'); cv.width=W; cv.height=H;
+    const c=cv.getContext('2d'); const img=c.createImageData(W,H); const d=img.data;
+    for(let y=0;y<H;y++) for(let x=0;x<W;x++){
+      const i=(y*W+x)*4;
+      const n = 0.5 + 0.5*Math.sin(x/23.0)*Math.cos(y/19.0) + 0.25*Math.sin((x+y)/11.0);
+      let v = 0.8 + (Math.max(0,Math.min(1,n))-0.5)*0.16 + (Math.random()-0.5)*0.05;
+      v = Math.max(0.6, Math.min(0.95, v));
+      const g=(v*255)|0; d[i]=g; d[i+1]=g; d[i+2]=g; d[i+3]=255;
     }
+    c.putImageData(img,0,0);
+    const tex=new T.CanvasTexture(cv);
+    tex.colorSpace = (T.NoColorSpace !== undefined) ? T.NoColorSpace : T.LinearSRGBColorSpace;
+    return tex;
+  },
+
+  // Tangent-space normal map for the pitch: smooth alternating-lean mow stripes
+  // (so the key light produces the classic light/dark stripe reflection) plus a
+  // soft low-frequency undulation for thickness. No per-pixel noise → no sparkle.
+  _buildTurfNormal(T){
+    const W=512, H=320, cv=document.createElement('canvas'); cv.width=W; cv.height=H;
+    const c=cv.getContext('2d'); const img=c.createImageData(W,H); const d=img.data;
+    // Keep the lean SUBTLE — a strong lean tilts the flat pitch's normal sideways
+    // so it stops catching the overhead key light and goes dark. Small values give
+    // gentle light-driven stripes while the surface still faces up.
+    const bw = W/8, amp = 0.12;                 // gentle stripe lean (colour carries most of it)
+    for(let y=0;y<H;y++) for(let x=0;x<W;x++){
+      const i=(y*W+x)*4;
+      // fine grass-fibre relief (subtle per-texel jitter) + gentle mow-stripe lean
+      let nx = 0.04*Math.cos(x/55.0) + (Math.random()-0.5)*0.14;
+      let ny = amp*Math.sin(Math.PI*x/bw) + (Math.random()-0.5)*0.14;
+      const l=Math.hypot(nx,ny); if(l>0.4){ nx*=0.4/l; ny*=0.4/l; }
+      const nz=Math.sqrt(Math.max(0.55, 1-nx*nx-ny*ny));
+      d[i]=(nx*0.5+0.5)*255; d[i+1]=(ny*0.5+0.5)*255; d[i+2]=(nz*0.5+0.5)*255; d[i+3]=255;
+    }
+    c.putImageData(img,0,0);
+    const tex=new T.CanvasTexture(cv);
+    tex.colorSpace = (T.NoColorSpace !== undefined) ? T.NoColorSpace : T.LinearSRGBColorSpace;
+    tex.anisotropy = 4;
+    return tex;
+  },
+
+  // ── Instanced grass: thousands of short blades over the pitch with wind sway
+  //    and a shader that bends blades away from the ball as it rolls through, so
+  //    the field feels alive. Wrapped in try/catch: if the shader can't compile
+  //    on some GPU the game silently keeps the flat felt underneath.
+  _buildGrass(T){
+    try{
+      const BLADES = 16000, H = 0.05, w0 = 0.02, w1 = 0.011;
+      // blade template (5 verts, 3 tris, tapering to a tip)
+      const tPos = new Float32Array([-w0,0,0,  w0,0,0,  -w1,H*0.55,0,  w1,H*0.55,0,  0,H,0]);
+      const tHF  = new Float32Array([0,0,0.55,0.55,1]);
+      const idx  = [0,1,3, 0,3,2, 2,3,4];
+      const g = new T.InstancedBufferGeometry();
+      g.setAttribute('position', new T.Float32BufferAttribute(tPos,3));
+      g.setAttribute('heightFrac', new T.Float32BufferAttribute(tHF,1));
+      g.setIndex(idx);
+      const offs=new Float32Array(BLADES*2), angs=new Float32Array(BLADES), hts=new Float32Array(BLADES), cvar=new Float32Array(BLADES);
+      for(let i=0;i<BLADES;i++){
+        offs[i*2]   = (Math.random()*2-1)*3.95;   // x across pitch
+        offs[i*2+1] = (Math.random()*2-1)*2.45;   // z across pitch
+        angs[i]     = Math.random()*Math.PI*2;
+        hts[i]      = 0.7 + Math.random()*0.7;
+        cvar[i]     = Math.random();
+      }
+      g.setAttribute('aOffset', new T.InstancedBufferAttribute(offs,2));
+      g.setAttribute('aAngle',  new T.InstancedBufferAttribute(angs,1));
+      g.setAttribute('aHeight', new T.InstancedBufferAttribute(hts,1));
+      g.setAttribute('aColorVar', new T.InstancedBufferAttribute(cvar,1));
+
+      // Colours are provided already sRGB-tuned and output directly (no tone-map
+      // includes — ShaderMaterial doesn't get the tonemapping uniforms injected,
+      // so pulling those chunks in would fail to compile on some drivers).
+      const mat = new T.ShaderMaterial({
+        uniforms:{ uTime:{value:0}, uBall:{value:new T.Vector3(0,0.13,0)},
+                   uBase:{value:new T.Color(0x3aa94a)},
+                   uTip:{value:new T.Color(0x86e07a)} },
+        vertexShader:`
+          attribute float heightFrac; attribute vec2 aOffset; attribute float aAngle;
+          attribute float aHeight; attribute float aColorVar;
+          uniform float uTime; uniform vec3 uBall;
+          varying float vH; varying float vCV;
+          void main(){
+            vec3 p = position; p.y *= aHeight;
+            float s=sin(aAngle), c=cos(aAngle);
+            vec3 rp = vec3(p.x*c - p.z*s, p.y, p.x*s + p.z*c);
+            vec3 world = vec3(aOffset.x + rp.x, rp.y, aOffset.y + rp.z);
+            float h = heightFrac;
+            float w = sin(uTime*1.6 + aOffset.x*3.0 + aOffset.y*2.5)*0.02
+                    + sin(uTime*2.7 + aOffset.x*1.3)*0.008;
+            world.x += w*h; world.z += w*0.6*h;
+            vec2 dd = world.xz - uBall.xz; float dist = length(dd);
+            float R = 0.4; float push = max(0.0, 1.0 - dist/R);
+            vec2 dir = dist>1e-4 ? dd/dist : vec2(0.0);
+            world.xz += dir*push*push*0.12*h;
+            world.y  -= push*push*0.04*h;
+            vH = h; vCV = aColorVar;
+            gl_Position = projectionMatrix * modelViewMatrix * vec4(world,1.0);
+          }`,
+        fragmentShader:`
+          uniform vec3 uBase; uniform vec3 uTip;
+          varying float vH; varying float vCV;
+          void main(){
+            vec3 col = mix(uBase, uTip, vH);
+            col *= 0.82 + vCV*0.32;              // per-blade patchiness
+            gl_FragColor = vec4(col, 1.0);
+          }`
+      });
+      const mesh = new T.Mesh(g, mat);
+      mesh.frustumCulled = false;               // template bounds are tiny; keep visible
+      mesh.position.y = 0.0;
+      this._s.add(mesh);
+      this._grassMat = mat;
+    }catch(e){ console.warn('grass disabled:', e); }
   },
 
   _buildMarkings(T){
@@ -1623,82 +2378,161 @@ const RENDERER = {
     this._s.add(new T.LineSegments(geo,mat));
   },
 
-  _buildGoals(T){
-    const postMat = new T.MeshStandardMaterial({color:0xFFFFFF,metalness:0.1,roughness:0.3});
-    const wallMat = new T.MeshStandardMaterial({color:0xCC1010,roughness:0.6,metalness:0.0});
-    const floorMat= new T.MeshStandardMaterial({color:0x1a7a2a,roughness:0.9,metalness:0.0});
-    const netMat  = new T.LineBasicMaterial({color:0xffffff,transparent:true,opacity:0.7});
-    const gHz = P.goalH/P.h*2.5;
-    const gD  = 0.5;   // flush with table outer face
-    const wT  = 0.07;
-    const pr  = 0.038;
-    const h   = 0.52;
+  // Procedural net alpha texture: white diamond string lattice on a transparent
+  // ground, so a single plane reads as a real woven net (holes are transparent,
+  // strings opaque) instead of a wireframe of lines.
+  _buildNetTexture(T){
+    const cv=document.createElement('canvas'); cv.width=cv.height=128;
+    const c=cv.getContext('2d');
+    c.clearRect(0,0,128,128);
+    c.strokeStyle='rgba(255,255,255,0.95)';
+    c.lineWidth=3; c.lineCap='round';
+    // Diagonal lattice → diamond cells
+    for(let i=-128;i<=256;i+=32){
+      c.beginPath(); c.moveTo(i,0); c.lineTo(i+128,128); c.stroke();
+      c.beginPath(); c.moveTo(i,128); c.lineTo(i+128,0); c.stroke();
+    }
+    // knot dots at intersections for a woven look
+    c.fillStyle='rgba(255,255,255,1)';
+    for(let x=0;x<=128;x+=32) for(let y=0;y<=128;y+=32){ c.beginPath(); c.arc(x,y,2.4,0,Math.PI*2); c.fill(); }
+    const tex=new T.CanvasTexture(cv);
+    tex.wrapS=tex.wrapT=T.RepeatWrapping;
+    tex.colorSpace=T.SRGBColorSpace;
+    return tex;
+  },
 
-    const add=(geo,mat,x,y,z,rx=0,ry=0,rz=0)=>{
-      const m=new T.Mesh(geo,mat);
-      m.position.set(x,y,z); m.rotation.set(rx,ry,rz);
-      m.castShadow=true; m.receiveShadow=true; this._s.add(m);
-    };
+  _buildGoals(T){
+    // Thicker polished-chrome tubular frame (premium tournament goal) + a finer,
+    // draped alpha-net. The back net is stored per side so it can ripple on a goal.
+    const chrome  = new T.MeshStandardMaterial({color:0xDCE0E6, metalness:0.95, roughness:0.24, envMapIntensity:1.7});
+    const floorMat= new T.MeshStandardMaterial({color:0x14351d, roughness:0.9, metalness:0.0});
+    const netTex  = this._buildNetTexture(T);
+    const netMat  = new T.MeshStandardMaterial({color:0xffffff,map:netTex,transparent:true,alphaTest:0.32,side:T.DoubleSide,roughness:0.85,metalness:0.0});
+    const gHz = P.goalH/P.h*2.5;
+    const gD  = 0.72;    // deeper goal box
+    const pr  = 0.055;   // thicker chrome tube
+    const h   = 0.55;
+    this._goalNets = {};
+    // Subtle scuffed-dirt decal for the pitch in front of each goal mouth.
+    const dirtCv=document.createElement('canvas'); dirtCv.width=dirtCv.height=128; const dcx=dirtCv.getContext('2d');
+    const dg=dcx.createRadialGradient(64,58,8,64,64,64);
+    dg.addColorStop(0,'rgba(18,26,12,0.42)'); dg.addColorStop(0.6,'rgba(18,26,12,0.18)'); dg.addColorStop(1,'rgba(18,26,12,0)');
+    dcx.fillStyle=dg; dcx.fillRect(0,0,128,128);
+    for(let i=0;i<10;i++){ dcx.strokeStyle=`rgba(12,18,8,${0.05+Math.random()*0.08})`; dcx.lineWidth=1+Math.random()*2; dcx.beginPath(); const y=20+Math.random()*88; dcx.moveTo(10,y); dcx.lineTo(118,y+(Math.random()-0.5)*20); dcx.stroke(); }
+    const dirtTex=new T.CanvasTexture(dirtCv); dirtTex.colorSpace=T.SRGBColorSpace;
+    const dirtMat=new T.MeshBasicMaterial({map:dirtTex, transparent:true, depthWrite:false});
+
+    const addC=(geo,x,y,z,rx=0,ry=0,rz=0)=>{ const m=new T.Mesh(geo,chrome); m.position.set(x,y,z); m.rotation.set(rx,ry,rz); m.castShadow=true; this._s.add(m); };
+    const postGeo = new T.CylinderGeometry(pr,pr,h,12);
+    const barZ    = new T.CylinderGeometry(pr,pr,gHz*2+pr*2,12);   // crossbar (along z)
+    const barX    = new T.CylinderGeometry(pr*0.85,pr*0.85,gD,12); // top side rail (along x)
+    const knob    = new T.SphereGeometry(pr*1.2,10,8);
 
     [-4,4].forEach(x=>{
       const d = x<0 ? -1 : 1;
-      const xOut = x + d*gD;
-      const xMid = x + d*gD/2;
+      const xOut = x + d*gD, xMid = x + d*gD/2;
+      const side = d>0 ? 'right' : 'left';
 
-      // Front mouth posts (vertical)
-      [[x,-gHz],[x,gHz]].forEach(([px,pz])=>{
-        add(new T.CylinderGeometry(pr,pr,h,10), postMat, px,h/2,pz);
-      });
-      // Front crossbar
-      const fb=new T.Mesh(new T.CylinderGeometry(pr,pr,gHz*2,10),postMat);
-      fb.rotation.x=Math.PI/2; fb.position.set(x,h,0); this._s.add(fb);
+      // front + back uprights (with rounded top knobs)
+      [[x,-gHz],[x,gHz],[xOut,-gHz],[xOut,gHz]].forEach(([px,pz])=>{ addC(postGeo,px,h/2,pz); addC(knob,px,h,pz); });
+      // front + back crossbars
+      addC(barZ, x,   h, 0, Math.PI/2,0,0);
+      addC(barZ, xOut,h, 0, Math.PI/2,0,0);
+      // top side rails connecting front↔back
+      [-gHz,gHz].forEach(pz=> addC(barX, xMid, h, pz, 0,0,Math.PI/2));
 
-      // Side rails (top edge)
-      [-gHz, gHz].forEach(pz=>{
-        add(new T.BoxGeometry(gD,wT,wT), wallMat, xMid, h+wT/2, pz);
-      });
-      // Back post + top rail
-      add(new T.BoxGeometry(wT,h,gHz*2),       wallMat, xOut, h/2,    0);
-      add(new T.BoxGeometry(wT,wT,gHz*2+wT*2), wallMat, xOut, h+wT/2, 0);
-
-      // Goal floor (dark)
+      // goal floor
       const fl=new T.Mesh(new T.PlaneGeometry(gD,gHz*2), floorMat);
-      fl.rotation.x=-Math.PI/2; fl.position.set(xMid, 0.005, 0); this._s.add(fl);
+      fl.rotation.x=-Math.PI/2; fl.position.set(xMid,0.006,0); this._s.add(fl);
 
-      // ── Diamond-pattern net (like real loose foosball net) ──
-      const netPts=[];
-      const L=(ax,ay,az,bx,by,bz)=>{ netPts.push(new T.Vector3(ax,ay,az),new T.Vector3(bx,by,bz)); };
-      const dS=0.085; // diamond cell size
-
-      // Back net — diamond grid on plane at xOut, z:[-gHz..gHz], y:[0..h]
-      for(let s=-(gHz*2+h);s<(gHz*2+h);s+=dS){
-        // diagonal /   z increases with y
-        const z0a=Math.max(-gHz,-gHz+s), y0a=Math.max(0,-s);
-        const z0b=Math.min( gHz,-gHz+s+h), y0b=Math.min(h,-s+h);
-        if(z0a<z0b) L(xOut,y0a,z0a, xOut,y0b,z0b);
-        // diagonal \   z decreases with y
-        const z1a=Math.min(gHz,gHz-s), y1a=Math.max(0,-s);
-        const z1b=Math.max(-gHz,gHz-s-h), y1b=Math.min(h,-s+h);
-        if(z1b<z1a) L(xOut,y1a,z1a, xOut,y1b,z1b);
-      }
-
-      // Side nets — simple square grid on z=±gHz (cleaner view from above)
-      const nc=Math.round(gD/dS), nr=Math.round(h/dS);
-      [-gHz,gHz].forEach(pz=>{
-        for(let r=0;r<=nr;r++){ const py=r*h/nr; L(x,py,pz, xOut,py,pz); }
-        for(let c=0;c<=nc;c++){ const px=x+d*c*gD/nc; L(px,0,pz, px,h,pz); }
-      });
-
-      // Roof net — square grid on y=h
-      const ncR=Math.round(gD/dS), nzR=Math.round(gHz*2/dS);
-      for(let c=0;c<=ncR;c++){ const px=x+d*c*gD/ncR; L(px,h,-gHz, px,h,gHz); }
-      for(let r=0;r<=nzR;r++){ const pz=-gHz+r*gHz*2/nzR; L(x,h,pz, xOut,h,pz); }
-
-      const netGeo=new T.BufferGeometry().setFromPoints(netPts);
-      this._s.add(new T.LineSegments(netGeo,netMat));
+      // ── net panels ──
+      const cell=0.058;
+      const mkNet=(wU,hU)=>{ const m=netMat.clone(); m.map=netTex.clone(); m.map.wrapS=m.map.wrapT=T.RepeatWrapping; m.map.repeat.set(Math.max(2,Math.round(wU/cell)),Math.max(2,Math.round(hU/cell))); m.map.needsUpdate=true; return m; };
+      // back net (subdivided, sagged, stored for ripple)
+      const backGeo=new T.PlaneGeometry(gHz*2, h, 18, 10);
+      const bp=backGeo.attributes.position; const sag=new Float32Array(bp.count);
+      for(let vi=0;vi<bp.count;vi++){ const u=bp.getX(vi)/(gHz*2)+0.5, v=bp.getY(vi)/h+0.5; const s=Math.sin(Math.PI*u)*Math.pow(Math.max(0,1-v),0.6)*0.11; sag[vi]=s; bp.setZ(vi,-s); }
+      backGeo.computeVertexNormals();
+      const back=new T.Mesh(backGeo, mkNet(gHz*2,h));
+      back.rotation.y = d>0 ? -Math.PI/2 : Math.PI/2; back.position.set(xOut,h/2,0); this._s.add(back);
+      this._goalNets[side] = {geo:backGeo, sag, W:gHz*2, H:h, wob:0, t:0};
+      // side + roof nets
+      [-gHz,gHz].forEach(pz=>{ const s=new T.Mesh(new T.PlaneGeometry(gD,h), mkNet(gD,h)); s.position.set(xMid,h/2,pz); this._s.add(s); });
+      const roof=new T.Mesh(new T.PlaneGeometry(gD,gHz*2), mkNet(gD,gHz*2)); roof.rotation.x=Math.PI/2; roof.position.set(xMid,h,0); this._s.add(roof);
+      // scuffed dirt on the pitch in front of the goal mouth
+      const dirt=new T.Mesh(new T.PlaneGeometry(1.3,1.7), dirtMat);
+      dirt.rotation.x=-Math.PI/2; dirt.position.set(x - d*0.7, 0.014, 0); this._s.add(dirt);
     });
   },
+  // Ripple the back net of one goal side (called when the ball enters).
+  rippleNet(side){ const n=this._goalNets&&this._goalNets[side]; if(n){ n.wob=1; n.t=0; } },
+  _updateGoalNets(){
+    if(!this._goalNets) return;
+    const now=performance.now(); const dt=Math.min(0.05,(now-(this._lastNetT||now))/1000); this._lastNetT=now;
+    for(const side in this._goalNets){
+      const n=this._goalNets[side]; if(n.wob<0.001) continue;
+      n.t+=dt; const damp=Math.exp(-n.t*6), amp=0.17*damp*Math.cos(n.t*24);
+      if(damp<0.02) n.wob=0;
+      const p=n.geo.attributes.position;
+      for(let vi=0;vi<p.count;vi++){ const u=p.getX(vi)/n.W+0.5, v=p.getY(vi)/n.H+0.5; const bulge=Math.sin(Math.PI*u)*Math.pow(Math.max(0,1-v),0.4); p.setZ(vi, -(n.sag[vi]+amp*bulge)); }
+      p.needsUpdate=true; n.geo.computeVertexNormals();
+    }
+  },
+  // ── Physical sliding score-bead counters on the end rails (blue p1 / red p2) ──
+  _buildScoreCounters(T){
+    const ex=4+0.55/2;   // matches _buildTable ex
+    const wireMat=new T.MeshStandardMaterial({color:0xC9CDD4,metalness:1.0,roughness:0.3,envMapIntensity:1.4});
+    this._counters={};
+    const mk=(team,cx,hex)=>{
+      const wire=new T.Mesh(new T.CylinderGeometry(0.02,0.02,3.4,8),wireMat);
+      wire.rotation.x=Math.PI/2; wire.position.set(cx,0.63,0); this._s.add(wire);
+      [-1.66,1.66].forEach(z=>{ const c=new T.Mesh(new T.SphereGeometry(0.055,8,6),wireMat); c.position.set(cx,0.63,z); this._s.add(c); });
+      const beads=[];
+      for(let i=0;i<10;i++){
+        const m=new T.Mesh(new T.SphereGeometry(0.075,12,10), new T.MeshStandardMaterial({color:hex,roughness:0.35,metalness:0.1,emissive:hex,emissiveIntensity:0.0}));
+        m.position.set(cx,0.63, 1.5 - i*0.16); m.castShadow=true; this._s.add(m); beads.push(m);
+      }
+      this._counters[team]={beads, cx, z0:-1.5, z1:1.5, step:0.16, targetZ:beads.map(b=>b.position.z), score:-1};
+    };
+    mk('p1', -ex-0.02, 0x2C6BE0);   // blue, left end
+    mk('p2',  ex+0.02, 0xE0402C);   // red, right end
+  },
+  setScoreCounter(team, score){
+    const c=this._counters&&this._counters[team]; if(!c) return;
+    c.score=Math.max(0,Math.min(10,score));
+    for(let i=0;i<10;i++){
+      const scored=i<c.score;
+      c.targetZ[i]= scored ? (c.z0 + i*c.step) : (c.z1 - (9-i)*c.step);
+      c.beads[i].material.emissiveIntensity = scored ? 0.55 : 0.0;
+    }
+  },
+  _updateScoreCounters(){
+    if(!this._counters || typeof GAME==='undefined' || !GAME.score) return;
+    for(const team in this._counters){
+      const c=this._counters[team];
+      if(c.score !== GAME.score[team]){
+        const up = GAME.score[team] > c.score && c.score>=0;   // don't ripple on the initial -1→0 sync
+        this.setScoreCounter(team, GAME.score[team]);
+        if(up) this.rippleNet(team==='p1'?'right':'left');   // scored team's ball is in the opponent's net
+      }
+      for(let i=0;i<10;i++){ const b=c.beads[i]; b.position.z += (c.targetZ[i]-b.position.z)*0.2; }
+    }
+  },
 
+  // Faint fingerprint/smudge roughness so the chrome rods aren't glass-perfect.
+  _buildSmudgeTex(T){
+    const cv=document.createElement('canvas'); cv.width=cv.height=256;
+    const c=cv.getContext('2d');
+    c.fillStyle='#a8a8a8'; c.fillRect(0,0,256,256);
+    for(let i=0;i<26;i++){
+      const x=Math.random()*256, y=Math.random()*256, r=10+Math.random()*30, a=0.10+Math.random()*0.16;
+      const g=c.createRadialGradient(x,y,0,x,y,r);
+      g.addColorStop(0,`rgba(236,236,236,${a})`); g.addColorStop(1,'rgba(236,236,236,0)');
+      c.fillStyle=g; c.beginPath(); c.arc(x,y,r,0,7); c.fill();
+    }
+    const tex=new T.CanvasTexture(cv); tex.wrapS=tex.wrapT=T.RepeatWrapping; tex.repeat.set(2,10);
+    return tex;
+  },
   _buildRods(T){
     // Polished-chrome rods: bright white base + moderately-high metalness
     // (not 1.0 — full metalness has zero diffuse fallback, so any angle that
@@ -1706,11 +2540,12 @@ const RENDERER = {
     // brighten it) + low roughness so the mostly-bright striped env map (see
     // _buildEnvMap) reflects as clean highlight sweeps with just a couple of
     // thin dark accent lines, instead of either a flat glow or going black.
-    const rodMat=new T.MeshStandardMaterial({color:0xFFFFFF,metalness:0.75,roughness:0.15,envMapIntensity:1.8});
-    // Black grip handles — bump + roughness noise maps give them a textured,
-    // grippy molded-rubber/plastic look instead of a flat black material.
+    const rodSmudge = this._buildSmudgeTex(T);   // faint fingerprints so the chrome isn't glass-perfect
+    const rodMat=new T.MeshStandardMaterial({color:0xE8ECF2,metalness:1.0,roughness:0.2,roughnessMap:rodSmudge,envMapIntensity:3.4});
+    // Ergonomic grip handles — near side blue, far side red (classic tournament table).
     const gripTex = this._buildGripTexture(T);
-    const gripMat=new T.MeshStandardMaterial({color:0x141414,roughness:0.78,metalness:0.05,bumpMap:gripTex,bumpScale:0.006,roughnessMap:gripTex});
+    const gripRed =new T.MeshStandardMaterial({color:0xB0201E,roughness:0.40,metalness:0.15,bumpMap:gripTex,bumpScale:0.006,roughnessMap:gripTex,envMapIntensity:1.1});
+    const gripBlue=new T.MeshStandardMaterial({color:0x1B4FC0,roughness:0.40,metalness:0.15,bumpMap:gripTex,bumpScale:0.006,roughnessMap:gripTex,envMapIntensity:1.1});
     this._rods=[];
 
     for(const rod of ROD_DEFS_2V2){
@@ -1718,76 +2553,85 @@ const RENDERER = {
       const rodM=new T.Mesh(new T.CylinderGeometry(0.05,0.05,7.2,14),rodMat);
       rodM.rotation.x=Math.PI/2; rodM.position.set(rx,0.28,0); rodM.castShadow=true;
       this._s.add(rodM);
-      // Grip handles — chunky, black, grippy
+      // Grip handles — Blender-authored ergonomic ridged grip (falls back to the
+      // old two-cylinder handle if the model data is missing). Placed at both rod
+      // ends; the +Z handle is mirrored so both grips point outward from the table.
+      const HG = window.MODEL_HANDLE;
       [-3.7,3.7].forEach(gz=>{
-        const g=new T.Mesh(new T.CylinderGeometry(0.12,0.12,0.30,12),gripMat);
-        g.rotation.x=Math.PI/2; g.position.set(rx,0.28,gz); this._s.add(g);
-        const c=new T.Mesh(new T.CylinderGeometry(0.135,0.135,0.07,12),gripMat);
-        c.rotation.x=Math.PI/2; c.position.set(rx,0.28,gz+(gz>0?0.18:-0.18)); this._s.add(c);
+        const gm = gz>0 ? gripBlue : gripRed;   // near = blue, far = red
+        if(HG){
+          const g=new T.Mesh(this._geoFromModel(T, HG), gm);
+          g.position.set(rx,0.28,gz);
+          if(gz>0) g.scale.z=-1;   // point the tip outward on the far side
+          g.castShadow=true; this._s.add(g);
+        } else {
+          const g=new T.Mesh(new T.CylinderGeometry(0.12,0.12,0.30,12),gm);
+          g.rotation.x=Math.PI/2; g.position.set(rx,0.28,gz); this._s.add(g);
+          const c=new T.Mesh(new T.CylinderGeometry(0.135,0.135,0.07,12),gm);
+          c.rotation.x=Math.PI/2; c.position.set(rx,0.28,gz+(gz>0?0.18:-0.18)); this._s.add(c);
+        }
       });
 
-      // Figures — real foosball figure shape, face toward camera (+Z)
-      const defColor=rod.team==='p1'?0xDD2222:0x1E88E5;
-      const sp=P.h/(rod.nFigs+1);
+      // ── Figures: clean molded foosball figurines ──────────────────
+      const defColor = rod.team==='p1' ? 0xDD2222 : 0x1E88E5;
+      const sp = P.h/(rod.nFigs+1);
       const figs=[];
-      const skinMat=new T.MeshStandardMaterial({color:0xF0B47A,roughness:0.7});
-      const baseMat=new T.MeshStandardMaterial({color:0xdddddd,roughness:0.6});
-      const hairMat=new T.MeshStandardMaterial({color:0x1a0a00,roughness:0.8});
+      const hairCols=[0x3a2718,0x241a12,0x5a3d22,0x1c1712,0x6e4c2c];
+      const M = window.MODEL_PLAYER;
+
+      // Geometry + fixed (non-team) materials are built ONCE and shared by every
+      // figure on every rod — only the jersey/shorts colour and hair colour vary
+      // per figure — so the reference-matched model costs a single geometry set in
+      // memory (~2.1k tris) rather than 22 duplicate copies.
+      if(M && !this._playerAssets){
+        const g={};
+        for(const slot of ['body','shorts','skin','hair','dark','badge','white'])
+          if(M[slot]) g[slot]=this._geoFromModel(T, M[slot]);
+        this._playerAssets = {
+          geo:g,
+          skinMat :new T.MeshStandardMaterial({color:0xe8b48a, roughness:0.68, metalness:0}),   // warmer, softer skin
+          darkMat :new T.MeshStandardMaterial({color:0x101014, roughness:0.5,  metalness:0.1}), // shoes/eyes/bore — slight sheen
+          badgeMat:new T.MeshStandardMaterial({color:0xF2D23A, roughness:0.35, metalness:0.1}), // chest badge
+          whiteMat:new T.MeshStandardMaterial({color:0xffffff, roughness:0.3,  metalness:0}),   // eye highlights
+        };
+      }
+      const PA = this._playerAssets;
+      const skinMat = PA ? PA.skinMat : new T.MeshStandardMaterial({color:0xf3bd8c, roughness:0.62, metalness:0});
+      const hubMat  = new T.MeshStandardMaterial({color:0x2b2f37, roughness:0.4,  metalness:0.2});
+
       for(let i=0;i<rod.nFigs;i++){
         const grp=new T.Group();
-        const bodyMat=new T.MeshStandardMaterial({color:defColor,roughness:0.5});
-        const capMat =new T.MeshStandardMaterial({color:defColor,roughness:0.4});
-        const srtMat =new T.MeshStandardMaterial({color:0xffffff,roughness:0.6});
-
-        // ── Base block (attaches to rod) ──
-        const base=new T.Mesh(new T.BoxGeometry(0.26,0.07,0.20),baseMat);
-        base.position.set(0,-0.18,0); grp.add(base);
-
-        // fd: +1 for P1 (faces right/+X), -1 for P2 (faces left/-X)
+        // Facing: p1 looks +X (toward p2's goal), p2 looks -X — the two teams face
+        // each other across the table, as on a real foosball table.
         const fd = rod.team==='p1' ? 1 : -1;
+        // Per-figure kit materials (recoloured each frame in draw() by team).
+        const bodyMat=new T.MeshStandardMaterial({color:defColor, roughness:0.46, metalness:0.02}); // jersey
+        const capMat =new T.MeshStandardMaterial({color:defColor, roughness:0.46, metalness:0.02}); // kept for draw() recolour hook
+        const srtMat =new T.MeshStandardMaterial({color:0xffffff, roughness:0.55, metalness:0});    // shorts
 
-        // ── Legs along Z (left/right of player facing X) ──
-        [-0.07,0.07].forEach(lz=>{
-          const leg=new T.Mesh(new T.CylinderGeometry(0.045,0.05,0.20,8),skinMat);
-          leg.position.set(0,-0.05,lz); leg.castShadow=true; grp.add(leg);
-        });
-
-        // ── Shorts (white band at hip) ──
-        const srt=new T.Mesh(new T.CylinderGeometry(0.115,0.115,0.09,10),srtMat);
-        srt.position.set(0,0.06,0); grp.add(srt);
-
-        // ── Jersey / torso ──
-        const torso=new T.Mesh(new T.CylinderGeometry(0.115,0.105,0.22,10),bodyMat);
-        torso.position.set(0,0.22,0); torso.castShadow=true; grp.add(torso);
-
-        // ── Arms along Z (sides of player) ──
-        [-1,1].forEach(side=>{
-          const arm=new T.Mesh(new T.CylinderGeometry(0.04,0.035,0.18,8),skinMat);
-          arm.rotation.x = side * 0.55; // tilt along Z-axis (player's side)
-          arm.position.set(0, 0.20, side*0.145); grp.add(arm);
-        });
-
-        // ── Neck ──
-        const neck=new T.Mesh(new T.CylinderGeometry(0.04,0.04,0.07,8),skinMat);
-        neck.position.set(0,0.35,0); grp.add(neck);
-
-        // ── Head ──
-        const head=new T.Mesh(new T.SphereGeometry(0.11,14,10),skinMat);
-        head.position.set(0,0.46,0); head.castShadow=true; grp.add(head);
-
-        // ── Hair cap ──
-        const capGeo=new T.SphereGeometry(0.113,14,6,0,Math.PI*2,0,Math.PI*0.52);
-        const cap=new T.Mesh(capGeo,hairMat);
-        cap.position.set(0,0.46,0); grp.add(cap);
-
-        // ── Eyes facing along X toward opponent (fd = face direction) ──
-        // P1 faces +X → eyes at +X side; P2 faces -X → eyes at -X side
-        [[fd*0.09,0.475,-0.04],[fd*0.09,0.475,0.04]].forEach(([ex,ey,ez])=>{
-          const eye=new T.Mesh(new T.SphereGeometry(0.022,6,4),new T.MeshStandardMaterial({color:0xffffff}));
-          eye.position.set(ex,ey,ez); grp.add(eye);
-          const pupil=new T.Mesh(new T.SphereGeometry(0.012,6,4),new T.MeshStandardMaterial({color:0x111111}));
-          pupil.position.set(ex+fd*0.012,ey,ez); grp.add(pupil);
-        });
+        if(PA){
+          // ── Premium foosball figurine (Blender-authored, shared geometry) ──
+          const hcol=hairCols[(ROD_DEFS_2V2.indexOf(rod)+i)%hairCols.length];
+          const hairM=new T.MeshStandardMaterial({color:hcol, roughness:0.62, metalness:0.02});
+          const slotMat={ body:bodyMat, shorts:srtMat, skin:PA.skinMat, hair:hairM, dark:PA.darkMat, badge:PA.badgeMat, white:PA.whiteMat };
+          for(const slot in slotMat){
+            if(!PA.geo[slot]) continue;
+            const mesh=new T.Mesh(PA.geo[slot], slotMat[slot]);   // SHARED geometry, per-figure material
+            mesh.castShadow=true;
+            if(fd<0) mesh.scale.x=-1;   // mirror so p2 faces -X (Three flips normals for negative scale)
+            grp.add(mesh);
+          }
+        } else {
+          // ── Fallback: original primitive stack (only if model data missing) ──
+          const add=(geo,mat,x,y,z,sx,sy,sz)=>{ const m=new T.Mesh(geo,mat); m.position.set(x,y,z); if(sx!==undefined) m.scale.set(sx,sy,sz); m.castShadow=true; grp.add(m); return m; };
+          add(new T.BoxGeometry(0.17,0.09,0.16), bodyMat, 0,-0.135,0);
+          add(new T.CylinderGeometry(0.085,0.06,0.18,20), skinMat, 0,-0.02,0);
+          add(new T.CylinderGeometry(0.10,0.128,0.10,22), srtMat, 0,0.085,0);
+          add(new T.CylinderGeometry(0.138,0.118,0.26,24), bodyMat, 0,0.22,0, 0.9,1,1.1);
+          const sh=add(new T.CapsuleGeometry(0.115,0.12,8,18), bodyMat, 0,0.33,0, 0.9,1,1); sh.rotation.x=Math.PI/2;
+          const hub=add(new T.CylinderGeometry(0.05,0.05,0.32,16), hubMat, 0,0.10,0); hub.rotation.x=Math.PI/2;
+          add(new T.SphereGeometry(0.098,26,22), skinMat, 0,0.455,0, 1,1.08,0.98);
+        }
 
         const fy0=P.y+sp*(i+1);
         grp.position.set(rx,0.18,this._tz(fy0));
@@ -1806,19 +2650,13 @@ const RENDERER = {
     this._ballShadow.rotation.x=-Math.PI/2; this._ballShadow.position.y=0.002;
     this._s.add(this._ballShadow);
 
-    // Bigger, cartoon-style ball
-    const mat=new T.MeshStandardMaterial({color:0xffffff,roughness:0.3,metalness:0.0});
-    this._ball=new T.Mesh(new T.SphereGeometry(0.13,20,16),mat);
+    // Ball: real modeled truncated-icosahedron (pentagon/hexagon panels baked as
+    // flat-shaded vertex colors) authored in Blender — falls back to the old
+    // primitive sphere if the model data file failed to load for any reason.
+    const mat=new T.MeshStandardMaterial({color:0xffffff,roughness:0.44,metalness:0.0,envMapIntensity:0.55,vertexColors:!!window.MODEL_BALL});
+    const ballGeo = window.MODEL_BALL ? this._geoFromModel(T, window.MODEL_BALL) : new T.SphereGeometry(0.13,20,16);
+    this._ball=new T.Mesh(ballGeo,mat);
     this._ball.castShadow=true; this._ball.position.y=0.13;
-    // Bold black pentagon patches
-    const pm=new T.MeshStandardMaterial({color:0x111111,roughness:0.3});
-    [[0,1,0],[1,0,0],[-1,0,0],[0,0,1],[0,0,-1],
-     [0.7,0.7,0],[-0.7,0.7,0],[0.7,-0.7,0]].forEach(([nx,ny,nz])=>{
-      const p=new T.Mesh(new T.SphereGeometry(0.046,5,4),pm);
-      const len=Math.hypot(nx,ny,nz)||1;
-      p.position.set(nx/len*0.098,ny/len*0.098,nz/len*0.098);
-      this._ball.add(p);
-    });
     this._s.add(this._ball);
 
     // Hold ring — flat ring on the pitch that pulses while ball is caught
@@ -1842,7 +2680,10 @@ const RENDERER = {
     }
     this._hitLight.position.set(bx, 0.5, bz);
     this._hitLight.intensity = 4 + power*8;
-    this._hitLight.color.setHex(power>0.7 ? 0xff2200 : 0xff9900);
+    const _c = this._trailColors ? this._trailColors() : null;
+    if(_c) this._hitLight.color.set(_c.hex); else this._hitLight.color.setHex(power>0.7 ? 0xff2200 : 0xff9900);
+    // Premium impact burst on powered shots (flash + ring + radial particles)
+    if(power>=0.7 && this._spawnImpactBurst) this._spawnImpactBurst(ball.x, ball.y, power);
   },
 
   // ── Trail: 2D canvas ribbon ───────────────────────────────────
@@ -1850,9 +2691,80 @@ const RENDERER = {
     const tc = document.getElementById('trailCanvas');
     if(!tc) return;
     this._trailCtx = tc.getContext('2d');
+    // ── Premium energy-trail FX state ──
+    this._particles = []; this._arcs = []; this._speedLines = []; this._bursts = [];
+    this._pSpawnAcc = 0; this._arcTimer = 0; this._lastFxT = performance.now();
+    // Procedural FX textures (white; tinted per team on demand, then cached)
+    this._texGlow  = this._makeRadialTex(128, [[0,'rgba(255,255,255,1)'],[0.30,'rgba(255,255,255,0.55)'],[1,'rgba(255,255,255,0)']]);
+    this._texCore  = this._makeRadialTex(96,  [[0,'rgba(255,255,255,1)'],[0.5,'rgba(255,255,255,0.32)'],[1,'rgba(255,255,255,0)']]);
+    this._texSpark = this._makeSparkTex(72);
+  },
+  _makeRadialTex(size, stops){
+    const cv=document.createElement('canvas'); cv.width=cv.height=size;
+    const x=cv.getContext('2d'); const r=size/2;
+    const g=x.createRadialGradient(r,r,0,r,r,r);
+    stops.forEach(s=>g.addColorStop(s[0],s[1]));
+    x.fillStyle=g; x.fillRect(0,0,size,size);
+    return cv;
+  },
+  _makeSparkTex(size){
+    const cv=document.createElement('canvas'); cv.width=cv.height=size;
+    const x=cv.getContext('2d'); const c=size/2;
+    x.globalCompositeOperation='lighter';
+    let g=x.createRadialGradient(c,c,0,c,c,size*0.28);
+    g.addColorStop(0,'rgba(255,255,255,1)'); g.addColorStop(1,'rgba(255,255,255,0)');
+    x.fillStyle=g; x.beginPath(); x.arc(c,c,size*0.28,0,7); x.fill();
+    for(let k=0;k<4;k++){                                    // 4-point star spikes
+      x.save(); x.translate(c,c); x.rotate(k*Math.PI/2);
+      const lg=x.createLinearGradient(0,0,size*0.5,0);
+      lg.addColorStop(0,'rgba(255,255,255,0.85)'); lg.addColorStop(1,'rgba(255,255,255,0)');
+      x.fillStyle=lg; x.beginPath(); x.moveTo(0,-size*0.028); x.lineTo(size*0.5,0); x.lineTo(0,size*0.028); x.closePath(); x.fill();
+      x.restore();
+    }
+    return cv;
+  },
+  // team-tinted copy of a white FX texture (cached per texture + colour)
+  _tintTex(tex, hex){
+    if(!tex) return null;
+    if(!tex._tint) tex._tint={};
+    if(tex._tint[hex]) return tex._tint[hex];
+    const cv=document.createElement('canvas'); cv.width=tex.width; cv.height=tex.height;
+    const x=cv.getContext('2d'); x.drawImage(tex,0,0);
+    x.globalCompositeOperation='source-in'; x.fillStyle=hex; x.fillRect(0,0,cv.width,cv.height);
+    tex._tint[hex]=cv; return cv;
+  },
+  // resolve the last-touch team's trail palette (+ warm/cool for embers vs sparks)
+  _trailColors(){
+    let hex='#ffffff';
+    if(GAME.lastTouchTeam){
+      const tt=GAME.lastTouchTeam, t=STATE[tt==='p1'?'p1Team':'p2Team'];
+      const kit=STATE[tt==='p1'?'p1Kit':'p2Kit']||'home';
+      if(t) hex=t[kit]||t.home||hex;
+    }
+    if(hex[0]!=='#'||hex.length<7) hex='#5db6ff';
+    const r=parseInt(hex.slice(1,3),16), g=parseInt(hex.slice(3,5),16), b=parseInt(hex.slice(5,7),16);
+    const warm=(r>150 && b<130 && r>=g);
+    const mx=Math.max(r,g,b,1), k=220/mx;                       // brighten to a neon glow tone
+    const gr=Math.min(255,Math.round(r*k)), gg=Math.min(255,Math.round(g*k)), gb=Math.min(255,Math.round(b*k));
+    const glow=`rgb(${gr},${gg},${gb})`;
+    const light=`rgb(${Math.min(255,gr+70)},${Math.min(255,gg+70)},${Math.min(255,gb+70)})`;
+    return {hex, r, g, b, warm, glow, light};
+  },
+  _blit(tex, cx, cy, w, h, alpha){
+    if(!tex||alpha<=0) return;
+    const ctx=this._trailCtx; ctx.globalAlpha=Math.min(1,alpha);
+    ctx.drawImage(tex, cx-w/2, cy-h/2, w, h);
+  },
+  _catmull(p0,p1,p2,p3,t){
+    const t2=t*t, t3=t2*t;
+    return {
+      x:0.5*((2*p1.x)+(-p0.x+p2.x)*t+(2*p0.x-5*p1.x+4*p2.x-p3.x)*t2+(-p0.x+3*p1.x-3*p2.x+p3.x)*t3),
+      y:0.5*((2*p1.y)+(-p0.y+p2.y)*t+(2*p0.y-5*p1.y+4*p2.y-p3.y)*t2+(-p0.y+3*p1.y-3*p2.y+p3.y)*t3)
+    };
   },
   clearTrail(){
     this._trailPts = [];
+    this._particles=[]; this._arcs=[]; this._speedLines=[]; this._bursts=[];
     if(this._trailCtx){
       const c = this._trailCtx.canvas;
       this._trailCtx.clearRect(0,0,c.width,c.height);
@@ -1865,71 +2777,183 @@ const RENDERER = {
     const c = this._trailCtx.canvas;
     return { x: (v.x+1)/2*c.width, y: (-v.y+1)/2*c.height };
   },
+  // ── Master energy-trail FX renderer (ribbon + core + glow + particles +
+  //    arcs + speed lines + impact bursts). Runs every active frame; clears the
+  //    shared overlay once, draws additively, then restores state for the HUD. ──
   _drawTrail(){
-    const ctx = this._trailCtx;
-    if(!ctx) return;
-    const c = ctx.canvas;
+    const ctx=this._trailCtx; if(!ctx) return;
+    const c=ctx.canvas;
     ctx.clearRect(0,0,c.width,c.height);
-    const pts = this._trailPts;
-    if(pts.length < 2) return;
-    const N = pts.length;
+    if(!this._particles){ this._particles=[]; this._arcs=[]; this._speedLines=[]; this._bursts=[]; }
 
-    // Pick color from last touch team
-    let teamColor = '#ffffff';
-    if(GAME.lastTouchTeam){
-      const _tt = GAME.lastTouchTeam;
-      const t = STATE[_tt==='p1'?'p1Team':'p2Team'];
-      const kit = STATE[_tt==='p1'?'p1Kit':'p2Kit'] || 'home';
-      if(t) teamColor = t[kit] || t.home || teamColor;
+    const now=performance.now();
+    let dt=now-(this._lastFxT||now); this._lastFxT=now;
+    const dts=Math.min(3, Math.max(0.3, dt/16.67));   // frame-normalized step
+
+    const b=GAME.ball;
+    const spd=Math.hypot(b.vx,b.vy);
+    const col=this._trailColors();
+    const a=this._trailAlpha;
+    const bp=this._project(b.x, b.y);
+    const bpr=this._project(b.x+(CFG.BALL_R||14), b.y);
+    const ballR=Math.max(7, Math.hypot(bpr.x-bp.x, bpr.y-bp.y));   // ball radius in screen px
+
+    const fast = spd>4.6 && !GAME.heldBy && !GAME.ballHidden;
+
+    // ── spawn (only while fast → keeps it cheap the rest of the time) ──
+    if(fast && a>0.05){
+      const dir=Math.atan2(b.vy,b.vx)+Math.PI;                     // trail streams backward
+      this._pSpawnAcc += (spd-4.5)*0.8*dts;
+      while(this._pSpawnAcc>1){
+        this._pSpawnAcc--;
+        const ang=dir+(Math.random()-0.5)*1.2, ps=0.6+Math.random()*1.8;
+        this._particles.push({
+          x:bp.x+(Math.random()-0.5)*ballR, y:bp.y+(Math.random()-0.5)*ballR,
+          vx:Math.cos(ang)*ps, vy:Math.sin(ang)*ps-(col.warm?0.5+Math.random()*0.6:0),
+          life:1, decay:1/(11+Math.random()*12),
+          size:(col.warm?2.4:1.8)+Math.random()*2.4, warm:col.warm
+        });
+      }
+      if(!col.warm){                                               // electric arcs = cool teams
+        this._arcTimer-=dt;
+        if(this._arcTimer<=0){ this._arcTimer=50+Math.random()*70; this._arcs.push(this._makeArc(bp,b,ballR)); }
+      }
+      if(spd>6.8 && Math.random()<0.6*dts){                        // speed lines at high speed
+        const off=(Math.random()-0.5)*ballR*2.6;
+        this._speedLines.push({ x:bp.x+Math.cos(dir+Math.PI/2)*off, y:bp.y+Math.sin(dir+Math.PI/2)*off,
+          ang:dir, len:ballR*2+Math.random()*ballR*3, life:1, decay:1/(7+Math.random()*6) });
+      }
     }
-    const h = teamColor.replace('#','');
-    const r = parseInt(h.slice(0,2),16), g = parseInt(h.slice(2,4),16), b = parseInt(h.slice(4,6),16);
 
-    const a = this._trailAlpha;
-    if(a < 0.01) return;
+    // ── update ──
+    for(const p of this._particles){ p.x+=p.vx*dts; p.y+=p.vy*dts; if(p.warm)p.vy-=0.03*dts; p.life-=p.decay*dts; }
+    if(this._particles.length) this._particles=this._particles.filter(p=>p.life>0);
+    for(const s of this._speedLines){ s.x+=Math.cos(s.ang)*7*dts; s.y+=Math.sin(s.ang)*7*dts; s.life-=s.decay*dts; }
+    if(this._speedLines.length) this._speedLines=this._speedLines.filter(s=>s.life>0);
+    for(const ar of this._arcs) ar.life-=dts/3;
+    if(this._arcs.length) this._arcs=this._arcs.filter(ar=>ar.life>0);
+    for(const bu of this._bursts) bu.life-=dts/9;
+    if(this._bursts.length) this._bursts=this._bursts.filter(bu=>bu.life>0);
 
-    // Skip first 3 pts so trail begins behind the ball, not on top of it
-    const SKIP = 3;
-    if(pts.length <= SKIP + 1) return;
-    const drawPts = pts.slice(SKIP);
-    const M = drawPts.length;
+    ctx.globalCompositeOperation='lighter';
+    ctx.lineCap='round'; ctx.lineJoin='round';
 
-    // Project stored game coords to screen
-    const sp = drawPts.map(p => this._project(p.x, p.y));
+    // (1) ball glow — colored halo + white heat core behind the ball
+    if(a>0.02){
+      this._blit(this._tintTex(this._texGlow,col.glow), bp.x,bp.y, ballR*3.6, ballR*3.6, a*0.5);
+      this._blit(this._texCore, bp.x,bp.y, ballR*1.1, ballR*1.1, a*0.30);
+    }
+    // (2) ribbon
+    if(a>0.03) this._drawRibbon(ctx, col, a, spd, ballR, now);
+    // (3) speed lines
+    for(const s of this._speedLines){
+      ctx.globalAlpha=s.life*a*0.55;
+      ctx.strokeStyle=col.warm?'rgba(255,225,150,1)':'rgba(205,238,255,1)';
+      ctx.lineWidth=Math.max(1,2.2*s.life);
+      ctx.beginPath(); ctx.moveTo(s.x,s.y); ctx.lineTo(s.x-Math.cos(s.ang)*s.len, s.y-Math.sin(s.ang)*s.len); ctx.stroke();
+    }
+    // (4) electric arcs
+    ctx.globalAlpha=1;
+    for(const ar of this._arcs) this._drawArc(ctx, ar, col);
+    // (5) particles (sparks for cool, embers for warm)
+    const spTex=this._tintTex(this._texSpark, col.warm?'#ffcf7a':col.light);
+    for(const p of this._particles){
+      const s2=p.size*(0.5+p.life);
+      this._blit(spTex, p.x,p.y, s2*3.6, s2*3.6, p.life*p.life*a);
+    }
+    // (6) impact bursts
+    for(const bu of this._bursts) this._drawBurst(ctx, bu);
 
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
+    ctx.globalAlpha=1; ctx.globalCompositeOperation='source-over';
+  },
 
-    // Pass 1 — wide soft glow
-    for(let i=0; i<M-1; i++){
-      const t0 = (1 - i/(M-1)) * a;
+  // Smoothed, tapering, layered energy ribbon (white core → team → transparent).
+  _drawRibbon(ctx, col, a, spd, ballR, now){
+    const pts=this._trailPts;
+    if(pts.length<3) return;
+    const N=Math.min(pts.length, Math.max(4, Math.round(8+(spd-4.5)*4)));   // length scales w/ speed (clamped to available pts)
+    const raw=[]; for(let i=0;i<N;i++) raw.push(this._project(pts[i].x, pts[i].y));
+    const sm=[];
+    for(let i=0;i<raw.length-1;i++){
+      const p0=raw[Math.max(0,i-1)], p1=raw[i], p2=raw[i+1], p3=raw[Math.min(raw.length-1,i+2)];
+      const seg=(i===raw.length-2)?4:3;
+      for(let s=0;s<seg;s++) sm.push(this._catmull(p0,p1,p2,p3,s/seg));
+    }
+    sm.push(raw[raw.length-1]);
+    const M=sm.length; if(M<3) return;
+    const nx=[], ny=[], half=[], headW=ballR*1.15;
+    for(let i=0;i<M;i++){
+      const p=sm[Math.max(0,i-1)], q=sm[Math.min(M-1,i+1)];
+      let tx=q.x-p.x, ty=q.y-p.y; const L=Math.hypot(tx,ty)||1; tx/=L; ty/=L;
+      nx[i]=-ty; ny[i]=tx;
+      const t=i/(M-1);
+      half[i]=headW*Math.pow(1-t,0.75)*(1+Math.sin(now*0.018+i*0.7)*0.12);   // taper + live wobble
+    }
+    const passes=[
+      {w:2.8, col:col.glow,  al:0.16, lead:1   },   // outer bloom
+      {w:1.4, col:col.glow,  al:0.42, lead:1   },   // body
+      {w:0.75,col:col.light, al:0.55, lead:1   },   // bright inner
+      {w:0.24,col:'#ffffff', al:0.5,  lead:0.5 }    // thin white core (leading half)
+    ];
+    for(const pass of passes){
+      ctx.globalAlpha=Math.min(1,pass.al*a); ctx.fillStyle=pass.col;
+      const lim=Math.max(2, Math.floor(M*pass.lead));
       ctx.beginPath();
-      ctx.moveTo(sp[i].x, sp[i].y);
-      ctx.lineTo(sp[i+1].x, sp[i+1].y);
-      ctx.strokeStyle = `rgba(${r},${g},${b},${(t0*0.18).toFixed(3)})`;
-      ctx.lineWidth = t0 * 22;
-      ctx.stroke();
+      for(let i=0;i<lim;i++){ const w=half[i]*pass.w; const x=sm[i].x+nx[i]*w, y=sm[i].y+ny[i]*w; if(i===0)ctx.moveTo(x,y); else ctx.lineTo(x,y); }
+      for(let i=lim-1;i>=0;i--){ const w=half[i]*pass.w; ctx.lineTo(sm[i].x-nx[i]*w, sm[i].y-ny[i]*w); }
+      ctx.closePath(); ctx.fill();
     }
-    // Pass 2 — sharp core ribbon
-    for(let i=0; i<M-1; i++){
-      const t0 = (1 - i/(M-1)) * a;
-      ctx.beginPath();
-      ctx.moveTo(sp[i].x, sp[i].y);
-      ctx.lineTo(sp[i+1].x, sp[i+1].y);
-      ctx.strokeStyle = `rgba(${r},${g},${b},${(t0*0.75).toFixed(3)})`;
-      ctx.lineWidth = t0 * 7;
-      ctx.stroke();
+  },
+
+  // Procedural lightning branch, spawned around the trail for cool teams.
+  _makeArc(bp, b, ballR){
+    const dir=Math.atan2(b.vy,b.vx)+Math.PI;
+    const len=ballR*(2+Math.random()*2.5), segs=5+((Math.random()*4)|0);
+    const pts=[{x:bp.x,y:bp.y}];
+    for(let i=1;i<=segs;i++){
+      const t=i/segs, jx=(1-t)*ballR*0.9;
+      pts.push({ x:bp.x+Math.cos(dir)*len*t+(Math.random()-0.5)*jx*2, y:bp.y+Math.sin(dir)*len*t+(Math.random()-0.5)*jx*2 });
     }
-    // Pass 3 — bright white highlight along leading quarter
-    for(let i=0; i<Math.floor(M/3); i++){
-      const t0 = (1 - i/(M-1)) * a;
-      ctx.beginPath();
-      ctx.moveTo(sp[i].x, sp[i].y);
-      ctx.lineTo(sp[i+1].x, sp[i+1].y);
-      ctx.strokeStyle = `rgba(255,255,255,${(t0*0.45).toFixed(3)})`;
-      ctx.lineWidth = t0 * 2.5;
-      ctx.stroke();
+    const branch=[];
+    if(Math.random()<0.6){
+      const bi=1+((Math.random()*(pts.length-2))|0), base=pts[bi];
+      const bl=ballR*(0.8+Math.random()), ba=dir+(Math.random()-0.5)*1.6;
+      branch.push({x:base.x,y:base.y});
+      for(let k=1;k<=3;k++){ const t=k/3; branch.push({ x:base.x+Math.cos(ba)*bl*t+(Math.random()-0.5)*ballR, y:base.y+Math.sin(ba)*bl*t+(Math.random()-0.5)*ballR }); }
     }
+    return {pts, branch, life:1};
+  },
+  _drawArc(ctx, ar, col){
+    const glow=col.warm?'rgba(255,200,120,1)':'rgba(140,210,255,1)', life=ar.life;
+    const stroke=(path,wid,al,color)=>{
+      if(path.length<2) return;
+      ctx.globalAlpha=al; ctx.strokeStyle=color; ctx.lineWidth=wid;
+      ctx.beginPath(); ctx.moveTo(path[0].x,path[0].y);
+      for(let i=1;i<path.length;i++) ctx.lineTo(path[i].x,path[i].y);
+      ctx.stroke();
+    };
+    stroke(ar.pts,4,life*0.25,glow); stroke(ar.pts,1.4,life*0.9,'#ffffff');
+    if(ar.branch.length){ stroke(ar.branch,3,life*0.2,glow); stroke(ar.branch,1,life*0.8,'#ffffff'); }
+  },
+
+  // Kick impact burst: expanding ring + flash + radial particles (~0.15s).
+  _spawnImpactBurst(gx, gy, power){
+    if(!this._trailCtx || !this._bursts) return;
+    const col=this._trailColors(), sp=this._project(gx,gy);
+    this._bursts.push({ x:sp.x, y:sp.y, life:1, r0:6, r1:34*power+22, col });
+    const n=8+((power*10)|0);
+    for(let i=0;i<n;i++){
+      const ang=Math.random()*6.283, s=1.5+Math.random()*3.5*power;
+      this._particles.push({ x:sp.x, y:sp.y, vx:Math.cos(ang)*s, vy:Math.sin(ang)*s-(col.warm?0.5:0),
+        life:1, decay:1/(9+Math.random()*8), size:(col.warm?2.4:1.9)+Math.random()*2.2, warm:col.warm });
+    }
+  },
+  _drawBurst(ctx, bu){
+    const e=1-bu.life, r=bu.r0+(bu.r1-bu.r0)*e;
+    ctx.globalAlpha=bu.life*0.6; ctx.strokeStyle=bu.col.light; ctx.lineWidth=Math.max(1,3*bu.life);
+    ctx.beginPath(); ctx.arc(bu.x,bu.y,r,0,6.283); ctx.stroke();
+    this._blit(this._tintTex(this._texGlow,bu.col.glow), bu.x,bu.y, r*1.6, r*1.6, bu.life*bu.life*0.7);
+    this._blit(this._texCore, bu.x,bu.y, r*0.9, r*0.9, bu.life*0.6);
   },
 
   // ── Possession timer bar (drawn on trail canvas) ──────────────
@@ -2205,6 +3229,10 @@ const RENDERER = {
   draw(){
     if(!this._ok) return;
 
+    this._updateGoalNets();
+    this._updateScoreCounters();
+    this._updateCrowdFlashes();
+
     // Trail: push current ball position, update speed-based alpha, draw ribbon
     if(!GAME.ballHidden && GAME.running){
       const b = GAME.ball;
@@ -2246,6 +3274,39 @@ const RENDERER = {
     this._ball.position.x = this._tx(b.x);
     this._ball.position.y = 0.13 + (GAME.ballZ || 0);
     this._ball.position.z = this._tz(b.y);
+
+    // Living grass: advance wind time + feed the ball position so blades part
+    // around it. Parked far away when the ball is hidden so nothing bends.
+    // Crowd: constant gentle sway + a cheer bounce that decays after a goal.
+    if(this._cheer > 0) this._cheer = Math.max(0, this._cheer - 0.006);
+    const cs = this._crowdMat && this._crowdMat.userData && this._crowdMat.userData.shader;
+    if(cs){ cs.uniforms.uTime.value = performance.now()*0.001; cs.uniforms.uCheer.value = this._cheer; }
+    // Confetti rain after a goal
+    if(this._confLife > 0 && this._confetti){
+      const dt = 1/60; this._confLife -= dt;
+      const p = this._confetti.geometry.attributes.position.array, v = this._confVel;
+      for(let i=0;i<this._confN;i++){
+        v[i*3+1] -= 0.9*dt;
+        p[i*3]   += v[i*3]*dt + Math.sin(performance.now()*0.005+i)*0.004;
+        p[i*3+1] += v[i*3+1]*dt;
+        p[i*3+2] += v[i*3+2]*dt;
+      }
+      this._confetti.geometry.attributes.position.needsUpdate = true;
+      this._confetti.material.opacity = Math.min(0.95, this._confLife/1.2);
+      if(this._confLife <= 0) this._confetti.visible = false;
+    }
+    // Flags rippling in the breeze
+    if(this._flagMats){
+      const ft = performance.now()*0.002;
+      for(const f of this._flagMats){
+        const pa = f.mesh.geometry.attributes.position;
+        for(let vi=0; vi<pa.count; vi++){
+          const fx = pa.getX(vi), wgt = (fx+1.1)/2.2;
+          pa.setZ(vi, Math.sin(fx*3.0 + ft*3.0 + f.phase)*0.13*wgt);
+        }
+        pa.needsUpdate = true;
+      }
+    }
     this._ball.rotation.y = GAME.ballAngle || 0;
     this._ball.rotation.z = (GAME.ballAngle || 0) * 0.4;
 
@@ -2282,11 +3343,19 @@ const RENDERER = {
         const kit = STATE[rod.team==='p1'?'p1Kit':'p2Kit'] || 'home';
         const shirtHex = team?.[kit] || team?.home || '#888888';
         const shortsHex = team?.[kit+'S'] || team?.homeS || '#888888';
-        const cacheKey = shirtHex;
+        const cacheKey = team ? (team.id+'_'+kit) : shirtHex;
         if(g.userData.lastTeam !== cacheKey){
           g.userData.lastTeam = cacheKey;
-          g.userData.bodyMat.color.setHex(parseInt(shirtHex.replace('#',''),16));
-          g.userData.capMat.color.setHex(parseInt(shirtHex.replace('#',''),16));
+          if(team && g.userData.bodyMat.map !== undefined){
+            // Textured jersey: nation pattern in kit colours (white base colour so
+            // the texture shows true). Falls back to a flat colour if no UVs.
+            const tex = this._buildJerseyTexture(THREE, team, kit);
+            g.userData.bodyMat.map = tex; g.userData.bodyMat.color.setHex(0xffffff); g.userData.bodyMat.needsUpdate = true;
+            g.userData.capMat.map  = tex; g.userData.capMat.color.setHex(0xffffff);  g.userData.capMat.needsUpdate = true;
+          } else {
+            g.userData.bodyMat.color.setHex(parseInt(shirtHex.replace('#',''),16));
+            g.userData.capMat.color.setHex(parseInt(shirtHex.replace('#',''),16));
+          }
           g.userData.srtMat.color.setHex(parseInt(shortsHex.replace('#',''),16));
         }
         g.position.z = this._tz(P.y + sp*(i+1) + off);
@@ -2603,6 +3672,7 @@ const APP = {
     STATE.myRole = 'p1';
     selectKits(STATE.p1Team, STATE.p2Team);
     const t1=STATE.p1Team, t2=STATE.p2Team;
+    if(RENDERER.setMatchFlags) RENDERER.setMatchFlags(t1,t2);   // fly the two nations' flags in the stadium
     document.getElementById('hud-f1').innerHTML=`<img src="${t1.flag}" alt="${t1.name}" style="width:32px;height:22px;object-fit:cover;border-radius:2px">`;
     document.getElementById('hud-n1').textContent=CG.username||'You';
     document.getElementById('hud-f2').innerHTML=`<img src="${t2.flag}" alt="${t2.name}" style="width:32px;height:22px;object-fit:cover;border-radius:2px">`;
