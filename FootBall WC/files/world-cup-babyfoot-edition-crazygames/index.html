@@ -41,7 +41,8 @@ button, .btn, .btn-play, .btn-lobby, .btn-back-lnk,
 button:hover, .btn:hover, #btn-mute:hover, [onclick]:hover{transform:scale(1.06)}
 
 /* ── WRAPPER ── */
-#wrap{position:relative;width:900px;height:600px;transform-origin:center center;transition:transform .15s ease-out}
+#wrap{position:relative;width:900px;height:600px;transform-origin:center center}
+#wrap.fs #screen-game{border-radius:0}
 .screen{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center}
 .screen.active{display:flex}
 
@@ -58,7 +59,7 @@ button:hover, .btn:hover, #btn-mute:hover, [onclick]:hover{transform:scale(1.06)
 .spinner{width:44px;height:44px;border:3px solid rgba(255,255,255,.3);border-top-color:#ffe53b;border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 20px;position:relative;z-index:1}
 @keyframes spin{to{transform:rotate(360deg)}}
 .loading-text{color:rgba(255,255,255,.8);font-size:13px;letter-spacing:2px;position:relative;z-index:1;font-weight:600}
-.load-trophy{height:38px;vertical-align:-8px;filter:drop-shadow(0 3px 4px rgba(0,0,0,.35))}
+.load-trophy{height:54px;width:auto;vertical-align:-16px;filter:drop-shadow(0 3px 4px rgba(0,0,0,.35))}
 #screen-loading .logo-title{position:relative;z-index:1}
 #screen-loading .logo-sub{color:rgba(255,255,255,.8);position:relative;z-index:1}
 
@@ -173,11 +174,14 @@ button:hover, .btn:hover, #btn-mute:hover, [onclick]:hover{transform:scale(1.06)
   background:linear-gradient(180deg,#123a20 0%,#0b2413 85%,#081b0d 100%);
   border-bottom:3px solid #ffd700;box-shadow:0 4px 14px rgba(0,0,0,.45),inset 0 -6px 10px -6px rgba(0,0,0,.5);
   flex-shrink:0;position:relative}
-.hud-side{display:flex;align-items:center;gap:9px;background:rgba(0,0,0,.22);border:1.5px solid rgba(255,215,0,.25);border-radius:30px;padding:5px 14px 5px 5px}
-.hud-side.right{flex-direction:column;align-items:stretch;gap:5px;padding:5px}
-.hud-opp-row{display:flex;flex-direction:row-reverse;align-items:center;gap:9px;padding:0 9px 0 0}
-.hud-flag{font-size:24px;background:#fff;border-radius:50%;width:34px;height:34px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 0 rgba(0,0,0,.3),0 0 0 2px rgba(255,215,0,.5)}
-.hud-uname{color:#fff;font-size:12px;font-weight:700;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-shadow:0 1px 2px rgba(0,0,0,.5)}
+.hud-side{display:flex;align-items:center;gap:11px;background:none;border:none;border-radius:0;padding:0}
+.hud-side.right{flex-direction:row;align-items:center;gap:11px;padding:0}
+.hud-flag{background:#fff;border-radius:50%;width:36px;height:36px;overflow:hidden;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 2px 0 rgba(0,0,0,.3),0 0 0 2px rgba(255,215,0,.5)}
+.hud-flag img{width:100%;height:100%;object-fit:cover;display:block}
+.hud-sep{width:2px;height:26px;background:linear-gradient(180deg,rgba(255,255,255,.12),rgba(255,60,80,.85),rgba(255,255,255,.12));border-radius:2px;flex-shrink:0}
+.hud-oppicon{width:26px;height:26px;display:flex;align-items:center;justify-content:center;flex-shrink:0;filter:drop-shadow(0 1px 2px rgba(0,0,0,.5))}
+.hud-oppicon svg{display:block}
+.hud-uname{color:#fff;font-size:13px;font-weight:700;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-shadow:0 1px 2px rgba(0,0,0,.5)}
 /* Absolutely centered so unequal left/right content (names, audio controls) never pushes it off-center */
 .hud-center{display:flex;flex-direction:column;align-items:center;justify-content:center;position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
   background:rgba(0,0,0,.3);border:2px solid rgba(255,215,0,.55);border-radius:14px;padding:8px 26px;
@@ -186,35 +190,33 @@ button:hover, .btn:hover, #btn-mute:hover, [onclick]:hover{transform:scale(1.06)
 #timer{font-size:17px;font-weight:700;color:#ffe53b;font-variant-numeric:tabular-nums;text-shadow:0 1px 2px rgba(0,0,0,.5);line-height:1;margin-top:3px}
 /* "1v1 Online" / "vs Bot" / "TEST MODE" label removed from the visible scoreboard */
 .hud-badge{display:none}
-/* Audio controls: boxed blue cartoon panel in the top-right corner of the pitch, mirroring the controls-hud on the top-left */
-#audio-hud{position:absolute;top:12px;right:12px;z-index:15}
-.hud-audio-controls{display:flex;gap:8px;justify-content:center;background:linear-gradient(160deg,#2f8fe0,#1a5fc4);border:2px solid rgba(255,255,255,.4);border-radius:14px;padding:8px 10px;box-shadow:0 4px 0 #0d3a80,inset 0 1px 0 rgba(255,255,255,.25)}
-.hud-audio-controls button{display:flex;flex-direction:column;align-items:center;gap:2px;background:rgba(255,255,255,.16);border:1.5px solid rgba(255,255,255,.35);border-radius:10px;color:#fff;width:48px;height:44px;cursor:pointer;justify-content:center;padding:0;transition:background .15s,opacity .15s,transform .1s}
-.hud-audio-controls button:hover{background:rgba(255,255,255,.32);transform:translateY(-1px)}
-.hud-audio-controls .hac-icon{font-size:18px;line-height:1}
-.hud-audio-controls .hac-label{font-size:7px;font-weight:800;letter-spacing:.7px;text-transform:uppercase;text-shadow:0 1px 0 rgba(0,0,0,.4)}
-.hud-audio-controls button.muted{opacity:.5}
-#canvas-wrap{display:block;flex:1;position:relative}
+#canvas-wrap{display:block;flex:1;position:relative;width:100%}
 /* Light colour grade on the 3D layer only (not the UI/indicator canvas):
    a touch more saturation + contrast for a vibrant, punchy stadium look. */
-#gameCanvas{display:block;width:100%;height:100%;filter:saturate(1.17) contrast(1.10) brightness(1.02) sepia(0.05) hue-rotate(-4deg)}
+#gameCanvas{position:absolute;inset:0;display:block;width:100%;height:100%;filter:saturate(1.17) contrast(1.10) brightness(1.02) sepia(0.05) hue-rotate(-4deg)}
 #trailCanvas{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none}
 #vignette{position:absolute;inset:0;pointer-events:none;z-index:6;
   background:radial-gradient(ellipse 78% 82% at 50% 45%, transparent 46%, rgba(0,0,0,.24) 76%, rgba(0,0,0,.50) 100%);
   mix-blend-mode:multiply}
 /* ── ABILITY HUD: Hold + Pass share one system, bottom-right ── */
-#ability-hud{position:absolute;bottom:14px;right:14px;display:flex;gap:10px;z-index:15;pointer-events:none}
-.ability-card{display:flex;flex-direction:column;align-items:center;gap:3px;background:rgba(10,10,28,.62);border:2.5px solid rgba(255,255,255,.32);border-radius:16px;padding:8px 12px;backdrop-filter:blur(3px);box-shadow:0 5px 16px rgba(0,0,0,.35);transition:filter .25s,box-shadow .25s,border-color .25s}
-.ability-card.cd-ready{border-color:#ffe566;box-shadow:0 5px 16px rgba(0,0,0,.35),0 0 16px 2px rgba(255,229,102,.55);animation:abilityPulse 1.3s ease-in-out infinite}
-.ability-card.cd-cooling{filter:brightness(.55) saturate(.5)}
-@keyframes abilityPulse{0%,100%{filter:brightness(1)}50%{filter:brightness(1.25)}}
-.ability-key{display:inline-flex;align-items:center;justify-content:center;min-width:34px;height:18px;padding:0 6px;background:linear-gradient(180deg,#ffe53b,#ffb800);color:#0a5c1e;font-weight:900;font-size:9px;border-radius:6px;box-shadow:0 2px 0 #9a6800;border:1.5px solid rgba(255,255,255,.55)}
-.ability-ring{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:conic-gradient(#ffe566 calc(var(--rdy,100)*1%), rgba(255,255,255,.15) 0);box-shadow:0 0 0 2px rgba(255,255,255,.3)}
-.ability-icon{font-size:15px;background:rgba(10,10,28,.75);border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center}
-.ability-icon.standalone{background:none;width:auto;height:auto;font-size:18px;color:#8fe0ff;text-shadow:0 2px 0 rgba(0,0,0,.4)}
-.ability-label{color:#fff;font-size:8px;font-weight:800;text-transform:uppercase;letter-spacing:1px;text-shadow:0 1px 0 rgba(0,0,0,.5)}
-.pc-pips{display:flex;gap:5px;margin-top:1px}
-.charge-pip{width:9px;height:9px;border-radius:50%;background:rgba(255,255,255,.15);border:1.5px solid rgba(255,255,255,.4);transition:background .2s,box-shadow .2s;position:relative;overflow:hidden}
+#ability-hud{position:absolute;bottom:12px;right:12px;display:flex;gap:6px;z-index:15;pointer-events:none}
+.ability-card{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:2px;width:54px;background:rgba(10,10,28,.62);border:2px solid rgba(255,255,255,.3);border-radius:11px;padding:5px 3px 6px;backdrop-filter:blur(3px);box-shadow:0 3px 10px rgba(0,0,0,.35);transition:opacity .22s,filter .22s,box-shadow .2s,border-color .22s}
+.ability-card.cd-ready{border-color:#ffe566;box-shadow:0 3px 10px rgba(0,0,0,.35),0 0 12px 2px rgba(255,229,102,.5);animation:abilityPulse 1.3s ease-in-out infinite}
+.ability-card.cd-cooling{filter:brightness(.6) saturate(.55)}
+@keyframes abilityPulse{0%,100%{filter:brightness(1)}50%{filter:brightness(1.22)}}
+.ab-slot{height:26px;display:flex;align-items:center;justify-content:center}
+.ab-slot .mouse-icon{width:18px;height:22px}
+.ability-key{display:inline-flex;align-items:center;justify-content:center;min-width:30px;height:15px;padding:0 5px;background:linear-gradient(180deg,#ffe53b,#ffb800);color:#0a5c1e;font-weight:900;font-size:8px;border-radius:5px;box-shadow:0 2px 0 #9a6800;border:1.5px solid rgba(255,255,255,.55)}
+.ability-ring{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:conic-gradient(#ffe566 calc(var(--rdy,100)*1%), rgba(255,255,255,.15) 0);box-shadow:0 0 0 2px rgba(255,255,255,.3)}
+.ability-icon{font-size:12px;background:rgba(10,10,28,.75);border-radius:50%;width:19px;height:19px;display:flex;align-items:center;justify-content:center}
+.ability-icon.standalone{background:none;width:auto;height:auto;font-size:16px;color:#8fe0ff;text-shadow:0 2px 0 rgba(0,0,0,.4)}
+.ability-label{color:#fff;font-size:8px;font-weight:900;text-transform:uppercase;letter-spacing:.4px;text-shadow:0 1px 0 rgba(0,0,0,.5)}
+.ab-key{color:rgba(255,255,255,.75);font-size:7px;font-weight:800;text-transform:uppercase;letter-spacing:.3px;background:rgba(255,255,255,.1);border-radius:4px;padding:1px 4px;line-height:1.5}
+/* gated abilities: DIM (unusable) until you hold the ball, then LIT (usable) */
+.ability-card.dim{opacity:.4 !important;filter:grayscale(.6) brightness(.8) !important}
+.ability-card.lit{border-color:#7fe0ff !important;box-shadow:0 0 12px 2px rgba(90,210,255,.5),4px 4px 0 rgba(0,0,0,.4) !important}
+.pc-pips{display:flex;gap:4px;margin-top:1px}
+.charge-pip{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.15);border:1.5px solid rgba(255,255,255,.4);transition:background .2s,box-shadow .2s;position:relative;overflow:hidden}
 .charge-pip.filled{background:#5ad2ff;border-color:#8fe8ff;box-shadow:0 0 6px #5ad2ff}
 .charge-pip.recharging::after{content:'';position:absolute;left:0;right:0;bottom:0;background:#5ad2ff;height:var(--pct,0%);transition:height .1s linear}
 /* ── CARTOON CONTROLS HUD ── */
@@ -257,8 +259,8 @@ button:hover, .btn:hover, #btn-mute:hover, [onclick]:hover{transform:scale(1.06)
 /* ── END ── */
 #screen-end{border-radius:18px}
 .end-box{text-align:center;width:460px}
-.end-trophy{font-size:64px;margin-bottom:8px;animation:float 2s ease-in-out infinite}
-.end-trophy img{width:84px;height:84px;display:inline-block;filter:drop-shadow(0 6px 10px rgba(0,0,0,.4))}
+.end-trophy{margin-bottom:6px}
+.end-trophy img{width:auto;height:104px;display:inline-block;filter:drop-shadow(0 6px 10px rgba(0,0,0,.4))}
 @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
 .end-title{color:#ffe53b;font-size:30px;font-weight:900;text-shadow:0 3px 0 rgba(0,0,0,.3);letter-spacing:1px}
 .end-winner{color:#fff;font-size:18px;margin:8px 0 22px;font-weight:700;text-shadow:0 2px 0 rgba(0,0,0,.3)}
@@ -268,6 +270,193 @@ button:hover, .btn:hover, #btn-mute:hover, [onclick]:hover{transform:scale(1.06)
 /* ── NOTIF TOAST ── */
 #toast{position:absolute;bottom:18px;left:50%;transform:translateX(-50%) translateY(20px);background:#1a2748;color:#fff;font-size:12px;padding:10px 22px;border-radius:50px;pointer-events:none;opacity:0;transition:all .3s;white-space:nowrap;z-index:50}
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ═══════════════════ PERSONA-INSPIRED UI THEME ═══════════════════ */
+:root{ --pi:#0a1f6e; --pb:#2258ff; --pb2:#0c2ecf; --pr:#ff1330; --prd:#bf001d; --pg:#ffd21a; --pw:#eef3ff; --pk:#05060c; }
+@keyframes pshift{to{transform:translate(28px,28px)}}
+.p-cmd{position:absolute;right:14px;bottom:10px;display:flex;gap:14px;align-items:center;z-index:30;pointer-events:none}
+.p-cmd .k{display:inline-flex;align-items:center;gap:6px;color:var(--pw);font-weight:800;font-size:11px;font-style:italic;letter-spacing:.5px;text-shadow:0 2px 2px rgba(0,0,0,.6)}
+.p-cmd .g{background:var(--pw);color:var(--pk);border-radius:5px;padding:1px 7px;font-weight:900;font-style:normal;box-shadow:0 2px 0 rgba(0,0,0,.5)}
+
+/* ── MAIN MENU ── */
+#screen-menu{background:radial-gradient(130% 100% at 26% 8%, #3f79ff 0%, #123fd6 42%, #08196a 100%) !important;overflow:hidden}
+#screen-menu::before{content:'';position:absolute;inset:-12%;background-image:repeating-linear-gradient(58deg, rgba(255,255,255,.06) 0 3px, transparent 3px 30px),radial-gradient(circle, rgba(255,255,255,.13) 1.5px, transparent 1.7px);background-size:auto,28px 28px;opacity:.55;pointer-events:none;animation:pshift 22s linear infinite}
+.menu-inner::before{content:'';position:absolute;right:-6%;top:6%;width:74%;height:66%;background:linear-gradient(120deg, var(--pr) 0 54%, transparent 54%);clip-path:polygon(20% 0,100% 0,100% 100%,0 100%);opacity:.9;z-index:0;box-shadow:0 20px 40px rgba(0,0,0,.35)}
+.menu-stars{display:none !important}
+.menu-crest{position:relative;z-index:2;margin:0 auto 4px;display:flex;align-items:center;justify-content:center}
+.menu-crest img{height:176px;width:auto;display:block;filter:drop-shadow(0 8px 14px rgba(0,0,0,.5))}
+.menu-title{font-family:Impact,'Arial Narrow Bold','Arial Black',sans-serif !important;font-size:92px !important;font-style:italic;font-weight:900;color:var(--pw) !important;letter-spacing:0 !important;line-height:.8 !important;transform:skewX(-8deg) rotate(-2deg);-webkit-text-stroke:3px var(--pk);paint-order:stroke fill;text-shadow:7px 7px 0 var(--prd),11px 11px 0 rgba(0,0,0,.28) !important;animation:none !important;position:relative;z-index:2;margin:4px 0}
+.menu-sub{position:relative;z-index:2;font-family:'Arial Black',sans-serif;font-style:italic;font-weight:900;letter-spacing:2px;color:var(--pg);text-transform:uppercase;-webkit-text-stroke:1.2px var(--pk);paint-order:stroke fill;transform:skewX(-8deg)}
+.menu-sub .sub-cup{height:30px;width:auto;vertical-align:-9px;opacity:.95;filter:drop-shadow(0 2px 3px rgba(0,0,0,.55))}
+.btn-play{position:relative;z-index:2;font-family:Impact,'Arial Black',sans-serif !important;background:var(--pg) !important;color:var(--pk) !important;font-size:26px !important;font-style:italic;font-weight:900 !important;letter-spacing:2px !important;padding:14px 46px !important;border:3px solid var(--pk) !important;border-radius:0 !important;clip-path:polygon(6% 0,100% 0,94% 100%,0 100%);box-shadow:8px 8px 0 rgba(0,0,0,.45) !important;text-transform:uppercase;transform:skewX(-8deg);transition:transform .1s,box-shadow .1s;margin-top:12px}
+.btn-play:hover{transform:skewX(-8deg) translate(-2px,-2px);box-shadow:11px 11px 0 rgba(0,0,0,.5) !important}
+.menu-tagline{position:relative;z-index:2;color:var(--pw);font-style:italic;font-weight:800;letter-spacing:2px;opacity:.85;text-transform:uppercase;margin-top:12px;text-shadow:0 2px 3px rgba(0,0,0,.5)}
+
+/* ── TEAM SELECT ── */
+#screen-teams{background:radial-gradient(130% 100% at 50% 0%, #3f79ff 0%, #123fd6 42%, #08196a 100%) !important;overflow:hidden}
+#screen-teams::before{content:'';position:absolute;inset:-12%;background-image:repeating-linear-gradient(58deg, rgba(255,255,255,.05) 0 3px, transparent 3px 30px),radial-gradient(circle, rgba(255,255,255,.11) 1.4px, transparent 1.6px);background-size:auto,28px 28px;opacity:.5;pointer-events:none;animation:pshift 24s linear infinite}
+.teams-wrap{position:relative;z-index:2}
+.teams-hdr h2{font-family:Impact,'Arial Black',sans-serif !important;font-size:36px !important;font-style:italic;color:var(--pw) !important;-webkit-text-stroke:2px var(--pk);paint-order:stroke fill;text-shadow:5px 5px 0 var(--prd) !important;transform:skewX(-8deg);text-transform:uppercase;letter-spacing:1px}
+.teams-hdr p{color:var(--pw);opacity:.8;font-style:italic}
+.ts-panel{position:relative}
+.ts-label{font-family:Impact,'Arial Black',sans-serif !important;font-style:italic;font-size:18px !important;letter-spacing:1px;-webkit-text-stroke:1.2px var(--pk);paint-order:stroke fill;color:var(--pw) !important;transform:skewX(-8deg);clip-path:polygon(5% 0,100% 0,95% 100%,0 100%);padding:6px 16px !important;text-transform:uppercase;border-radius:0 !important}
+.ts-label.p1{background:var(--pb) !important}
+.ts-label.p2{background:var(--pr) !important}
+.ts-preview{border:2px solid var(--pk) !important;background:rgba(6,12,40,.55) !important;box-shadow:5px 5px 0 rgba(0,0,0,.35)}
+.pn{font-style:italic;font-weight:900;text-transform:uppercase;color:var(--pw)}
+.teams-grid>*{border:2px solid rgba(255,255,255,.35) !important;border-radius:6px !important;background:rgba(8,16,50,.45) !important;transition:transform .1s}
+.teams-grid>*:hover{transform:translateY(-2px)}
+.vs-txt{font-family:Impact,sans-serif !important;font-size:54px !important;font-style:italic;color:var(--pg) !important;-webkit-text-stroke:3px var(--pk);paint-order:stroke fill;transform:skewX(-8deg) rotate(-4deg);text-shadow:5px 5px 0 rgba(0,0,0,.4)}
+#vote-timer{font-family:Impact,sans-serif;font-style:italic;color:var(--pw);-webkit-text-stroke:1.5px var(--pk);paint-order:stroke fill}
+.btn-gold,#btn-ready{font-family:Impact,'Arial Black',sans-serif !important;background:var(--pg) !important;color:var(--pk) !important;border:3px solid var(--pk) !important;border-radius:0 !important;clip-path:polygon(7% 0,100% 0,93% 100%,0 100%);font-style:italic;font-weight:900 !important;box-shadow:6px 6px 0 rgba(0,0,0,.4) !important;transform:skewX(-8deg);text-transform:uppercase}
+.btn-back-lnk{color:var(--pw) !important;font-style:italic;font-weight:800;text-transform:uppercase;letter-spacing:1px}
+
+/* ── GAMEPLAY HUD (scoreboard) ── */
+#hud{background:linear-gradient(180deg,#0b1e5e 0%,#071444 90%) !important;border-bottom:3px solid var(--pr) !important;box-shadow:0 4px 14px rgba(0,0,0,.5) !important}
+.hud-uname{font-family:'Arial Black',sans-serif;font-style:italic;font-weight:900;letter-spacing:1px;text-transform:uppercase;color:var(--pw);-webkit-text-stroke:.5px var(--pk);paint-order:stroke fill}
+.hud-score{font-family:Impact,sans-serif !important;font-style:italic;font-size:40px !important;color:var(--pw) !important;-webkit-text-stroke:2px var(--pk);paint-order:stroke fill;text-shadow:3px 3px 0 var(--prd) !important;letter-spacing:4px}
+#timer{font-family:'Arial Black',sans-serif;font-style:italic;letter-spacing:2px}
+.hud-flag{border-radius:50%;box-shadow:0 0 0 2px var(--pw),0 0 0 4px var(--pk) !important}
+.hud-badge{background:var(--pr) !important;color:var(--pw) !important;font-style:italic;font-weight:900;text-transform:uppercase;border-radius:0 !important;clip-path:polygon(8% 0,100% 0,92% 100%,0 100%)}
+
+/* ── Ability / controls / audio chips ── */
+.keycap{background:var(--pw) !important;color:var(--pk) !important;border:2px solid var(--pk) !important;border-radius:4px !important;font-weight:900 !important;box-shadow:0 2px 0 rgba(0,0,0,.55) !important;font-style:normal}
+.ctrl-desc{font-style:italic;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--pw)}
+#controls-hud{background:rgba(6,10,30,.62) !important;border:2px solid var(--pr) !important;border-radius:10px !important;backdrop-filter:blur(3px)}
+.ability-card{background:linear-gradient(180deg,#0b1e5e,#08163f) !important;border:2px solid var(--pw) !important;box-shadow:4px 4px 0 rgba(0,0,0,.45) !important}
+.ability-label,.ability-key{font-style:italic;font-weight:900;text-transform:uppercase;letter-spacing:.5px}
+
+/* ── OVERLAYS (goal / pause / end) ── */
+#goal-overlay,.overlay{background:linear-gradient(120deg, rgba(191,0,29,.55) 0%, rgba(6,10,30,.82) 42%) !important}
+.goal-word{font-family:Impact,sans-serif !important;font-size:110px !important;font-style:italic;color:var(--pg) !important;-webkit-text-stroke:4px var(--pk);paint-order:stroke fill;text-shadow:9px 9px 0 var(--prd) !important;transform:skewX(-9deg) rotate(-3deg);letter-spacing:2px}
+.goal-sub{font-style:italic;font-weight:900;text-transform:uppercase;letter-spacing:2px;color:var(--pw);-webkit-text-stroke:1px var(--pk);paint-order:stroke fill;transform:skewX(-6deg)}
+.pause-title{font-family:Impact,sans-serif !important;font-size:56px !important;font-style:italic;color:var(--pw) !important;-webkit-text-stroke:3px var(--pk);paint-order:stroke fill;text-shadow:6px 6px 0 var(--prd) !important;transform:skewX(-8deg)}
+.pause-hint{color:var(--pw);font-style:italic;opacity:.8}
+.matchend-msg{font-family:Impact,sans-serif !important;font-style:italic;color:var(--pg) !important;-webkit-text-stroke:3px var(--pk);paint-order:stroke fill;transform:skewX(-8deg)}
+.end-title{font-family:Impact,sans-serif !important;font-size:44px !important;font-style:italic;color:var(--pw) !important;-webkit-text-stroke:2.5px var(--pk);paint-order:stroke fill;text-shadow:5px 5px 0 var(--prd) !important;transform:skewX(-8deg);text-transform:uppercase}
+.end-winner{font-style:italic;font-weight:900;text-transform:uppercase;color:var(--pg)}
+.end-score{font-family:Impact,sans-serif !important;font-style:italic;color:var(--pw) !important;-webkit-text-stroke:2px var(--pk);paint-order:stroke fill}
+#countdown-num{font-family:Impact,sans-serif !important;font-style:italic;-webkit-text-stroke:4px var(--pk);paint-order:stroke fill;color:var(--pg) !important;text-shadow:8px 8px 0 var(--prd)}
+
+/* ── LOADING SCREEN (Persona) ── */
+#screen-loading{background:radial-gradient(130% 100% at 40% 8%, #3f79ff 0%, #123fd6 42%, #08196a 100%) !important;overflow:hidden}
+#screen-loading::after{background:repeating-linear-gradient(58deg, transparent 0 3px, rgba(255,255,255,.055) 3px 30px) !important;opacity:.6 !important}
+#screen-loading::before{content:'';position:absolute;left:-6%;top:0;bottom:0;width:40%;background:linear-gradient(120deg, var(--pr) 0 50%, transparent 50%);clip-path:polygon(0 0,100% 0,58% 100%,0 100%);opacity:.85;pointer-events:none}
+#screen-loading .logo-title{font-family:Impact,'Arial Black',sans-serif !important;font-size:72px !important;font-style:italic;background:none !important;-webkit-text-fill-color:var(--pw) !important;color:var(--pw) !important;-webkit-text-stroke:3px var(--pk);paint-order:stroke fill;text-shadow:6px 6px 0 var(--prd) !important;transform:skewX(-8deg);line-height:.82}
+.load-crest{position:relative;z-index:2;margin:2px auto 8px;display:flex;align-items:center;justify-content:center}
+.load-crest img{height:104px;width:auto;display:block;filter:drop-shadow(0 5px 9px rgba(0,0,0,.5))}
+#screen-loading .logo-sub{color:var(--pg) !important;font-style:italic;font-weight:900;-webkit-text-stroke:1px var(--pk);paint-order:stroke fill;transform:skewX(-8deg);letter-spacing:4px}
+#screen-loading .spinner{border:4px solid rgba(255,255,255,.22) !important;border-top-color:var(--pg) !important;border-right-color:var(--pr) !important;width:52px !important;height:52px !important}
+#screen-loading .loading-text{color:var(--pw) !important;font-style:italic;font-weight:800;letter-spacing:2px;text-transform:uppercase}
+
+/* ── END / REMATCH SCREEN (Persona) ── */
+#screen-end{background:radial-gradient(130% 100% at 50% 6%, #3f79ff 0%, #123fd6 42%, #08196a 100%) !important;overflow:hidden}
+#screen-end::after{content:'';position:absolute;inset:0;background:repeating-linear-gradient(58deg, transparent 0 3px, rgba(255,255,255,.05) 3px 30px) !important;opacity:.55 !important;pointer-events:none}
+#screen-end::before{content:'';position:absolute;right:-6%;top:0;bottom:0;width:38%;background:linear-gradient(120deg, transparent 46%, var(--pr) 46%);clip-path:polygon(30% 0,100% 0,100% 100%,0 100%);opacity:.8;pointer-events:none}
+#screen-end .end-box{position:relative;z-index:2;background:linear-gradient(180deg, rgba(9,20,68,.95), rgba(5,12,46,.97)) !important;border:3px solid var(--pw) !important;border-radius:14px !important;box-shadow:0 0 0 5px var(--pk), 12px 12px 0 rgba(0,0,0,.4), 0 16px 34px rgba(0,0,0,.5) !important;backdrop-filter:none !important;overflow:visible}
+#screen-end .end-box::before{content:'';position:absolute;top:-16px;left:22px;right:22px;height:14px;background:var(--pr);clip-path:polygon(0 0,100% 0,95% 100%,5% 100%);box-shadow:0 3px 0 rgba(0,0,0,.4)}
+#screen-end .end-trophy img{filter:drop-shadow(0 6px 8px rgba(0,0,0,.55))}
+#screen-end .btn-create,#screen-end .btn-lobby{font-family:Impact,'Arial Black',sans-serif !important;background:var(--pg) !important;color:var(--pk) !important;border:3px solid var(--pk) !important;border-radius:0 !important;clip-path:polygon(7% 0,100% 0,93% 100%,0 100%);font-style:italic;font-weight:900 !important;text-transform:uppercase;letter-spacing:1px;box-shadow:6px 6px 0 rgba(0,0,0,.4) !important;transform:skewX(-8deg);transition:transform .1s,box-shadow .1s}
+#screen-end .btn-create:hover,#screen-end .btn-lobby:hover{transform:skewX(-8deg) translate(-2px,-2px);box-shadow:9px 9px 0 rgba(0,0,0,.45) !important}
+#screen-end .btn-back-lnk{color:var(--pw) !important;font-family:'Arial Black',sans-serif;font-style:italic;font-weight:900;text-transform:uppercase;letter-spacing:1px;border:2px solid var(--pw) !important;border-radius:0 !important;clip-path:polygon(9% 0,100% 0,91% 100%,0 100%);padding:12px 24px !important;transform:skewX(-8deg);background:rgba(255,255,255,.06)}
+
+/* ── HOW TO PLAY overlay (Persona) ── */
+#howto-overlay{background:linear-gradient(120deg, rgba(191,0,29,.42) 0%, rgba(6,10,30,.9) 46%) !important;z-index:40;padding:14px}
+.howto-panel{position:relative;width:min(560px,94%);max-height:94%;overflow:auto;background:linear-gradient(180deg, rgba(9,20,68,.97), rgba(5,12,46,.98));border:3px solid var(--pw);border-radius:14px;box-shadow:0 0 0 5px var(--pk), 10px 10px 0 rgba(0,0,0,.4), 0 16px 34px rgba(0,0,0,.5);padding:20px 22px 22px}
+.howto-panel::before{content:'';position:absolute;top:-15px;left:22px;right:22px;height:14px;background:var(--pr);clip-path:polygon(0 0,100% 0,95% 100%,5% 100%);box-shadow:0 3px 0 rgba(0,0,0,.4)}
+.howto-title{font-family:Impact,'Arial Black',sans-serif;font-size:40px;font-style:italic;color:var(--pw);-webkit-text-stroke:2.5px var(--pk);paint-order:stroke fill;text-shadow:5px 5px 0 var(--prd);transform:skewX(-8deg);text-transform:uppercase;text-align:center;letter-spacing:1px;margin-bottom:10px}
+.howto-goal{color:var(--pw);font-style:italic;font-weight:700;text-align:center;font-size:13.5px;line-height:1.42;opacity:.92;margin:0 auto 16px;max-width:470px}
+.howto-goal b{color:var(--pg)}
+.howto-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px 16px}
+.howto-item{display:flex;align-items:center;gap:11px;background:rgba(8,16,50,.55);border:2px solid rgba(255,255,255,.18);border-radius:10px;padding:9px 11px}
+.howto-keys{display:flex;align-items:center;gap:5px;min-width:60px;justify-content:center;flex-shrink:0}
+.howto-keys .keycap{background:linear-gradient(180deg,#ffe53b,#ffb800) !important;color:#0a5c1e !important;border:1.5px solid rgba(255,255,255,.55) !important;border-radius:6px !important;box-shadow:0 2.5px 0 #9a6800 !important;height:24px;min-width:24px;font-size:12px;font-style:normal !important}
+.howto-keys .keycap.wide{min-width:52px}
+.howto-keys .keycap.hold{background:linear-gradient(180deg,#8fe0ff,#3ea9e0) !important;color:#07203a !important;box-shadow:0 2.5px 0 #0d5fa0 !important}
+.howto-keys .keycap.pass{background:linear-gradient(180deg,#c084fc,#7c3aed) !important;color:#fff !important;box-shadow:0 2.5px 0 #4c1d95 !important}
+.howto-keys .mouse-icon{width:24px;height:30px}
+.howto-txt{display:flex;flex-direction:column;gap:1px;line-height:1.22}
+.howto-txt b{color:var(--pg);font-style:italic;font-weight:900;text-transform:uppercase;font-size:12px;letter-spacing:.5px}
+.howto-txt span{color:var(--pw);font-size:11px;opacity:.85;font-weight:600}
+.howto-close{display:block;margin:18px auto 2px;font-family:Impact,'Arial Black',sans-serif;background:var(--pg);color:var(--pk);border:3px solid var(--pk);border-radius:0;clip-path:polygon(6% 0,100% 0,94% 100%,0 100%);font-style:italic;font-weight:900;font-size:20px;letter-spacing:2px;padding:12px 42px;text-transform:uppercase;box-shadow:6px 6px 0 rgba(0,0,0,.4);transform:skewX(-8deg);cursor:pointer;transition:transform .1s,box-shadow .1s}
+.howto-close:hover{transform:skewX(-8deg) translate(-2px,-2px);box-shadow:9px 9px 0 rgba(0,0,0,.45)}
+/* Main-menu 'How to Play' secondary button */
+.btn-howto{position:relative;z-index:2;margin-top:12px;font-family:'Arial Black',sans-serif;font-style:italic;font-weight:900;text-transform:uppercase;letter-spacing:1.5px;color:var(--pw);background:rgba(255,255,255,.08);border:2.5px solid var(--pw);border-radius:0;clip-path:polygon(5% 0,100% 0,95% 100%,0 100%);padding:11px 30px;font-size:15px;transform:skewX(-8deg);cursor:pointer;box-shadow:5px 5px 0 rgba(0,0,0,.4);transition:transform .1s,box-shadow .1s}
+.btn-howto:hover{transform:skewX(-8deg) translate(-2px,-2px);box-shadow:8px 8px 0 rgba(0,0,0,.5);background:rgba(255,255,255,.14)}
+
+/* ── INTERACTIVE TUTORIAL (Persona coach-marks) ── */
+#tut-offer{background:linear-gradient(120deg, rgba(191,0,29,.42) 0%, rgba(6,10,30,.9) 46%) !important;z-index:45;padding:14px}
+#tut-layer{position:absolute;inset:0;z-index:34;pointer-events:none;display:none}
+#tut-layer.show{display:block}
+.tut-top{position:absolute;left:50%;top:10px;transform:translateX(-50%);width:min(560px,86%);
+  pointer-events:auto;text-align:center;
+  background:linear-gradient(180deg, rgba(9,20,68,.96), rgba(5,12,46,.97));
+  border:3px solid var(--pw);border-radius:12px;padding:9px 18px 11px;
+  box-shadow:0 0 0 4px var(--pk), 0 10px 26px rgba(0,0,0,.5);animation:tutIn .22s ease-out}
+@keyframes tutIn{from{transform:translateX(-50%) translateY(-14px);opacity:0}to{transform:translateX(-50%);opacity:1}}
+.tut-top::before{content:'';position:absolute;top:-13px;left:22px;right:22px;height:11px;background:var(--pr);
+  clip-path:polygon(0 0,100% 0,95% 100%,5% 100%)}
+.tut-title{font-family:Impact,'Arial Black',sans-serif;font-size:27px;font-style:italic;color:var(--pw);
+  -webkit-text-stroke:2px var(--pk);paint-order:stroke fill;text-shadow:3px 3px 0 var(--prd);
+  transform:skewX(-8deg);text-transform:uppercase;line-height:1.05;margin:2px 0 4px}
+.tut-text{color:var(--pw);font-size:13px;font-weight:600;line-height:1.4;opacity:.95}
+.tut-text b{color:var(--pg)}
+.tut-keys{display:flex;align-items:center;gap:7px;margin-top:7px;flex-wrap:wrap;justify-content:center}
+.tut-keys .keycap{height:26px;min-width:26px;font-size:13px;font-style:normal !important}
+.tut-keys .mouse-icon{width:23px;height:28px}
+/* per-task progress ("2 / 3 done") */
+.tut-prog{display:flex;gap:6px;justify-content:center;margin-top:8px;min-height:12px}
+.tut-tick{width:12px;height:12px;border-radius:3px;border:2px solid rgba(255,255,255,.4);background:rgba(255,255,255,.08)}
+.tut-tick.on{background:var(--pg);border-color:#fff;box-shadow:0 0 8px rgba(255,210,26,.8)}
+.tut-btn{font-family:Impact,'Arial Black',sans-serif;background:var(--pg);color:var(--pk);border:3px solid var(--pk);
+  border-radius:0;clip-path:polygon(7% 0,100% 0,93% 100%,0 100%);font-style:italic;font-weight:900;font-size:15px;
+  letter-spacing:1px;padding:8px 20px;text-transform:uppercase;cursor:pointer;box-shadow:4px 4px 0 rgba(0,0,0,.4);
+  transform:skewX(-8deg);transition:transform .1s,box-shadow .1s}
+.tut-btn:hover{transform:skewX(-8deg) translate(-2px,-2px);box-shadow:6px 6px 0 rgba(0,0,0,.45)}
+.tut-btn.secondary{background:rgba(255,255,255,.09);color:var(--pw);border-color:rgba(255,255,255,.55);
+  font-size:12px;padding:6px 14px;box-shadow:3px 3px 0 rgba(0,0,0,.35)}
+.tut-skip{position:absolute;left:14px;bottom:12px;pointer-events:auto;background:rgba(0,0,0,.45);
+  border:1.5px solid rgba(255,255,255,.3);border-radius:6px;color:var(--pw);opacity:.7;font-size:10.5px;
+  font-weight:800;text-transform:uppercase;letter-spacing:.8px;cursor:pointer;padding:6px 10px}
+.tut-skip:hover{opacity:1}
+.tut-btn{margin-top:9px}
+.tut-dots{display:flex;gap:5px;justify-content:center;margin-bottom:2px}
+.tut-dot{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.25)}
+.tut-dot.on{background:var(--pg)}
+.tut-dot.done{background:rgba(255,210,26,.5)}
+/* pulsing highlight applied to whatever the current step is teaching */
+@keyframes tutPulse{0%,100%{box-shadow:0 0 0 4px rgba(255,210,26,1),0 0 22px 7px rgba(255,210,26,.7);transform:scale(1)}
+  50%{box-shadow:0 0 0 4px rgba(255,210,26,.6),0 0 34px 12px rgba(255,210,26,.4);transform:scale(1.09)}}
+.tut-glow{animation:tutPulse 1s ease-in-out infinite;border-radius:12px;z-index:22}
+/* Must out-specify `.ability-card.dim` (which greys unusable abilities), otherwise
+   the card the tutorial is pointing at stays dimmed while it pulses. */
+.ability-card.tut-glow{opacity:1 !important;filter:none !important;border-color:#ffd21a !important}
+/* bouncing arrow that points at the ability being taught */
+#tut-arrow{position:absolute;z-index:23;font-size:30px;color:var(--pg);pointer-events:none;display:none;
+  text-shadow:0 3px 0 rgba(0,0,0,.6);animation:tutArrow .85s ease-in-out infinite}
+#tut-arrow.show{display:block}
+@keyframes tutArrow{0%,100%{transform:translateY(0)}50%{transform:translateY(9px)}}
+/* big "well done" tick that pops when a step is completed */
+#tut-ok{position:absolute;left:50%;top:46%;transform:translate(-50%,-50%) scale(.4);opacity:0;
+  font-family:Impact,sans-serif;font-size:110px;line-height:1;color:#4ce66b;
+  -webkit-text-stroke:5px var(--pk);paint-order:stroke fill;
+  text-shadow:0 0 34px rgba(76,230,107,.9);pointer-events:none;z-index:5}
+#tut-ok.pop{animation:tutOk 1.5s ease-out}
+@keyframes tutOk{0%{transform:translate(-50%,-50%) scale(.4);opacity:0}
+  12%{transform:translate(-50%,-50%) scale(1.12);opacity:1}
+  22%{transform:translate(-50%,-50%) scale(1);opacity:1}
+  72%{transform:translate(-50%,-50%) scale(1);opacity:1}
+  100%{transform:translate(-50%,-56%) scale(1);opacity:0}}
+
+/* ── Audio buttons: pause-menu Music/Sound + menu corner sound (Persona) ── */
+.ac-btn{display:inline-flex;align-items:center;gap:7px;font-family:'Arial Black',sans-serif;font-style:italic;font-weight:900;text-transform:uppercase;letter-spacing:1px;color:var(--pw);background:linear-gradient(180deg,#0b1e5e,#08163f);border:2.5px solid var(--pw);border-radius:0;clip-path:polygon(6% 0,100% 0,94% 100%,0 100%);padding:9px 18px;font-size:13px;cursor:pointer;box-shadow:4px 4px 0 rgba(0,0,0,.4);transition:transform .1s,box-shadow .1s,opacity .15s,filter .15s}
+.ac-btn .ac-ico{font-style:normal;font-size:16px;line-height:1}
+.ac-btn:hover{transform:translate(-2px,-2px);box-shadow:6px 6px 0 rgba(0,0,0,.5)}
+.ac-btn.off{opacity:.5;filter:grayscale(.6)}
+.pause-audio{display:flex;gap:12px;justify-content:center;margin-top:16px;position:relative;z-index:2}
+#global-sound.ac-round{position:absolute;top:14px;right:14px;z-index:35;clip-path:none;border-radius:50%;width:44px;height:44px;padding:0;justify-content:center;gap:0;box-shadow:0 3px 0 rgba(0,0,0,.45),0 0 0 3px var(--pk)}
+#global-sound.ac-round:hover{transform:translateY(-2px);box-shadow:0 5px 0 rgba(0,0,0,.45),0 0 0 3px var(--pk)}
+#global-sound .ac-ico{font-size:19px}
 </style>
 </head>
 <body>
@@ -276,7 +465,8 @@ button:hover, .btn:hover, #btn-mute:hover, [onclick]:hover{transform:scale(1.06)
 <!-- LOADING -->
 <div id="screen-loading" class="screen active cartoon-screen">
   <div class="spinner"></div>
-  <div class="logo-title"><img class="load-trophy" src="models/trophy.png" alt=""> WORLD CUP</div>
+  <div class="load-crest"><img src="models/cup_logo.png" alt="" draggable="false"></div>
+  <div class="logo-title">WORLD CUP</div>
   <div class="logo-sub">Babyfoot Edition</div>
   <div class="loading-text" id="load-msg">Connecting…</div>
 </div>
@@ -292,11 +482,11 @@ button:hover, .btn:hover, #btn-mute:hover, [onclick]:hover{transform:scale(1.06)
     <div class="mstar">⭐</div>
   </div>
   <div class="menu-inner">
-    <div class="menu-ball"><img src="models/ball_icon.png" alt="" draggable="false"></div>
+    <div class="menu-crest"><img src="models/cup_logo.png" alt="World Cup trophy" draggable="false"></div>
     <div class="menu-title">WORLD<br>CUP</div>
-    <div class="menu-sub"><img class="sub-trophy" src="models/trophy.png" alt=""> Babyfoot Edition <img class="sub-trophy" src="models/trophy.png" alt=""></div>
+    <div class="menu-sub">Babyfoot Edition</div>
     <button class="btn-play" onclick="APP.startBotPick()">▶ PLAY NOW!</button>
-    <div class="menu-tagline">47 Nations • Solo vs AI</div>
+    <button class="btn-howto" onclick="showHowTo()">❔ How to Play</button>
   </div>
 </div>
 
@@ -318,7 +508,7 @@ button:hover, .btn:hover, #btn-mute:hover, [onclick]:hover{transform:scale(1.06)
         <div class="vs-txt">VS</div>
         <div id="vote-timer">20</div>
         <button class="btn btn-gold" onclick="APP.confirmTeam()" id="btn-ready" style="padding:11px 26px;font-size:13px">▶ READY</button>
-        <button class="btn-back-lnk" onclick="APP.showScreen('screen-menu')">← Back</button>
+        <button class="btn-back-lnk" onclick="APP._backTeamSelect()">← Back</button>
       </div>
       <div class="ts-panel">
         <div class="ts-label p2">🔴 Player 2</div>
@@ -337,8 +527,9 @@ button:hover, .btn:hover, #btn-mute:hover, [onclick]:hover{transform:scale(1.06)
 <div id="screen-game" class="screen">
   <div id="hud">
     <div class="hud-side left">
-      <span class="hud-flag" id="hud-f1"><img src="worldcup countries/Flag_of_Brazil.png" alt="Brazil" style="width:32px;height:22px;object-fit:cover;border-radius:2px"></span>
-      <span class="hud-uname" id="hud-n1">Player 1</span>
+      <span class="hud-flag" id="hud-f1"><img src="worldcup countries/Flag_of_Brazil.png" alt="Brazil"></span>
+      <span class="hud-sep"></span>
+      <span class="hud-uname" id="hud-n1">You</span>
     </div>
     <div class="hud-center">
       <div class="hud-score"><span id="sc1">0</span> : <span id="sc2">0</span></div>
@@ -346,10 +537,21 @@ button:hover, .btn:hover, #btn-mute:hover, [onclick]:hover{transform:scale(1.06)
       <div class="hud-badge" id="mode-badge">vs Bot</div>
     </div>
     <div class="hud-side right">
-      <div class="hud-opp-row">
-        <span class="hud-flag" id="hud-f2"><img src="worldcup countries/Flag_of_germany.png" alt="Germany" style="width:32px;height:22px;object-fit:cover;border-radius:2px"></span>
-        <span class="hud-uname" id="hud-n2">Player 2</span>
-      </div>
+      <span class="hud-oppicon" id="hud-oppicon" aria-hidden="true">
+        <svg viewBox="0 0 28 28" width="23" height="23" xmlns="http://www.w3.org/2000/svg">
+          <line x1="14" y1="2.6" x2="14" y2="6.2" stroke="#eef3ff" stroke-width="2" stroke-linecap="round"/>
+          <circle cx="14" cy="2.4" r="1.9" fill="#ff1330"/>
+          <rect x="4.5" y="6" width="19" height="16" rx="4.6" fill="#eef3ff" stroke="#05060c" stroke-width="1.6"/>
+          <rect x="1.7" y="11" width="2.6" height="6" rx="1.3" fill="#eef3ff" stroke="#05060c" stroke-width="1.2"/>
+          <rect x="23.7" y="11" width="2.6" height="6" rx="1.3" fill="#eef3ff" stroke="#05060c" stroke-width="1.2"/>
+          <circle cx="10" cy="13" r="2.4" fill="#0c2ecf"/>
+          <circle cx="18" cy="13" r="2.4" fill="#0c2ecf"/>
+          <rect x="9" y="17.2" width="10" height="2.3" rx="1.15" fill="#05060c"/>
+        </svg>
+      </span>
+      <span class="hud-uname" id="hud-n2">Opponent</span>
+      <span class="hud-sep"></span>
+      <span class="hud-flag" id="hud-f2"><img src="worldcup countries/Flag_of_germany.png" alt="Germany"></span>
     </div>
   </div>
   <div id="canvas-wrap">
@@ -358,32 +560,40 @@ button:hover, .btn:hover, #btn-mute:hover, [onclick]:hover{transform:scale(1.06)
     <!-- Cinematic vignette + subtle top light-bloom: a cheap post-process substitute
          (the bundled global three.min.js build can't load the ES-module EffectComposer). -->
     <div id="vignette"></div>
-    <div id="controls-hud">
-      <div class="ctrl-row"><span class="keycap">W</span><span class="keycap">S</span><span class="ctrl-desc">Move Rod</span></div>
-      <div class="ctrl-row"><span class="keycap wide">Space</span><span class="ctrl-desc">Tap: Shoot</span></div>
-      <div class="ctrl-row"><span class="keycap wide hold">Space</span><span class="ctrl-desc">Hold: Ball</span></div>
-      <div class="ctrl-row"><span class="keycap pass">Q</span><span class="ctrl-desc">Pass Up ▲</span></div>
-      <div class="ctrl-row"><span class="keycap pass">E</span><span class="ctrl-desc">Pass Down ▼</span></div>
-      <div class="ctrl-row"><span class="mouse-icon left"><span class="m-half"></span><span class="m-half"></span></span><span class="ctrl-desc">Charge Shot</span></div>
-      <div class="ctrl-row"><span class="mouse-icon right"><span class="m-half"></span><span class="m-half"></span></span><span class="ctrl-desc">Lofted Shot</span></div>
-    </div>
-    <div class="hud-audio-controls" id="audio-hud">
-      <button id="btn-music" onclick="AUDIO.toggleMusic()" title="Toggle music">
-        <span class="hac-icon">🎵</span><span class="hac-label">Music</span>
-      </button>
-      <button id="btn-master-mute" onclick="AUDIO.toggleMasterMute()" title="Mute all audio">
-        <span class="hac-icon">🔊</span><span class="hac-label">Sound</span>
-      </button>
+    <!-- INTERACTIVE TUTORIAL coach-marks (shown only while the tutorial runs) -->
+    <div id="tut-layer">
+      <div id="tut-ok">✔</div>
+      <div id="tut-arrow">▼</div>
+      <!-- Instruction banner pinned to the TOP so it reads like a coach calling
+           the next drill, not a card you ignore in the corner. -->
+      <div class="tut-top" id="tut-top">
+        <div class="tut-dots" id="tut-dots"></div>
+        <div class="tut-title" id="tut-title">Welcome</div>
+        <div class="tut-text" id="tut-text"></div>
+        <div class="tut-keys" id="tut-keys"></div>
+        <div class="tut-prog" id="tut-prog"></div>
+        <button class="tut-btn" id="tut-next">Let's go</button>
+      </div>
+      <button class="tut-skip" id="tut-skip">Skip tutorial</button>
     </div>
     <div id="ability-hud">
-      <div class="ability-card" id="hold-ability-card" title="Hold Ball (Space)">
-        <span class="ability-key">Space</span>
-        <div class="ability-ring" id="hold-ability-ring"><span class="ability-icon">✋</span></div>
+      <div class="ability-card" id="hold-ability-card" title="Hold Ball — hold Space to trap the ball">
+        <div class="ab-slot"><div class="ability-ring" id="hold-ability-ring"><span class="ability-icon">✋</span></div></div>
         <span class="ability-label">Hold</span>
+        <span class="ab-key">Space</span>
       </div>
-      <div class="ability-card" id="pass-ability-card" title="Pass charges (Q/E)">
-        <span class="ability-key">Q·E</span>
-        <span class="ability-icon standalone">⇅</span>
+      <div class="ability-card gated dim" id="charge-ability-card" title="Charge Shot — hold Left-click while holding the ball">
+        <div class="ab-slot"><span class="mouse-icon left"><span class="m-half"></span><span class="m-half"></span></span></div>
+        <span class="ability-label">Charge</span>
+        <span class="ab-key">L-Click</span>
+      </div>
+      <div class="ability-card gated dim" id="loft-ability-card" title="Lofted Shot — Right-click while holding the ball">
+        <div class="ab-slot"><span class="mouse-icon right"><span class="m-half"></span><span class="m-half"></span></span></div>
+        <span class="ability-label">Loft</span>
+        <span class="ab-key">R-Click</span>
+      </div>
+      <div class="ability-card gated dim" id="pass-ability-card" title="Pass — Q / E while holding the ball">
+        <div class="ab-slot"><span class="ability-icon standalone">⇅</span></div>
         <span class="ability-label">Pass</span>
         <div class="pc-pips" id="pass-charges">
           <span class="charge-pip" data-i="0"></span>
@@ -402,7 +612,7 @@ button:hover, .btn:hover, #btn-mute:hover, [onclick]:hover{transform:scale(1.06)
 <!-- END -->
 <div id="screen-end" class="screen cartoon-screen">
   <div class="end-box cartoon-card">
-    <div class="end-trophy"><img src="models/trophy.png" alt="" draggable="false"></div>
+    <div class="end-trophy"><img src="models/cup_logo.png" alt="" draggable="false"></div>
     <div class="end-title">FULL TIME</div>
     <div class="end-winner" id="end-winner">Brazil wins!</div>
     <div class="end-score" id="end-score">3 — 1</div>
@@ -429,18 +639,76 @@ button:hover, .btn:hover, #btn-mute:hover, [onclick]:hover{transform:scale(1.06)
   <div class="pause-title">⏸ PAUSED</div>
   <div class="pause-btns">
     <button class="btn-lobby btn-create" style="width:auto;padding:14px 40px" onclick="GAME.resume()">▶ Resume</button>
+    <button class="btn-back-lnk" onclick="showHowTo()">❔ How to Play</button>
     <button class="btn-back-lnk" onclick="APP.quitToMenu()">✖ Quit to Menu</button>
+  </div>
+  <div class="pause-audio">
+    <button class="ac-btn js-audio-music" onclick="AUDIO.toggleMusic()" title="Music on/off"><span class="ac-ico">🎵</span><span class="ac-lbl">Music</span></button>
+    <button class="ac-btn js-audio-sound" onclick="AUDIO.toggleMasterMute()" title="Sound on/off"><span class="ac-ico">🔊</span><span class="ac-lbl">Sound</span></button>
   </div>
   <div class="pause-hint">Press <b>Esc</b> to resume</div>
 </div>
 
+<!-- HOW TO PLAY overlay: reachable from Main Menu and Pause -->
+<div id="howto-overlay" class="overlay" onclick="if(event.target===this) hideHowTo()">
+  <div class="howto-panel">
+    <div class="howto-title">How to Play</div>
+    <div class="howto-goal">Knock the ball into your opponent's goal and defend your own. Whoever has the <b>most goals</b> when the clock runs out wins.</div>
+    <div class="howto-grid">
+      <div class="howto-item">
+        <div class="howto-keys"><span class="keycap">W</span><span class="keycap">S</span></div>
+        <div class="howto-txt"><b>Move</b><span>Slide your rods up &amp; down.</span></div>
+      </div>
+      <div class="howto-item">
+        <div class="howto-keys"><span class="keycap wide">Space</span></div>
+        <div class="howto-txt"><b>Shoot</b><span>Tap to kick the ball.</span></div>
+      </div>
+      <div class="howto-item">
+        <div class="howto-keys"><span class="mouse-icon left"><span class="m-half"></span><span class="m-half"></span></span></div>
+        <div class="howto-txt"><b>Charge Shot</b><span>Hold Left-click, release to blast.</span></div>
+      </div>
+      <div class="howto-item">
+        <div class="howto-keys"><span class="mouse-icon right"><span class="m-half"></span><span class="m-half"></span></span></div>
+        <div class="howto-txt"><b>Lofted Shot</b><span>Right-click to lob over defenders.</span></div>
+      </div>
+      <div class="howto-item">
+        <div class="howto-keys"><span class="keycap wide hold">Space</span></div>
+        <div class="howto-txt"><b>Hold Ball</b><span>Hold to trap it (short cooldown).</span></div>
+      </div>
+      <div class="howto-item">
+        <div class="howto-keys"><span class="keycap pass">Q</span><span class="keycap pass">E</span></div>
+        <div class="howto-txt"><b>Pass ▲▼</b><span>Pass between rods — 3 charges.</span></div>
+      </div>
+    </div>
+    <div style="display:flex;gap:12px;justify-content:center;align-items:center;flex-wrap:wrap">
+      <button class="howto-close" style="margin:18px 0 2px" onclick="TUTORIAL.start()">▶ Tutorial</button>
+      <button class="howto-close" style="margin:18px 0 2px;background:rgba(255,255,255,.08);color:var(--pw);border-color:var(--pw)" onclick="hideHowTo()">Got it!</button>
+    </div>
+  </div>
+</div>
+
+<!-- First-launch tutorial offer (shown once, then never again) -->
+<div id="tut-offer" class="overlay">
+  <div class="howto-panel" style="width:min(430px,92%);text-align:center">
+    <div class="howto-title" style="font-size:32px">New here?</div>
+    <div class="howto-goal" style="margin-bottom:6px">Take a <b>60-second tutorial</b> and learn the shots that win matches — or jump straight into a game.</div>
+    <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:6px">
+      <button class="howto-close" style="margin:8px 0 0" onclick="document.getElementById('tut-offer').classList.remove('show');TUTORIAL.start()">▶ Show me</button>
+      <button class="howto-close" style="margin:8px 0 0;background:rgba(255,255,255,.08);color:var(--pw);border-color:var(--pw)" onclick="TUTORIAL.decline()">No thanks</button>
+    </div>
+  </div>
+</div>
+
+<!-- Global sound toggle for screens without a pause menu (menu, team select, end) -->
+<button id="global-sound" class="ac-btn ac-round js-audio-sound" onclick="AUDIO.toggleMasterMute()" title="Sound on/off"><span class="ac-ico">🔊</span></button>
+
 <!-- TOAST -->
 <div id="toast"></div>
-<audio id="snd-applause" src="applause.mp3" preload="auto"></audio>
-<audio id="snd-music" src="Windmill Isle_loop.mp3" preload="auto" loop></audio>
-<audio id="snd-menu-music" src="Menu_loop.mp3" preload="auto" loop></audio>
-<audio id="snd-countdown" src="321_GO_sound_effect.mp3" preload="auto"></audio>
-<audio id="snd-whistle-full" src="Whistle_sound_effect.mp3" preload="auto"></audio>
+<audio id="snd-applause" src="sounds/applause.mp3" preload="auto"></audio>
+<audio id="snd-music" src="sounds/Windmill Isle_loop.mp3" preload="auto" loop></audio>
+<audio id="snd-menu-music" src="sounds/Menu_loop.mp3" preload="auto" loop></audio>
+<audio id="snd-countdown" src="sounds/321_GO_sound_effect.mp3" preload="auto"></audio>
+<audio id="snd-whistle-full" src="sounds/Whistle_sound_effect.mp3" preload="auto"></audio>
 
 </div><!-- /wrap -->
 
@@ -455,7 +723,7 @@ const CFG = {
   FIG_W: 13,
   FIG_H: 34,
   ROD_SPD: 8.5,   // px per frame — fast enough to actually chase the ball
-  MAX_BALL_SPD: 9,
+  MAX_BALL_SPD: 10,
   MIN_BALL_SPD: 2.5,
 };
 
@@ -670,7 +938,12 @@ function selectKits(t1,t2){
 //  Prevents page scroll/zoom from swallowing game input, and resumes
 //  iOS's AudioContext (which browsers suspend until a user gesture).
 // ═══════════════════════════════════════════════════════════════
-window.addEventListener('wheel', e => e.preventDefault(), { passive:false });
+window.addEventListener('wheel', e => {
+  // Allow the mouse wheel to scroll the team list and the How-to panel; block it
+  // elsewhere so the fixed game layout can't scroll or pinch-zoom.
+  if(e.target.closest && e.target.closest('.teams-grid, .howto-panel')) return;
+  e.preventDefault();
+}, { passive:false });
 window.addEventListener('keydown', e => {
   if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].includes(e.key)) e.preventDefault();
 }, { passive:false });
@@ -728,6 +1001,7 @@ const CG = {
 let AC = null;
 const AUDIO = {
   _masterMuted: false,
+  _musicOn: true,
   init(){
     if(!AC) AC = new (window.AudioContext||window.webkitAudioContext)();
   },
@@ -739,11 +1013,19 @@ const AUDIO = {
   toggleMasterMute(){
     this._masterMuted = !this._masterMuted;
     document.querySelectorAll('audio').forEach(el => { el.muted = this._masterMuted; });
-    const btn = document.getElementById('btn-master-mute');
-    const icon = btn?.querySelector('.hac-icon');
-    if(icon) icon.textContent = this._masterMuted ? '🔇' : '🔊';
-    if(btn) btn.classList.toggle('muted', this._masterMuted);
+    this._syncAudioButtons();
     return this._masterMuted;
+  },
+  // Keep every Music/Sound button (pause menu + menu corner) in sync with current state.
+  _syncAudioButtons(){
+    document.querySelectorAll('.js-audio-music').forEach(b=>{
+      b.classList.toggle('off', !this._musicOn);
+      const i=b.querySelector('.ac-ico'); if(i) i.textContent='🎵';
+    });
+    document.querySelectorAll('.js-audio-sound').forEach(b=>{
+      b.classList.toggle('off', this._masterMuted);
+      const i=b.querySelector('.ac-ico'); if(i) i.textContent=this._masterMuted?'🔇':'🔊';
+    });
   },
   tone(freq, dur, vol=0.18, t=0){
     if(!AC || this._masterMuted) return;
@@ -767,10 +1049,9 @@ const AUDIO = {
     if(el){ el.pause(); el.currentTime=0; }
   },
   playMusic(){
+    if(!this._musicOn) return;
     const el = document.getElementById('snd-music');
-    const btn = document.getElementById('btn-music');
     if(el){ el.currentTime=0; el.volume=0.25; el.play().catch(()=>{}); }
-    if(btn) btn.classList.remove('muted');
   },
   stopMusic(){
     const el = document.getElementById('snd-music');
@@ -778,6 +1059,7 @@ const AUDIO = {
   },
   _wantMenuMusic: false,
   playMenuMusic(){
+    if(!this._musicOn) return;
     const el = document.getElementById('snd-menu-music');
     if(!el) return;
     this._wantMenuMusic = true;
@@ -790,11 +1072,13 @@ const AUDIO = {
     if(el){ el.pause(); el.currentTime = 0; }
   },
   toggleMusic(){
-    const el = document.getElementById('snd-music');
-    const btn = document.getElementById('btn-music');
-    if(!el) return;
-    if(el.paused) el.play().catch(()=>{}); else el.pause();
-    if(btn) btn.classList.toggle('muted', el.paused);
+    this._musicOn = !this._musicOn;
+    if(!this._musicOn){ this.stopMusic(); this.stopMenuMusic(); this._wantMenuMusic=false; }
+    else {
+      const inMatch = (typeof GAME!=='undefined' && GAME.running);
+      if(inMatch) this.playMusic(); else this.playMenuMusic();
+    }
+    this._syncAudioButtons();
   },
   whistle(){
     // Referee whistle
@@ -859,7 +1143,7 @@ const GAME = {
   // ── Charged / lofted shot mechanics (mouse-driven, local player only) ──
   _chargeActive: false, _chargeFrames: 0,
   CHARGE_MAX_FRAMES: 72, // ~1.2s at 60fps to reach full charge
-  CHARGE_BASE_POW: 7.5, CHARGE_MAX_POW: 15,
+  CHARGE_BASE_POW: 7.5, CHARGE_MAX_POW: 19,
   ballZ: 0, ballVZ: 0,   // airborne height state for the lofted shot arc
   // Tuned for a short controlled "chip" — peak ~0.6 world units (a few ball-radii,
   // well under the camera height of 4.6), landing in well under a second.
@@ -879,6 +1163,15 @@ const GAME = {
   oppInput: { up:false, down:false, kick:false },
   myRole: 'p1',   // which side I control
 
+  // Place the ball anywhere (used by the tutorial to set up each lesson).
+  serveBall(x, y, vx=0, vy=0){
+    this.ball={x,y,vx,vy};
+    this.ballHidden=false; this.ballZ=0; this.ballVZ=0; this.ballAngle=0;
+    this.heldBy=null; this.holdTimer=0; this.passAnim=null; this.goalPause=false;
+    this._chargeActive=false; this._chargeFrames=0;
+    this.holdCooldownP1=0; this.holdCooldownP2=0;
+    if(RENDERER.clearTrail) RENDERER.clearTrail();
+  },
   reset(){
     // On first spawn pick random side; after goals _kickDir is set by _localGoal
     if(this._kickDir === undefined) this._kickDir = Math.random()>.5 ? 1 : -1;
@@ -923,6 +1216,10 @@ const GAME = {
   togglePause(){ this.paused ? this.resume() : this.pause(); },
   pause(){
     if(!this.running || this.paused || this.countdownActive) return;
+    // The tutorial is a guided sequence — pausing mid-drill would leave the
+    // scripted ball state and the instruction banner out of sync. Guarded here
+    // (rather than only on the Esc key) so every pause path is covered.
+    if(window.TUTORIAL && TUTORIAL.active) return;
     this.paused = true;
     // Tell CrazyGames gameplay has stopped (required for correct SDK usage —
     // gameplayStop must fire on every interruption, including pause).
@@ -941,7 +1238,7 @@ const GAME = {
     // Reset the frame clock so the long paused gap doesn't produce one huge dt.
     this.lastTime = performance.now();
     const mus = document.getElementById('snd-music');
-    if(this._musicWasPlaying && mus) mus.play().catch(()=>{});
+    if(this._musicWasPlaying && AUDIO._musicOn && mus) mus.play().catch(()=>{});
   },
 
   _startTimer(){
@@ -950,6 +1247,7 @@ const GAME = {
       if(!this.running || this.paused || this.countdownActive) return;
       // In server-authoritative mode, timer is driven by server state
       if(!this.testMode && !this.botMode) return;
+      if(this.practice) return;              // tutorial practice arena: clock frozen
       this.timeLeft--;
       this._updateTimerHUD();
       if(this.timeLeft<=0) this._localGameEnd();
@@ -973,7 +1271,8 @@ const GAME = {
   },
 
   _update(dt){
-    if(this.paused || this.goalPause || this.countdownActive) return;
+    if(this.paused || this.countdownActive) return;
+    if(this.goalSeq){ this._updateGoalSeq(dt); return; }   // cinematic goal takes over
     // ── Hold-ability cooldowns ──
     if(this.holdCooldownP1 > 0) this.holdCooldownP1 = Math.max(0, this.holdCooldownP1 - dt/60);
     if(this.holdCooldownP2 > 0) this.holdCooldownP2 = Math.max(0, this.holdCooldownP2 - dt/60);
@@ -1022,6 +1321,11 @@ const GAME = {
       return;
     }
 
+    // Tutorial: while a drill doesn't involve the ball it is frozen completely.
+    // (Parking it on the pitch wasn't enough — figures still collided with the
+    // invisible ball and twitched.) Rod input above still runs, so W/S works.
+    if(this.ballFrozen){ this.ball.vx=0; this.ball.vy=0; return; }
+
     // ── Ball physics ──
     if(this.testMode||this.botMode){
       const b=this.ball;
@@ -1046,8 +1350,14 @@ const GAME = {
       // Goal only counts if the ball is actually on the ground crossing the line —
       // a lofted shot sailing over the goal (still airborne) must not score.
       const gz1=b.y>P.cy-P.goalH/2 && b.y<P.cy+P.goalH/2 && this.ballZ<=0.05;
-      if(b.x-CFG.BALL_R<P.x && gz1){ this._localGoal('p2'); return; }
-      if(b.x+CFG.BALL_R>P.right && gz1){ this._localGoal('p1'); return; }
+      // During a teaching drill nothing may score — a stray shot would fire the goal
+      // cinematic and derail the lesson. The tutorial re-stages the ball instead.
+      const tutBlocksGoals = window.TUTORIAL && TUTORIAL.active && !TUTORIAL.goalsAllowed();
+      if(tutBlocksGoals && (b.x-CFG.BALL_R<P.x || b.x+CFG.BALL_R>P.right)){
+        TUTORIAL.restage(); return;
+      }
+      if(b.x-CFG.BALL_R<P.x && gz1){ this._startGoalSeq('p2'); return; }
+      if(b.x+CFG.BALL_R>P.right && gz1){ this._startGoalSeq('p1'); return; }
 
       if(b.x-CFG.BALL_R<P.x){ b.x=P.x+CFG.BALL_R; b.vx=Math.abs(b.vx)*.75; AUDIO.wall(); }
       if(b.x+CFG.BALL_R>P.right){ b.x=P.right-CFG.BALL_R; b.vx=-Math.abs(b.vx)*.75; AUDIO.wall(); }
@@ -1116,9 +1426,13 @@ const GAME = {
           figBaseY + off));
     b.vx = 0; b.vy = 0;
 
-    // Advance hold timer; force-release after 3.0s
-    this.holdTimer += dt / 60;
-    const forceRelease = this.holdTimer > 3.0;
+    // Advance hold timer; force-release after 3.0s.
+    // During the tutorial's hand-held drills the ball must stay in the player's
+    // grip until THEY act — otherwise the 3s auto-release fires by itself and the
+    // charge indicator looks like it's looping on its own.
+    const tutHold = window.TUTORIAL && TUTORIAL.active && TUTORIAL.holdsBall();
+    if(!tutHold) this.holdTimer += dt / 60;
+    const forceRelease = !tutHold && this.holdTimer > 3.0;
 
     // Mouse-charge (LMB): _chargeFrames ticks centrally in _update() now.
     if(this._chargeActive){
@@ -1145,7 +1459,11 @@ const GAME = {
 
     // Ball stays held if either Space is down OR a mouse charge is in progress —
     // lets the player switch from "catch with Space" to "aim with the mouse".
-    const spaceStillHeld = ((inp && inp.kick) || this._chargeActive) && !forceRelease;
+    // In the tutorial's hand-held drills the ball is GIVEN to the player, so it
+    // must stay put until they fire the move being taught. Without this it was
+    // thrown again on the very next frame, then re-handed, then thrown — the
+    // "charging keeps looping / loft never shows" glitch.
+    const spaceStillHeld = tutHold || (((inp && inp.kick) || this._chargeActive) && !forceRelease);
 
     if(!spaceStillHeld){
       // Throw: aim based on W/S at release; full power
@@ -1166,6 +1484,7 @@ const GAME = {
   _releaseGroundShot(frac){
     const h = this.heldBy;
     if(!h) return;
+    this._tutCharge = (this._tutCharge||0)+1; this._tutChargeFrac = frac;   // tutorial progress probe
     const b = this.ball;
     const dir = h.team==='p1' ? 1 : -1;
     frac = Math.max(0, Math.min(1, frac));
@@ -1191,6 +1510,7 @@ const GAME = {
   _releaseLoftedShot(){
     const h = this.heldBy;
     if(!h) return;
+    this._tutLoft = (this._tutLoft||0)+1;                                   // tutorial progress probe
     const b = this.ball;
     const dir = h.team==='p1' ? 1 : -1;
     const inp = h.team==='p1'
@@ -1282,6 +1602,9 @@ const GAME = {
 
     for(const rod of ROD_DEFS_2V2){
       if(this.heldBy) break;
+      // Tutorial keeper drills: only the goalkeeper is solid. Otherwise the ball
+      // clips a midfielder on the way in, stalls, and the drill re-serves forever.
+      if(window.TUTORIAL && TUTORIAL.active && TUTORIAL.skipRod(rod)) continue;
       const off = rod.team==='p1' ? this.p1Off : this.p2Off;
       const rx  = P.x + rod.xFrac * P.w;
       const sp  = P.h / (rod.nFigs+1);
@@ -1342,7 +1665,7 @@ const GAME = {
             else                this.p2KickAngle = 0.65;
             this.lastTouchTeam = rod.team;
             const rodDir = inp ? (inp.up ? -1 : inp.down ? 1 : 0) : 0;
-            const power = powered ? 7.5 : 4.5;
+            const power = powered ? 8.2 : 4.9;
             b.vx = dir * power + dir * Math.abs(b.vx) * 0.12;
             b.vy = rodDir * 5.5 + (Math.random()-.5) * 1.5;
             RENDERER.triggerHitEffect(b, powered ? 0.9 : 0.45);
@@ -1387,6 +1710,9 @@ const GAME = {
   _botThink(dt){
     const b = this.ball;
     this._botInput = { up: false, down: false, kick: false };
+    // Tutorial practice arena: the opponent stands down so lessons can't be
+    // interrupted. Only ever set by the tutorial — normal matches are untouched.
+    if(this.practice) return;
 
     // ── Difficulty knobs ──
     const BOT_SPD    = CFG.ROD_SPD * dt * 0.50;  // 50% of player speed (was 72%)
@@ -1458,7 +1784,68 @@ const GAME = {
     },3000);
   },
 
+  // ── Cinematic goal sequence: ball keeps flying into the net, then impact →
+  //    (pause) → GOAL! announce → celebrate → smooth camera restore → kickoff. ──
+  _startGoalSeq(scorer){
+    if(this.goalSeq) return;
+    const b=this.ball, spd=Math.hypot(b.vx,b.vy);
+    const side = scorer==='p1' ? 'right' : 'left';   // ball entered the opponent's goal
+    const fast = spd > 6.2;                           // slow-mo only for clearly unstoppable shots
+    this.heldBy = null;
+    const wpx = (P.right-P.x)/8;                      // game-px per world unit
+    this.goalSeq = { scorer, side, phase:'travel', t:0, fast, slow: fast?0.30:0.68, depth: 0.6*wpx };
+    if(RENDERER.startGoalCinematic) RENDERER.startGoalCinematic(side, fast);
+    AUDIO.tone(880,0.10,0.08);   // subtle whoosh into the net
+  },
+  _updateGoalSeq(dt){
+    const g=this.goalSeq, b=this.ball; g.t += dt/60;
+    if(g.phase==='travel'){
+      // keep travelling with current velocity (no collisions); ease vy so it heads into the net
+      b.x += b.vx*dt*g.slow; b.y += b.vy*dt*g.slow; b.vy *= Math.pow(0.9, dt);
+      const past = g.side==='left' ? (P.x - b.x + CFG.BALL_R) : (b.x - P.right + CFG.BALL_R);
+      if(past >= g.depth || g.t > 0.6) g.phase='impact';
+    } else if(g.phase==='impact'){
+      this.ballHidden = true;                                   // ball reaches the back of the net
+      if(RENDERER.goalImpact) RENDERER.goalImpact(g.side);      // flash + shockwave + shake + net ripple
+      if(RENDERER.triggerCrowdCheer) RENDERER.triggerCrowdCheer();
+      AUDIO.goal();                                             // crowd/applause begins
+      AUDIO.tone(150,0.10,0.22); AUDIO.tone(88,0.14,0.13);     // ball-into-net thud
+      if(AUDIO.whistle) try{ AUDIO.whistle(); }catch(e){}
+      setTimeout(()=>{ AUDIO.tone(330,0.45,0.09); AUDIO.tone(247,0.5,0.07); }, 70);  // stadium horn
+      g.phase='pause'; g.pt=0;
+    } else if(g.phase==='pause'){
+      g.pt += dt/60; if(g.pt>=0.18) g.phase='announce';         // brief hold before the announcement
+    } else if(g.phase==='announce'){
+      this._finishGoalScore(g.scorer);                          // GOAL! text + score + stinger (after impact)
+      g.phase='celebrate'; g.ct=0;
+    } else if(g.phase==='celebrate'){
+      g.ct += dt/60;
+      if(g.ct>=1.7){ g.phase='restore'; g.rt=0;
+        document.getElementById('goal-overlay').classList.remove('show');
+        if(RENDERER.endGoalCinematic) RENDERER.endGoalCinematic();
+      }
+    } else if(g.phase==='restore'){
+      g.rt += dt/60;
+      if(g.rt>=0.5){
+        this.goalSeq=null; AUDIO.stopApplause();
+        if(this.timeLeft>0 && this.running) this.reset(); else this._localGameEnd();
+      }
+    }
+  },
+  _finishGoalScore(scorer){
+    this._kickDir = scorer==='p2' ? 1 : -1;
+    this.score[scorer]++;
+    document.getElementById(`sc${scorer==='p1'?'1':'2'}`).textContent = this.score[scorer];
+    CG.happyTime();
+    this._showGoalOverlay(scorer);
+    [523,659,784,1047].forEach((f,i)=> setTimeout(()=>AUDIO.tone(f,0.15,0.10), i*60));  // celebratory stinger
+  },
+
   _localGameEnd(){
+    // Clear any in-flight goal cinematic so its overlay/camera can't get stuck on the end screen
+    this.goalSeq = null;
+    document.getElementById('goal-overlay').classList.remove('show');
+    if(typeof RENDERER!=='undefined' && RENDERER._goalCam) RENDERER._restoreGameCam();
     this.stop();
     AUDIO.stopMusic();
     const t1=STATE.p1Team, t2=STATE.p2Team;
@@ -1566,11 +1953,18 @@ const RENDERER = {
 
     // WebGL renderer — filmic tone mapping + sRGB output for a richer, graded
     // image rather than the old flat, blown-out look.
-    this._gl = new T.WebGLRenderer({ canvas: CV, antialias: true });
+    // powerPreference picks the discrete GPU on dual-GPU laptops instead of the
+    // integrated one, which is often the difference between 15fps and 60fps.
+    this._gl = new T.WebGLRenderer({ canvas: CV, antialias: true, powerPreference: 'high-performance' });
     this._gl.setSize(W, H);
-    this._gl.setPixelRatio(Math.min(devicePixelRatio, 2));
+    // Pixel ratio is the single biggest cost in this scene (PBR + env map + 6
+    // lights are expensive PER PIXEL). Rendering a HiDPI screen at dpr 2 costs 4x
+    // the fill of dpr 1 for a difference you can barely see at this size, so cap
+    // at 1 and let the adaptive scaler below take it lower on weak GPUs.
+    this._resScale = 1;
+    this._gl.setPixelRatio(Math.min(devicePixelRatio, 1));
     this._gl.shadowMap.enabled = true;
-    this._gl.shadowMap.type = T.PCFSoftShadowMap;
+    this._gl.shadowMap.type = T.PCFShadowMap;   // PCFSoft is a much wider (costlier) filter
     this._gl.toneMapping = T.ACESFilmicToneMapping;
     this._gl.toneMappingExposure = 1.0;   // bright, vibrant stadium look (matches reference)
     if('outputColorSpace' in this._gl) this._gl.outputColorSpace = T.SRGBColorSpace;
@@ -1591,9 +1985,10 @@ const RENDERER = {
     const key = new T.DirectionalLight(0xffeabf, 2.6);    // warm stadium sun
     key.position.set(4.5, 10, 6);
     key.castShadow = true;
-    key.shadow.mapSize.setScalar(2048);
+    key.shadow.mapSize.setScalar(1024);   // 2048 was 4x the shadow fill for no visible gain at this scale
     Object.assign(key.shadow.camera, {near:1,far:36,left:-8,right:8,top:6,bottom:-6});
-    key.shadow.bias = -0.0004; key.shadow.normalBias = 0.025; key.shadow.radius = 3.5;   // softer contact shadows
+    key.shadow.bias = -0.0006; key.shadow.normalBias = 0.025; key.shadow.radius = 1.2;
+    this._keyLight = key;
     this._s.add(key);
     const fill = new T.DirectionalLight(0xaecbee, 0.22);
     fill.position.set(-6, 4, 5);
@@ -1619,7 +2014,138 @@ const RENDERER = {
     this._buildRods(T);
     this._buildBall(T);
     this.initTrail();
+    this._pruneShadowCasters();
+    this._preWarm(T);
+    // Optional on-screen FPS readout for diagnosing performance: index.html?fps=1
+    if(/[?&]fps=1/.test(location.search)){
+      const el=document.createElement('div');
+      el.style.cssText='position:absolute;top:6px;left:8px;z-index:60;font:700 12px monospace;'+
+        'color:#9dff9d;background:rgba(0,0,0,.62);padding:3px 7px;border-radius:5px;pointer-events:none';
+      el.textContent='… FPS';
+      (document.getElementById('canvas-wrap')||document.body).appendChild(el);
+      this._fpsEl=el;
+      // Report the actual GPU — if this says SwiftShader/llvmpipe the browser is
+      // rendering in SOFTWARE, which no amount of scene optimisation can fix.
+      try{
+        const ctx=this._gl.getContext();
+        const dbg=ctx.getExtension('WEBGL_debug_renderer_info');
+        const gpu=dbg? ctx.getParameter(dbg.UNMASKED_RENDERER_WEBGL) : 'unknown';
+        const gi=document.createElement('div');
+        gi.style.cssText=el.style.cssText+';top:26px;max-width:420px;white-space:normal;color:#ffe08a';
+        gi.textContent='GPU: '+gpu;
+        el.parentNode.appendChild(gi);
+      }catch(e){}
+      // Debug A/B: press C to toggle the crowd, B to toggle the stadium bowl, so
+      // the FPS readout above shows exactly what each one costs.
+      window.addEventListener('keydown',(ev)=>{
+        const k=ev.key.toLowerCase();
+        if(k!=='c' && k!=='b') return;
+        const target = k==='c'
+          ? this._s.children.find(o=>o.isMesh && o.material===this._crowdMat)
+          : this._stadium;
+        if(target){ target.visible=!target.visible; }
+      });
+    }
     this._ok = true;
+  },
+
+  // Everything that used to be created lazily on the first ball contact / first
+  // goal is built here instead. Adding a LIGHT to a live scene changes the shader
+  // permutation and makes three.js recompile every material at once — that was the
+  // ~1s freeze on the first hit. Creating it up-front (intensity 0, so invisible)
+  // bakes the permutation in, and renderer.compile() then warms every shader while
+  // the loading screen is still up.
+  _preWarm(T){
+    if(!this._hitLight){
+      this._hitLight = new T.PointLight(0xffffff, 0, 6);
+      this._hitLight.position.set(0, 0.5, 0);
+      this._s.add(this._hitLight);
+    }
+    if(!this._goalRing){
+      const rmat = new T.MeshBasicMaterial({color:0xffffff, transparent:true, opacity:0,
+        side:T.DoubleSide, depthWrite:false, blending:T.AdditiveBlending});
+      this._goalRing = new T.Mesh(new T.RingGeometry(0.2,0.34,40), rmat);
+      this._goalRing.rotation.x = -Math.PI/2;
+      this._goalRing.position.set(0,0.4,0);
+      this._s.add(this._goalRing);
+    }
+    try{ this._gl.compile(this._s, this._cam); }catch(e){}
+  },
+
+  // ── Adaptive quality ──────────────────────────────────────────────
+  // This scene is fill-rate bound (PBR + env map + 6 lights are costly per pixel),
+  // so the reliable lever on a weak GPU is resolution, not geometry. Sample real
+  // frame times and step quality down until the frame budget is met; step back up
+  // (with hysteresis) if there's headroom. Add ?fps=1 to the URL to see the readout.
+  _perfTick(){
+    const now = performance.now();
+    if(this._pfLast === undefined){ this._pfLast = now; this._pfAcc = 0; this._pfN = 0; this._qLevel = 0; return; }
+    const dt = now - this._pfLast; this._pfLast = now;
+    if(dt <= 0 || dt > 400) return;                 // ignore alt-tab / throttle spikes
+    this._pfAcc += dt; this._pfN++;
+    if(this._fpsEl && this._pfN % 15 === 0){
+      const f = 1000 / (this._pfAcc / this._pfN);
+      this._fpsEl.textContent = f.toFixed(0) + ' FPS · Q' + this._qLevel + ' · ' + Math.round((this._resScale||1)*100) + '%';
+    }
+    if(this._pfN < 60) return;
+    const avg = this._pfAcc / this._pfN; this._pfAcc = 0; this._pfN = 0;
+    if(avg > 22 && this._qLevel < 3)      this._setQuality(this._qLevel + 1);   // under ~45fps
+    else if(avg < 13 && this._qLevel > 0) this._setQuality(this._qLevel - 1);   // over ~77fps
+  },
+  _setQuality(lv){
+    this._qLevel = lv;
+    const RES = [1, 0.82, 0.68, 0.55];
+    this._resScale = RES[lv];
+    // Resolution ONLY. Toggling shadows would change the shader defines and force
+    // three.js to recompile every material in one frame (~150ms hitch) — exactly
+    // the stutter this manager is supposed to prevent. Shadow map size is instead
+    // reduced once, up front.
+    if(this._keyLight){
+      const want = lv >= 2 ? 512 : 1024;
+      const sh = this._keyLight.shadow;
+      if(sh.mapSize.width !== want){
+        sh.mapSize.setScalar(want);
+        if(sh.map){ sh.map.dispose(); sh.map = null; }   // rebuilt next frame, no recompile
+      }
+    }
+    const vp = this._lastViewport;
+    if(vp && this._gl){
+      this._gl.setPixelRatio(Math.min(devicePixelRatio, 1) * this._resScale);
+      this._gl.setSize(vp.w, vp.h, false);
+    }
+  },
+
+  // The scene had 276 shadow-casting meshes, which meant the shadow map pass was
+  // re-drawing nearly the whole scene a second time every frame. Screws, beads,
+  // bearings, bumpers, trim and distant scenery cast shadows nobody can see, so
+  // only the things that actually read on the pitch keep casting: the ball, the
+  // player figures, the rods and the goals.
+  _pruneShadowCasters(){
+    const keep = new Set();
+    if(this._ball) keep.add(this._ball);
+    // Each figurine is split into ~7 material slots (body/shorts/skin/hair/…), and
+    // every one of those was a separate draw in the shadow pass. The cast shadow is
+    // a small blob on the pitch, so only the largest slot per figure needs to cast:
+    // ~22 shadow draws instead of ~140, with no visible difference.
+    for(const r of (this._rods||[])){
+      for(const f of (r.figs||[])){
+        if(!f || !f.traverse) continue;
+        let biggest=null, best=-1;
+        f.traverse(c=>{
+          if(!c.isMesh) return;
+          const g=c.geometry, n=g&&g.attributes&&g.attributes.position?g.attributes.position.count:0;
+          if(n>best){ best=n; biggest=c; }
+        });
+        if(biggest) keep.add(biggest);
+      }
+    }
+    let off=0, on=0;
+    this._s.traverse(o=>{
+      if(!o.isMesh) return;
+      if(keep.has(o)){ if(o.castShadow) on++; return; }
+      if(o.castShadow){ o.castShadow = false; off++; }
+    });
+    this._shadowPruned = {disabled:off, keptCasting:on};
   },
 
   // Equirect gradient sky used both as the visible backdrop and as the base of
@@ -1761,16 +2287,60 @@ const RENDERER = {
       const inBand = y<0.9 && ax<5.2 && az<3.6;
       // drop the colored flags AND their pure-white poles/backing (both ring the pitch low down)
       if(inBand && ((mx>0.55 && sat>0.28) || (mx>0.85 && sat<0.12))) continue;
+      // Corner apron slabs: a stepped grey deck (y ≈ 0.73 / 0.92 / 1.10 / 1.28)
+      // that cuts diagonally across each pitch corner. Along the straight edges the
+      // same deck is hidden behind the LED boards, but the corners are exposed and
+      // read as floating grey triangles beside the camera operators — so only the
+      // corner quadrants (both |x| and |z| large) are removed.
+      if(y>0.45 && y<1.45 && ax>3.0 && ax<8.0 && az>1.8 && az<6.0 && mx<0.45 && sat<0.10) continue;
       for(let k=0;k<3;k++){ const i=t*3+k;
         P.push(p[i*3],p[i*3+1],p[i*3+2]); N.push(n[i*3],n[i*3+1],n[i*3+2]); C.push(c[i*3],c[i*3+1],c[i*3+2]);
       }
     }
     return {position:P, normal:N, color:C};
   },
+  // Some baked spectators sit INSIDE the ad-board ring (i.e. on the pitch side of
+  // the panels) and others stand in the middle of the broadcast camera rigs, so
+  // they read as floating in front of the scenery. Drop those whole spectators —
+  // each one is 6 verts / 2 triangles, so they're filtered in blocks of 6.
+  _stripCrowdBlockers(CM){
+    if(!CM || !CM.position) return CM;
+    const p=CM.position, nr=CM.normal, c=CM.color, ph=CM.phase;
+    const P=[],N=[],C=[],PH=[];
+    const CAMS=[[-6.5,2.2,-6.5],[6.5,2.2,-6.5]], CAM_R2=2.0*2.0;
+    const nSpec=((p.length/3)/6)|0;
+    let dropped=0;
+    for(let s=0;s<nSpec;s++){
+      let cx=0,cy=0,cz=0;
+      for(let k=0;k<6;k++){ const i=s*6+k; cx+=p[i*3]; cy+=p[i*3+1]; cz+=p[i*3+2]; }
+      cx/=6; cy/=6; cz/=6;
+      // inside the ad-board ring → standing on the pitch in front of the panels
+      let drop = (Math.abs(cx)<5.3 && Math.abs(cz)<3.9);
+      if(!drop){                                    // overlapping a camera platform
+        for(const cm of CAMS){
+          const dx=cx-cm[0], dy=cy-cm[1], dz=cz-cm[2];
+          if(dx*dx+dy*dy+dz*dz < CAM_R2){ drop=true; break; }
+        }
+      }
+      if(drop){ dropped++; continue; }
+      for(let k=0;k<6;k++){
+        const i=s*6+k;
+        P.push(p[i*3],p[i*3+1],p[i*3+2]);
+        N.push(nr[i*3],nr[i*3+1],nr[i*3+2]);
+        C.push(c[i*3],c[i*3+1],c[i*3+2]);
+        if(ph) PH.push(ph[i]);
+      }
+    }
+    this._crowdDropped = dropped;
+    return {position:P, normal:N, color:C, phase:PH};
+  },
   _buildStadium(T){
     const SM = window.MODEL_STADIUM;
     if(SM){
-      const mat = new T.MeshStandardMaterial({ vertexColors:true, roughness:0.9, metalness:0.0 });
+      // Same reasoning as the crowd: the bowl is large background scenery, so it
+      // uses Lambert (lit, still receives shadows) instead of PBR + env-map, which
+      // is far cheaper per pixel and visually near-identical at this distance.
+      const mat = new T.MeshLambertMaterial({ vertexColors:true });
       const bowl = new T.Mesh(this._geoFromModel(T, this._stripCornerDeco(SM)), mat);
       bowl.receiveShadow = true;
       this._s.add(bowl); this._stadium = bowl;
@@ -1778,21 +2348,31 @@ const RENDERER = {
     // Animated crowd — idle sway always, and a big cheer bounce when a goal is
     // scored (uCheer ramped by triggerCrowdCheer). Uses onBeforeCompile so the
     // spectators stay lit/tone-mapped like the rest of the scene.
-    const CM = window.MODEL_CROWD;
+    const CM = this._stripCrowdBlockers(window.MODEL_CROWD);
     if(CM){
       const cgeo = this._geoFromModel(T, CM);
       cgeo.setAttribute('phase', new T.Float32BufferAttribute(CM.phase, 1));
-      const cmat = new T.MeshStandardMaterial({ vertexColors:true, roughness:0.85, metalness:0.0 });
+      // PERFORMANCE: the crowd is a huge, distant background mesh that covers most
+      // of the upper screen. Shading it with the full PBR material (which also
+      // samples the image-based-lighting env map, per pixel, under 6 lights) made
+      // it ~70% of the entire frame cost. It's background scenery, so it uses the
+      // cheapest possible material — UNLIT MeshBasic — with a per-VERTEX lighting
+      // term folded into the vertex colour, which keeps the shading depth for
+      // effectively nothing. Desaturation is baked in here too instead of costing
+      // a per-fragment op.
+      const cmat = new T.MeshBasicMaterial({ vertexColors:true });
       cmat.onBeforeCompile = (shader)=>{
         shader.uniforms.uTime  = { value:0 };
         shader.uniforms.uCheer = { value:0 };
         shader.vertexShader = 'attribute float phase;\nuniform float uTime;\nuniform float uCheer;\n' + shader.vertexShader;
         shader.vertexShader = shader.vertexShader.replace('#include <begin_vertex>',
           '#include <begin_vertex>\n float _b = uCheer*abs(sin(uTime*7.0+phase))*0.55;\n transformed.y += sin(uTime*2.0+phase)*0.03 + _b;\n transformed.x += sin(uTime*9.0+phase*1.7)*uCheer*0.06;');
-        // Mute + desaturate the crowd so it reads as a soft, realistic distant crowd
-        // rather than garish rainbow blocks (cleaner, more premium background).
-        shader.fragmentShader = shader.fragmentShader.replace('#include <color_fragment>',
-          '#include <color_fragment>\n float _lum=dot(diffuseColor.rgb,vec3(0.299,0.587,0.114));\n diffuseColor.rgb=mix(vec3(_lum),diffuseColor.rgb,0.55)*0.8;');
+        // Cheap per-vertex diffuse + the same mute/desaturate the old material did.
+        shader.vertexShader = shader.vertexShader.replace('#include <color_vertex>',
+          '#include <color_vertex>\n'+
+          ' float _d = 0.62 + 0.38*max(dot(normalize(normal), normalize(vec3(0.35,0.9,0.30))), 0.0);\n'+
+          ' float _l = dot(vColor.rgb, vec3(0.299,0.587,0.114));\n'+
+          ' vColor.rgb = mix(vec3(_l), vColor.rgb, 0.55) * 0.8 * _d;');
         cmat.userData.shader = shader;
       };
       const crowd = new T.Mesh(cgeo, cmat);
@@ -1866,28 +2446,140 @@ const RENDERER = {
   // Background dressing: a bunting/pennant ring over the stands, a jumbotron big
   // screen at the far end, and two flagpoles that fly the competing nations' flags
   // — reinforces a lively football event without crowding the pitch.
-  // LED advertising boards ringing the pitch (emissive "FOOSBALL CUP").
+  // ── Animated sponsor LED boards: a rotating ad reel on a shared CanvasTexture
+  //    (LED-pixel grid + scanlines, crossfades, light sweep, glow breathing) with
+  //    recessed black housings, plus context-reactive match messages. ──
   _buildAdBoards(T){
-    const cv=document.createElement('canvas'); cv.width=1024; cv.height=128;
-    const c=cv.getContext('2d');
-    for(let i=0;i<4;i++){
-      const x0=i*256;
-      const g=c.createLinearGradient(x0,0,x0,128); g.addColorStop(0,'#0f3fb0'); g.addColorStop(1,'#08215e');
-      c.fillStyle=g; c.fillRect(x0,0,256,128);
-      c.textAlign='center'; c.textBaseline='middle';
-      c.fillStyle='#ffd23b'; c.font='bold 52px Arial'; c.fillText('FOOSBALL', x0+128, 45);
-      c.fillStyle='#ffffff'; c.font='bold 40px Arial'; c.fillText('CUP', x0+128, 92);
+    this._adAds = [
+      {t:'WORLD CUP BABYFOOT', s:'PLAY · COMPETE · WIN',   bg:['#123a86','#0a1f52'], acc:'#ffd23b', txt:'#ffffff', ic:'trophy'},
+      {t:'POWER KICK',         s:'UNLEASH YOUR POWER',     bg:['#1a1a1a','#080808'], acc:'#ffb02e', txt:'#ffffff', ic:'ball'},
+      {t:'NEXTPLAY',           s:'NEXT LEVEL GAMING',      bg:['#0f3a8a','#0a2255'], acc:'#3fd0ff', txt:'#ffffff', ic:'N'},
+      {t:'GOAL TECH',          s:'PRECISION · CONTROL · VICTORY', bg:['#0d0d0d','#040404'], acc:'#39d353', txt:'#ffffff', ic:'G'},
+      {t:'MASTER STRIKE',      s:'BUILT FOR CHAMPIONS',    bg:['#181206','#080808'], acc:'#ffcf40', txt:'#ffffff', ic:'M'},
+      {t:'STADIUM ENERGY',     s:'FEEL THE ROAR',          bg:['#3a0d0d','#180606'], acc:'#ff6a3c', txt:'#ffffff', ic:'bolt'},
+      {t:'VICTORY SPORTS',     s:'PLAY TO WIN',            bg:['#0a2e1c','#04160d'], acc:'#3fe08a', txt:'#ffffff', ic:'star'},
+      {t:'KICKPRO',            s:'PRO GEAR FOR PROS',      bg:['#1c1030','#0e0820'], acc:'#b98cff', txt:'#ffffff', ic:'K'},
+      {t:'WORLD CUP BABYFOOT', s:'SEASON 2026',            bg:['#2c0f5e','#170638'], acc:'#ffd23b', txt:'#ffffff', ic:'trophy'},
+    ];
+    this._adCache = {};
+    const W=1280, H=112;
+    const cv=document.createElement('canvas'); cv.width=W; cv.height=H;
+    this._adCanvas=cv; this._adCtx=cv.getContext('2d');
+    const tex=new T.CanvasTexture(cv); tex.colorSpace=T.SRGBColorSpace; this._adTex=tex;
+    const bezelMat=new T.MeshStandardMaterial({color:0x0a0a0c, roughness:0.6, metalness:0.35});
+    const boards=[
+      {w:9.9, x:0, z:-3.5, ry:0},
+      {w:9.9, x:0, z:3.5,  ry:Math.PI},
+      {w:6.4, x:-4.95, z:0, ry:Math.PI/2},
+      {w:6.4, x:4.95, z:0,  ry:-Math.PI/2},
+    ];
+    const BH=0.7, by=0.72;
+    this._adMats=[]; this._adBoards=[];
+    boards.forEach(b=>{
+      const mat=new T.MeshStandardMaterial({map:tex, emissive:0xffffff, emissiveMap:tex, emissiveIntensity:1.0, roughness:0.55, metalness:0.0, side:T.DoubleSide});
+      this._adMats.push(mat);
+      const grp=new T.Group(); grp.position.set(b.x,by,b.z); grp.rotation.y=b.ry;
+      const bez=new T.Mesh(new T.BoxGeometry(b.w+0.2, BH+0.18, 0.12), bezelMat); bez.position.z=-0.07; grp.add(bez);
+      const panel=new T.Mesh(new T.PlaneGeometry(b.w, BH), mat); panel.position.z=0.006; grp.add(panel);
+      const glow=new T.Mesh(new T.PlaneGeometry(b.w*1.02, BH*2.0), new T.MeshBasicMaterial({color:0x2247a0, transparent:true, opacity:0.12, blending:T.AdditiveBlending, depthWrite:false}));
+      glow.position.z=0.03; grp.add(glow);
+      this._s.add(grp);
+      this._adBoards.push({glow:glow.material});
+    });
+    this._adState={ cur:0, nxt:1, phase:'show', t:0, timer:0, dur:8+Math.random()*4, event:null, eventT:0 };
+    this._composeAd(1);
+  },
+  _roundRect(c,x,y,w,h,r){ if(c.roundRect){c.beginPath();c.roundRect(x,y,w,h,r);} else { c.beginPath();c.moveTo(x+r,y);c.arcTo(x+w,y,x+w,y+h,r);c.arcTo(x+w,y+h,x,y+h,r);c.arcTo(x,y+h,x,y,r);c.arcTo(x,y,x+w,y,r);c.closePath(); } },
+  _drawAdIcon(c, ic, x, cy, size, acc){
+    const s=size; this._roundRect(c,x,cy-s/2,s,s,10); c.fillStyle=acc; c.fill();
+    c.save(); c.translate(x+s/2, cy); c.fillStyle='#0b0b0b'; c.strokeStyle='#0b0b0b'; c.lineJoin='round';
+    if(ic==='trophy'){ c.beginPath(); c.moveTo(-s*0.2,-s*0.24); c.lineTo(s*0.2,-s*0.24); c.lineTo(s*0.12,s*0.04); c.lineTo(-s*0.12,s*0.04); c.closePath(); c.fill(); c.fillRect(-s*0.05,s*0.04,s*0.10,s*0.14); c.fillRect(-s*0.16,s*0.18,s*0.32,s*0.07); }
+    else if(ic==='ball'){ c.beginPath(); c.arc(0,0,s*0.3,0,7); c.fillStyle='#0b0b0b'; c.fill(); c.fillStyle=acc; c.beginPath(); c.arc(0,0,s*0.3,0,7); c.fill(); c.fillStyle='#0b0b0b'; for(let k=0;k<5;k++){ const a=k/5*6.283; c.beginPath(); c.arc(Math.cos(a)*s*0.17,Math.sin(a)*s*0.17,s*0.05,0,7); c.fill(); } c.beginPath(); c.arc(0,0,s*0.06,0,7); c.fill(); }
+    else if(ic==='bolt'){ c.beginPath(); c.moveTo(s*0.06,-s*0.28); c.lineTo(-s*0.16,s*0.02); c.lineTo(0,s*0.02); c.lineTo(-s*0.06,s*0.28); c.lineTo(s*0.18,-s*0.06); c.lineTo(0,-s*0.06); c.closePath(); c.fill(); }
+    else if(ic==='star'){ c.beginPath(); for(let k=0;k<10;k++){ const a=-Math.PI/2+k*Math.PI/5, rr=(k%2?s*0.12:s*0.3); c.lineTo(Math.cos(a)*rr,Math.sin(a)*rr);} c.closePath(); c.fill(); }
+    else { c.fillStyle='#0b0b0b'; c.textAlign='center'; c.textBaseline='middle'; c.font='900 '+Math.round(s*0.62)+'px Arial'; c.fillText(ic,0,2); }
+    c.restore();
+  },
+  _ledOverlay(c,W,H){
+    c.save(); c.globalCompositeOperation='multiply'; c.fillStyle='rgba(0,0,0,0.5)';
+    const px=4; for(let x=0;x<W;x+=px) c.fillRect(x+px-1.3,0,1.3,H);
+    for(let y=0;y<H;y+=px) c.fillRect(0,y+px-1.3,W,1.3);
+    c.restore();
+    c.save(); c.fillStyle='rgba(0,0,0,0.10)'; for(let y=0;y<H;y+=3) c.fillRect(0,y,W,1); c.restore();
+  },
+  _renderAd(cfg){
+    const key=cfg.t+'|'+cfg.s; if(this._adCache[key]) return this._adCache[key];
+    const W=1280,H=112; const cv=document.createElement('canvas'); cv.width=W; cv.height=H; const c=cv.getContext('2d');
+    const g=c.createLinearGradient(0,0,0,H); g.addColorStop(0,cfg.bg[0]); g.addColorStop(1,cfg.bg[1]);
+    c.fillStyle=g; c.fillRect(0,0,W,H);
+    c.fillStyle=cfg.acc;
+    for(let i=0;i<4;i++){ c.save(); c.globalAlpha=0.85-i*0.18; c.transform(1,0,-0.4,1,50+i*26,0); c.fillRect(0,0,11,H); c.restore(); }
+    for(let i=0;i<4;i++){ c.save(); c.globalAlpha=0.85-i*0.18; c.transform(1,0,0.4,1,W-50-i*26,0); c.fillRect(0,0,11,H); c.restore(); }
+    c.globalAlpha=1;
+    c.font='900 48px Arial'; const tw=c.measureText(cfg.t).width;
+    const iconS=62, gap=22, total=iconS+gap+tw, sx=W/2-total/2;
+    this._drawAdIcon(c, cfg.ic, sx, H/2, iconS, cfg.acc);
+    const tx=sx+iconS+gap;
+    c.textAlign='left'; c.textBaseline='alphabetic';
+    c.fillStyle=cfg.txt; c.font='900 48px Arial'; c.fillText(cfg.t, tx, H*0.46);
+    c.fillStyle=cfg.acc; c.font='bold 21px Arial'; c.fillText(cfg.s, tx, H*0.74);
+    this._ledOverlay(c,W,H);
+    this._adCache[key]=cv; return cv;
+  },
+  _eventCanvas(ev){
+    const key='EV|'+ev.text+ev.color; if(this._adCache[key]) return this._adCache[key];
+    const W=1280,H=112; const cv=document.createElement('canvas'); cv.width=W; cv.height=H; const c=cv.getContext('2d');
+    c.fillStyle='#050505'; c.fillRect(0,0,W,H);
+    c.textAlign='center'; c.textBaseline='middle';
+    c.shadowColor=ev.color; c.shadowBlur=22; c.fillStyle=ev.color; c.font='900 66px Arial';
+    c.fillText(ev.text, W/2, H/2+2); c.shadowBlur=0;
+    this._ledOverlay(c,W,H);
+    this._adCache[key]=cv; return cv;
+  },
+  _composeAd(blend){
+    const c=this._adCtx, W=this._adCanvas.width, H=this._adCanvas.height, st=this._adState;
+    c.clearRect(0,0,W,H);
+    if(st.event){ c.drawImage(this._eventCanvas(st.event),0,0,W,H); }
+    else {
+      c.globalAlpha=1; c.drawImage(this._renderAd(this._adAds[st.cur]),0,0,W,H);
+      if(st.phase==='fade'){ c.globalAlpha=blend; c.drawImage(this._renderAd(this._adAds[st.nxt]),0,0,W,H); c.globalAlpha=1; }
     }
-    c.fillStyle='rgba(0,0,0,0.10)'; for(let x=0;x<1024;x+=4) c.fillRect(x,0,1.6,128);   // LED scan grid
-    const base=new T.CanvasTexture(cv); base.colorSpace=T.SRGBColorSpace;
-    const mkMat=(rep)=>{ const t=base.clone(); t.wrapS=T.RepeatWrapping; t.repeat.set(rep,1); t.needsUpdate=true;
-      return new T.MeshStandardMaterial({map:t, emissive:0xffffff, emissiveMap:t, emissiveIntensity:0.8, roughness:0.5, metalness:0.0, side:T.DoubleSide}); };
-    const H=0.62, y=0.66;
-    const add=(w,x,z,ry)=>{ const m=new T.Mesh(new T.PlaneGeometry(w,H), mkMat(Math.max(2,Math.round(w/2.4)))); m.position.set(x,y,z); m.rotation.y=ry; this._s.add(m); };
-    add(9.6, 0, -3.5, 0);          // far board (faces the pitch/camera)
-    add(9.6, 0,  3.5, Math.PI);    // near board
-    add(6.2, -4.9, 0,  Math.PI/2); // left end (behind goal)
-    add(6.2,  4.9, 0, -Math.PI/2); // right end (behind goal)
+    const period=6200, sweep=(performance.now()%period)/period*1.5-0.25;   // sweep with a gap
+    if(sweep>=0 && sweep<=1){
+      const sxp=sweep*W, gg=c.createLinearGradient(sxp-90,0,sxp+90,0);
+      gg.addColorStop(0,'rgba(255,255,255,0)'); gg.addColorStop(0.5,'rgba(255,255,255,0.20)'); gg.addColorStop(1,'rgba(255,255,255,0)');
+      c.save(); c.globalCompositeOperation='lighter'; c.fillStyle=gg; c.fillRect(sxp-90,0,180,H); c.restore();
+    }
+    this._adTex.needsUpdate=true;
+  },
+  _nextAd(cur){ let n; do{ n=Math.floor(Math.random()*this._adAds.length); }while(n===cur); return n; },
+  showAdEvent(text,color){ if(this._adState){ this._adState.event={text,color}; this._adState.eventT=2.6; } },
+  _detectAdEvents(){
+    if(typeof GAME==='undefined') return;
+    const s=(GAME.score?GAME.score.p1+GAME.score.p2:0);
+    if(this._adLastScore===undefined) this._adLastScore=s;
+    if(s>this._adLastScore) this.showAdEvent('GOOOOAL!!','#ff3b3b');
+    this._adLastScore=s;
+    if(GAME.running && !this._adWasRunning) this.showAdEvent("LET'S GO!",'#5db6ff');
+    this._adWasRunning=GAME.running;
+    if(GAME.running && GAME.timeLeft!==undefined && GAME.timeLeft<=60 && !this._adFinalShown){ this.showAdEvent('FINAL MINUTE','#ffcf40'); this._adFinalShown=true; }
+    if(GAME.timeLeft>60) this._adFinalShown=false;
+  },
+  _updateAdBoards(){
+    if(!this._adState) return;
+    const now=performance.now(); const dt=Math.min(0.05,(now-(this._lastAdT||now))/1000); this._lastAdT=now;
+    const st=this._adState;
+    this._detectAdEvents();
+    if(st.event){ st.eventT-=dt; if(st.eventT<=0){ st.event=null; st.timer=0; st.phase='show'; } }
+    else {
+      st.timer+=dt;
+      if(st.phase==='show' && st.timer>=st.dur){ st.phase='fade'; st.t=0; }
+      if(st.phase==='fade'){ st.t+=dt/0.5; if(st.t>=1){ st.cur=st.nxt; st.nxt=this._nextAd(st.cur); st.phase='show'; st.timer=0; st.dur=8+Math.random()*4; st.t=0; } }
+    }
+    this._composeAd(st.phase==='fade'?st.t:1);
+    const pulse=1.0 + 0.1*Math.sin(now*0.002);
+    for(const m of this._adMats) m.emissiveIntensity = (st.event?1.4:1.0)*pulse;
+    for(const b of this._adBoards) b.glow.opacity = (st.event?0.22:0.12) + 0.05*Math.sin(now*0.002);
   },
   // Occasional camera flashes in the stands (more during a cheer) → live-broadcast feel.
   _buildCrowdFlashes(T){
@@ -1956,14 +2648,66 @@ const RENDERER = {
     // ── Photographers seated at the pitch far corners (small low-poly) ──
     const photoBody=new T.MeshStandardMaterial({color:0x2a2f38, roughness:0.8, metalness:0.0});
     const photoLens=new T.MeshStandardMaterial({color:0xdddfe4, roughness:0.3, metalness:0.5, emissive:0x111214});
+    // Soft radial flash sprite, shared by every photographer.
+    const flashTex=(()=>{
+      const cv=document.createElement('canvas'); cv.width=cv.height=64;
+      const g2=cv.getContext('2d'), gr=g2.createRadialGradient(32,32,0,32,32,32);
+      gr.addColorStop(0,'rgba(255,255,255,1)');
+      gr.addColorStop(0.30,'rgba(255,251,231,0.62)');
+      gr.addColorStop(1,'rgba(255,246,214,0)');
+      g2.fillStyle=gr; g2.fillRect(0,0,64,64);
+      const t=new T.CanvasTexture(cv); t.colorSpace=T.SRGBColorSpace; return t;
+    })();
+    this._photogFlashes=[];
     [[-4.9,-3.3],[-3.2,-3.4],[4.9,-3.3],[3.2,-3.4]].forEach(([x,z])=>{
-      const g=new T.Group(); g.position.set(x,0.55,z); g.lookAt(0,0.4,0);
+      // Height tuned against the rail top (≈0.57). The camera body sits BELOW the
+      // head in this model (local y 0.18 vs 0.30), so dropping them far enough to
+      // hide the head also buried the camera. At this height the camera clears the
+      // rail while the head only rises a little above it — visible gear, without
+      // looking like they're standing on the table (the old y=0.55 put heads at 0.96).
+      const g=new T.Group(); g.position.set(x,0.43,z); g.lookAt(0,0.4,0);
       g.add(new T.Mesh(new T.SphereGeometry(0.22,10,8),photoBody));                 // torso
       const head=new T.Mesh(new T.SphereGeometry(0.11,10,8),photoBody); head.position.set(0,0.3,0); g.add(head);
       const cam=new T.Mesh(new T.BoxGeometry(0.16,0.13,0.2),photoBody); cam.position.set(0,0.18,0.18); g.add(cam);
-      const lens=new T.Mesh(new T.CylinderGeometry(0.06,0.07,0.18,10),photoLens); lens.rotation.x=Math.PI/2; lens.position.set(0,0.18,0.34); g.add(lens);
+      // Own lens material per photographer so each can flash independently.
+      const lensMat=photoLens.clone();
+      const lens=new T.Mesh(new T.CylinderGeometry(0.06,0.07,0.18,10),lensMat); lens.rotation.x=Math.PI/2; lens.position.set(0,0.18,0.34); g.add(lens);
+      // Additive glow that pops when the shutter fires. Parented to the group so it
+      // follows the photographer and already faces the pitch (and roughly the camera).
+      const glow=new T.Mesh(new T.PlaneGeometry(0.6,0.6),
+        new T.MeshBasicMaterial({map:flashTex, transparent:true, opacity:0, depthWrite:false, blending:T.AdditiveBlending}));
+      glow.material.toneMapped=false; glow.position.set(0,0.18,0.44); g.add(glow);
+      this._photogFlashes.push({mat:lensMat, glow, life:0, pending:0, next:1.0+Math.random()*5});
       this._s.add(g);
     });
+  },
+
+  // Photographers firing their shutters: a quick emissive pop on the lens plus an
+  // additive glow, occasionally double-tapped like a real burst. Deliberately uses
+  // NO extra lights — adding a light at runtime forces every material in the scene
+  // to recompile (that was the first-hit freeze), so this is pure uniform changes.
+  _updatePhotoFlashes(){
+    if(!this._photogFlashes) return;
+    const now=performance.now();
+    const dt=Math.min(0.05,(now-(this._lastPhotoFlashT||now))/1000); this._lastPhotoFlashT=now;
+    const cheer=this._cheer||0;                     // celebrate a goal -> flurry of flashes
+    for(const f of this._photogFlashes){
+      if(f.life>0){
+        f.life -= dt*7.5;                            // ~0.13s pop
+        const k=Math.max(0,f.life);
+        f.glow.material.opacity = k*0.95;
+        f.mat.emissive.setRGB(k, k*0.97, k*0.88);
+        if(f.life<=0){ f.life=0; f.glow.material.opacity=0; f.mat.emissive.setHex(0x111214); }
+      } else {
+        f.next -= dt*(1 + cheer*7);
+        if(f.next<=0){
+          f.life=1; f.glow.material.opacity=0.95;
+          if(f.pending>0){ f.pending--; f.next=0.13; }               // second shot of a burst
+          else { f.pending = Math.random()<0.35 ? 1 : 0;
+                 f.next = f.pending ? 0.13 : 1.6 + Math.random()*5.5; }
+        }
+      }
+    }
   },
 
   // Jumbotron screen graphic — a stylised broadcast look (kept static + emissive).
@@ -2141,11 +2885,9 @@ const RENDERER = {
       });
     }
 
-    // ── Chrome corner caps on the four top-outer corners ──
-    [[-ex,-rz],[ex,-rz],[-ex,rz],[ex,rz]].forEach(([x,z])=>{
-      const cap=new T.Mesh(new T.BoxGeometry(wt+0.14, 0.14, wt+0.14), metalMat);
-      cap.position.set(x, 0.56, z); cap.castShadow=true; this._s.add(cap);
-    });
+    // (Chrome corner caps removed — they overhung the rail by 7cm on each side, so
+    //  from the game camera they read as flat grey plates floating at the corners
+    //  next to the camera operators rather than as table hardware.)
 
     // ── Ball-return: recessed black opening + plastic trim on the near rail front ──
     const brX = 2.2, brZ = rz + wt/2 + 0.002;
@@ -2671,13 +3413,13 @@ const RENDERER = {
   // ── Hit effect: brief flash light only (no player-emitted particles) ──
   triggerHitEffect(ball, power){
     if(!this._ok || power<0.15) return;
+    this._tutHits = (this._tutHits||0)+1;        // tutorial progress probe ("you kicked it")
     const T=THREE;
     const bx=this._tx(ball.x), bz=this._tz(ball.y);
-    // Flash point light — gives impact feedback without spawning sprites
-    if(!this._hitLight){
-      this._hitLight=new T.PointLight(0xff6600,0,4);
-      this._s.add(this._hitLight);
-    }
+    // Flash point light — created up-front in init() (see _preWarm) because ADDING
+    // a light mid-game changes the shader permutation and forces every material in
+    // the scene to recompile, which froze the game on the first ball contact.
+    this._hitLight.distance = 4;
     this._hitLight.position.set(bx, 0.5, bz);
     this._hitLight.intensity = 4 + power*8;
     const _c = this._trailColors ? this._trailColors() : null;
@@ -2769,6 +3511,36 @@ const RENDERER = {
       const c = this._trailCtx.canvas;
       this._trailCtx.clearRect(0,0,c.width,c.height);
     }
+  },
+  // Tutorial delivery path: a dashed line + arrowhead from the ball to the figure
+  // it is rolling toward, so the player can see it coming and time their tap.
+  _drawTutorialPath(){
+    const T = window.TUTORIAL;
+    if(!T || !T.active || !T.pathTo || GAME.heldBy || GAME.ballHidden) return;
+    const ctx = this._trailCtx; if(!ctx) return;
+    const b = this._project(GAME.ball.x, GAME.ball.y);
+    const t = this._project(T.pathTo.x, T.pathTo.y);
+    if(!b || !t) return;
+    const dx = t.x-b.x, dy = t.y-b.y, len = Math.hypot(dx,dy);
+    if(len < 24){ return; }                       // basically arrived — stop drawing
+    const pulse = 0.55 + 0.45*Math.sin(performance.now()*0.006);
+    ctx.save();
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.strokeStyle = `rgba(255,210,26,${0.85*pulse})`;
+    ctx.lineWidth = 4; ctx.lineCap = 'round';
+    ctx.setLineDash([12, 9]);
+    ctx.lineDashOffset = -(performance.now()*0.05) % 21;
+    ctx.beginPath(); ctx.moveTo(b.x, b.y); ctx.lineTo(t.x, t.y); ctx.stroke();
+    // arrowhead at the destination
+    ctx.setLineDash([]);
+    const a = Math.atan2(dy, dx), h = 14;
+    ctx.fillStyle = `rgba(255,210,26,${0.9*pulse})`;
+    ctx.beginPath();
+    ctx.moveTo(t.x, t.y);
+    ctx.lineTo(t.x - h*Math.cos(a-0.42), t.y - h*Math.sin(a-0.42));
+    ctx.lineTo(t.x - h*Math.cos(a+0.42), t.y - h*Math.sin(a+0.42));
+    ctx.closePath(); ctx.fill();
+    ctx.restore();
   },
   _project(gx, gy){
     const T = THREE;
@@ -2871,7 +3643,7 @@ const RENDERER = {
   _drawRibbon(ctx, col, a, spd, ballR, now){
     const pts=this._trailPts;
     if(pts.length<3) return;
-    const N=Math.min(pts.length, Math.max(4, Math.round(8+(spd-4.5)*4)));   // length scales w/ speed (clamped to available pts)
+    const N=Math.min(pts.length, Math.max(4, Math.round(8+(spd-4.5)*4)) + (this._goalFocus?9:0));   // length scales w/ speed; longer during the slow-mo shot
     const raw=[]; for(let i=0;i<N;i++) raw.push(this._project(pts[i].x, pts[i].y));
     const sm=[];
     for(let i=0;i<raw.length-1;i++){
@@ -3218,20 +3990,77 @@ const RENDERER = {
         pip.style.setProperty('--pct', (pct * 100) + '%');
       }
     });
-    if(card){
-      const ready = charges > 0;
-      card.classList.toggle('cd-ready', ready);
-      card.classList.toggle('cd-cooling', !ready);
-    }
+  },
+
+  // Gated abilities (Charge / Loft / Pass) can only be used while YOU are holding the
+  // ball — light them up then, dim them otherwise so the player knows when they work.
+  _updateAbilityUsable(){
+    const h = GAME.heldBy;
+    const mine = !!h && (GAME.testMode ? h.team==='p1' : h.team===GAME.myRole);
+    const ids = ['charge-ability-card','loft-ability-card','pass-ability-card'];
+    for(const id of ids){ const c=document.getElementById(id); if(!c) continue; c.classList.toggle('dim', !mine); c.classList.toggle('lit', mine); }
+  },
+
+  // ── Cinematic goal camera (broadcast-style ease toward the scoring goal +
+  //    FOV zoom + subtle shake, then smooth restore) and goal impact FX. ──
+  startGoalCinematic(side, fast){
+    const s = side==='right' ? 1 : -1, cam=this._cam;
+    this._goalCam = {
+      phase:'in', shake:0,
+      home:{ px:cam.position.x, py:cam.position.y, pz:cam.position.z, fov:cam.fov, lx:0, ly:0.05, lz:-0.4 },
+      tgt :{ px:s*1.7, py:3.1, pz:1.95, fov: fast?49:55, lx:s*3.4, ly:0.35, lz:-0.05 },
+      look:new THREE.Vector3(0,0.05,-0.4),
+    };
+    this._goalFocus = true;
+  },
+  endGoalCinematic(){ if(this._goalCam) this._goalCam.phase='out'; },
+  _restoreGameCam(){
+    const g=this._goalCam; if(!g) return; const cam=this._cam;
+    cam.position.set(g.home.px,g.home.py,g.home.pz);
+    cam.fov=g.home.fov; cam.updateProjectionMatrix();
+    cam.lookAt(g.home.lx,g.home.ly,g.home.lz);
+    this._goalCam=null; this._goalFocus=false;
+  },
+  _updateGoalCam(){
+    const g=this._goalCam; if(!g) return;
+    const now=performance.now(); const dt=Math.min(0.05,(now-(this._lastGCamT||now))/1000); this._lastGCamT=now;
+    const cam=this._cam, to = g.phase==='out'?g.home:g.tgt, k = 1-Math.exp(-(g.phase==='out'?3.4:4.6)*dt);
+    cam.position.x += (to.px-cam.position.x)*k; cam.position.y += (to.py-cam.position.y)*k; cam.position.z += (to.pz-cam.position.z)*k;
+    cam.fov += (to.fov-cam.fov)*k; cam.updateProjectionMatrix();
+    g.look.x += (to.lx-g.look.x)*k; g.look.y += (to.ly-g.look.y)*k; g.look.z += (to.lz-g.look.z)*k;
+    if(g.shake>0.0008){ g.shake*=Math.exp(-9*dt); cam.position.x+=(Math.random()-0.5)*g.shake; cam.position.y+=(Math.random()-0.5)*g.shake; }
+    cam.lookAt(g.look.x, g.look.y, g.look.z);
+    this._goalFocus = !!(typeof GAME!=='undefined' && GAME.goalSeq && GAME.goalSeq.phase==='travel');
+    if(g.phase==='out' && Math.abs(cam.position.y-g.home.py)+Math.abs(cam.position.z-g.home.pz)+Math.abs(cam.fov-g.home.fov)*0.1 < 0.04) this._restoreGameCam();
+  },
+  goalImpact(side){
+    if(this._goalCam) this._goalCam.shake = 0.12;
+    this.rippleNet(side);
+    const s = side==='right'?1:-1;
+    this._goalRing.position.set(s*3.9, 0.4, 0); this._goalRingT=0.0001;
+    this._hitLight.distance = 6;
+    this._hitLight.position.set(s*3.9,0.6,0); this._hitLight.color.setHex(0xfff2c0); this._hitLight.intensity=14;
+  },
+  _updateGoalFx(){
+    const now=performance.now(); const dt=Math.min(0.05,(now-(this._lastGFxT||now))/1000); this._lastGFxT=now;
+    if(this._goalRingT){ this._goalRingT+=dt; const t=this._goalRingT/0.35;
+      if(t>=1){ this._goalRingT=0; this._goalRing.material.opacity=0; }
+      else { this._goalRing.scale.setScalar(0.6+t*7); this._goalRing.material.opacity=(1-t)*0.8; } }
+    if(this._hitLight && this._hitLight.intensity>0.05){ this._hitLight.intensity*=Math.exp(-11*dt); if(this._hitLight.intensity<0.05) this._hitLight.intensity=0; }
   },
 
   // ── Per-frame: update dynamic objects + render ───────────────
   draw(){
     if(!this._ok) return;
+    this._updateGoalCam();
+    this._updateGoalFx();
 
     this._updateGoalNets();
     this._updateScoreCounters();
     this._updateCrowdFlashes();
+    this._updatePhotoFlashes();
+    if(window.TUTORIAL && TUTORIAL.active) TUTORIAL.update();
+    this._updateAdBoards();
 
     // Trail: push current ball position, update speed-based alpha, draw ribbon
     if(!GAME.ballHidden && GAME.running){
@@ -3244,17 +4073,20 @@ const RENDERER = {
       const spd = Math.hypot(b.vx, b.vy);
       const target = Math.max(0, Math.min(1, (spd - 4.5) / 3.5));
       this._trailAlpha += (target - this._trailAlpha) * 0.18;
+      if(this._goalFocus) this._trailAlpha = Math.max(this._trailAlpha, 0.95);   // keep the trail lit through the slow-mo shot
       this._drawTrail();
       this._drawCatchIndicator();
       this._drawPossBar();
       this._drawChargeBar();
       this._drawPassDirIndicator();
+      this._drawTutorialPath();
     } else if(GAME.ballHidden){
       this.clearTrail();
       this._trailAlpha = 0;
     }
     if(GAME.running) this._updateHoldAbilityUI();
     this._updatePassChargesUI();
+    this._updateAbilityUsable();
 
     // Ball shadow follows ball X/Z position — shrinks & fades while airborne
     // (lofted shot) so its height above the pitch reads clearly.
@@ -3278,6 +4110,7 @@ const RENDERER = {
     // Living grass: advance wind time + feed the ball position so blades part
     // around it. Parked far away when the ball is hidden so nothing bends.
     // Crowd: constant gentle sway + a cheer bounce that decays after a goal.
+    this._perfTick();
     if(this._cheer > 0) this._cheer = Math.max(0, this._cheer - 0.006);
     const cs = this._crowdMat && this._crowdMat.userData && this._crowdMat.userData.shader;
     if(cs){ cs.uniforms.uTime.value = performance.now()*0.001; cs.uniforms.uCheer.value = this._cheer; }
@@ -3307,8 +4140,34 @@ const RENDERER = {
         pa.needsUpdate = true;
       }
     }
-    this._ball.rotation.y = GAME.ballAngle || 0;
-    this._ball.rotation.z = (GAME.ballAngle || 0) * 0.4;
+    // ── Real rolling: the ball spins about the axis perpendicular to its travel,
+    // by (distance ÷ radius) — so it rolls correctly in ANY direction and at ANY
+    // speed. The old version derived a single Y-spin from vx alone, so a ball
+    // moving vertically never turned and slow balls appeared to slide.
+    {
+      const T = THREE, R = 0.13;                       // ball radius in world units
+      const bx = this._ball.position.x, bz = this._ball.position.z;
+      if(this._rollPrev){
+        const dx = bx - this._rollPrev.x, dz = bz - this._rollPrev.z;
+        const d  = Math.hypot(dx, dz);
+        if(d > 1e-6){
+          if(!this._rollAxis){ this._rollAxis = new T.Vector3(); this._rollQ = new T.Quaternion(); }
+          this._rollAxis.set(dz, 0, -dx).normalize();  // up × velocity
+          this._rollQ.setFromAxisAngle(this._rollAxis, d / R);
+          this._ball.quaternion.premultiply(this._rollQ);
+        }
+        // Airborne (lofted) balls keep a little backspin so they never look frozen.
+        if((GAME.ballZ||0) > 0.02 && d <= 1e-6){
+          if(!this._rollAxis){ this._rollAxis = new T.Vector3(); this._rollQ = new T.Quaternion(); }
+          this._rollAxis.set(1,0,0);
+          this._rollQ.setFromAxisAngle(this._rollAxis, 0.06);
+          this._ball.quaternion.premultiply(this._rollQ);
+        }
+        this._rollPrev.set(bx, 0, bz);
+      } else {
+        this._rollPrev = new T.Vector3(bx, 0, bz);
+      }
+    }
 
     // Hold effect: pulsing ring + ball glow while ball is caught
     if(GAME.heldBy && this._holdRing){
@@ -3329,6 +4188,7 @@ const RENDERER = {
       this._ball.material.emissive.setRGB(0, 0, 0);
       this._ball.scale.setScalar(1.0);
     }
+    if(this._goalFocus){ this._ball.material.emissive.setRGB(0.5,0.36,0.1); this._ball.scale.setScalar(1.06); }   // ball glows during the slow-mo shot
 
     // Rods + figures
     for(const {rod,rodIdx,figs} of this._rods){
@@ -3383,8 +4243,14 @@ const KEY_P2={ get up(){return KEYS['ArrowUp']}, get down(){return KEYS['ArrowDo
 window.addEventListener('keydown',e=>{
   KEYS[e.key]=true;
   if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].includes(e.key)) e.preventDefault();
+  // Esc closes the How to Play overlay first if it's open.
+  if(e.key==='Escape'){
+    var _ho=document.getElementById('howto-overlay');
+    if(_ho && _ho.classList.contains('show')){ e.preventDefault(); hideHowTo(); return; }
+  }
   // Esc toggles pause while a match is on the screen (ignored during the countdown).
-  if(e.key==='Escape' && GAME.running && !GAME.countdownActive){
+  if(e.key==='Escape' && GAME.running && !GAME.countdownActive && !GAME.goalSeq
+     && !(window.TUTORIAL && TUTORIAL.active)){
     e.preventDefault();
     GAME.togglePause();
     return;
@@ -3393,14 +4259,33 @@ window.addEventListener('keydown',e=>{
   if(GAME.paused) return;
   // Bot mode: map the local player's keys to myInput (local 2P mode reads KEY_P1/KEY_P2 directly instead)
   if(GAME.running && !GAME.testMode){
-    if(e.key==='w'||e.key==='W'||e.key==='ArrowUp')   GAME.myInput.up=true;
-    if(e.key==='s'||e.key==='S'||e.key==='ArrowDown') GAME.myInput.down=true;
-    if(e.key===' '||e.key==='Enter') GAME.myInput.kick=true;
+    // The tutorial locks the inputs a drill isn't teaching, so the player can't
+    // accidentally interfere with the lesson (e.g. sliding the rods away while
+    // the ball is being delivered to the keeper).
+    const _tut = window.TUTORIAL && TUTORIAL.active ? TUTORIAL : null;
+    const okMove = !_tut || _tut.allowMove();
+    const okKick = !_tut || _tut.allowKick();
+    if(okMove && (e.key==='w'||e.key==='W'||e.key==='ArrowUp'))   GAME.myInput.up=true;
+    if(okMove && (e.key==='s'||e.key==='S'||e.key==='ArrowDown')) GAME.myInput.down=true;
+    if(okKick && (e.key===' '||e.key==='Enter'))                  GAME.myInput.kick=true;
   }
   // Hold-input buffer: refresh whenever the kick key is pressed, so a slightly
   // early or late press still registers as "held" for catch detection.
   if(GAME.running){
-    if(e.key===' ')      GAME._holdBufferP1 = GAME.HOLD_BUFFER_FRAMES;
+    if(e.key===' '){
+      const _t = window.TUTORIAL && TUTORIAL.active ? TUTORIAL : null;
+      if(!_t || _t.allowKick()){
+        GAME._holdBufferP1 = GAME.HOLD_BUFFER_FRAMES;
+        GAME._tutSpaceT = performance.now();   // tutorial: proves the KICK was the player's
+      }
+    }
+    // Tutorial rod drill: record the actual keys pressed. Reading position deltas
+    // could be fooled by spamming one direction into the rod's travel limit.
+    if(window.TUTORIAL && TUTORIAL.active){
+      const k=e.key;
+      if(k==='w'||k==='W'||k==='ArrowUp')   TUTORIAL._kW = true;
+      if(k==='s'||k==='S'||k==='ArrowDown') TUTORIAL._kS = true;
+    }
     if(e.key==='Enter')  GAME._holdBufferP2 = GAME.HOLD_BUFFER_FRAMES;
   }
   // Pass trigger: edge-triggered, only fires once per keydown while holding ball
@@ -3411,7 +4296,7 @@ window.addEventListener('keydown',e=>{
       let dir = null;
       if(e.key==='q'||e.key==='Q'||e.key==='ArrowLeft')  dir='prev';
       if(e.key==='e'||e.key==='E'||e.key==='ArrowRight') dir='next';
-      if(dir) GAME._passRequest = dir;
+      if(dir && _tutAllows('pass')){ GAME._passRequest = dir; GAME._tutPass = (GAME._tutPass||0)+1; }
     }
   }
 });
@@ -3442,12 +4327,21 @@ CV_EL.addEventListener('contextmenu', e => e.preventDefault());
 CV_EL.addEventListener('mousedown', e => {
   if(!_canShoot()) return;
   if(e.button === 0){          // Left click: start charging a ground shot
+    if(!_tutAllows('charge')) return;
     GAME._chargeActive = true;
     GAME._chargeFrames = 0;
   } else if(e.button === 2){   // Right click: immediate lofted shot
+    if(!_tutAllows('loft')) return;
     GAME._releaseLoftedShot();
   }
 });
+// While the tutorial is teaching one specific ability, the others are locked out
+// so the player can't wander off — the lesson is the only thing that works.
+function _tutAllows(what){
+  const T = window.TUTORIAL;
+  if(!T || !T.active) return true;
+  return T.allows(what);
+}
 window.addEventListener('mouseup', e => {
   if(e.button === 0 && GAME._chargeActive){
     const frac = GAME._chargeFrames / GAME.CHARGE_MAX_FRAMES;
@@ -3475,10 +4369,16 @@ const APP = {
   showScreen(id){
     document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
     document.getElementById(id).classList.add('active');
+    // Corner sound button shows on menu-like screens; in-match the pause menu handles audio.
+    const gs=document.getElementById('global-sound'); if(gs) gs.style.display=(id==='screen-game')?'none':'flex';
     // Music routing: menu screens get menu music, game screen gets gameplay music
     const menuScreens = ['screen-menu','screen-teams','screen-end'];
     if(menuScreens.includes(id)) AUDIO.playMenuMusic();
-    else if(id === 'screen-game') AUDIO.stopMenuMusic();
+    else if(id === 'screen-game'){ AUDIO.stopMenuMusic();
+      // Size the renderer now that the game canvas is actually visible (fixes the
+      // blurry start where the canvas was measured at 0×0 while hidden on the menu).
+      if(typeof applyViewport==='function') requestAnimationFrame(applyViewport);
+    }
     else AUDIO.stopMenuMusic(); // end screen, etc.
   },
 
@@ -3568,6 +4468,23 @@ const APP = {
     this._setVoteStatus('p2','waiting','Choose opponent…');
   },
 
+  // "Back" in team select: step from opponent-pick (phase 2) back to your-own-pick
+  // (phase 1) so you can change your team without leaving to the menu. From phase 1
+  // (or any non-bot context) it exits to the main menu.
+  _backTeamSelect(){
+    if(STATE._botPick && STATE._botPickPhase===2){
+      STATE._botPickPhase = 1;
+      document.getElementById('team-sub').innerHTML = `Pick your team — then choose your <b style="color:#a855f7">🤖 opponent</b>`;
+      this._buildTeamGrids('p1');
+      const btn=document.getElementById('btn-ready');
+      btn.dataset.sent=''; btn.textContent='▶ READY'; btn.style.opacity=''; btn.style.cursor='';
+      this._setVoteStatus('p1','waiting','Choosing…');
+      this._setVoteStatus('p2','waiting','Choosing…');
+      return;
+    }
+    this.showScreen('screen-menu');
+  },
+
   // ── Countdown 3-2-1-GO ──────────────────────────────────────
   runCountdown(onGo){
     // Onset times (ms) detected from 321_GO_sound_effect.mp3
@@ -3621,6 +4538,8 @@ const APP = {
   // Shared end-of-match sequence: freeze on the gameplay scene, show the big
   // "GAME HAS ENDED" banner, play the full-length whistle, THEN go to screen-end.
   _playMatchEndSequence(winnerHtml, scoreText){
+    GAME.goalSeq = null;
+    document.getElementById('goal-overlay').classList.remove('show');   // never leave "GOAL! …" stuck over the end screen
     document.getElementById('end-winner').innerHTML = winnerHtml;
     document.getElementById('end-score').textContent = scoreText;
     document.getElementById('matchend-overlay').classList.add('show');
@@ -3637,6 +4556,15 @@ const APP = {
   // Quit an in-progress match (from the pause menu) back to the main menu.
   quitToMenu(){
     GAME.paused = false;
+    // Practice mode must never leak into a real match (it disables the clock and
+    // the opponent). Quitting mid-tutorial tears it down here.
+    GAME.practice = false; GAME.ballFrozen = false; GAME.ballHidden = false;
+    if(window.TUTORIAL && TUTORIAL.active){
+      TUTORIAL.active = false;
+      document.getElementById('tut-layer').classList.remove('show');
+      TUTORIAL._resetUI();
+      TUTORIAL._clearGlow();
+    }
     document.getElementById('pause-overlay').classList.remove('show');
     GAME.stop();
     AUDIO.stopMusic();
@@ -3648,6 +4576,7 @@ const APP = {
 
   // Route to team select for bot mode — two phases: pick your team, then pick the AI's team
   startBotPick(){
+    GAME.practice = false;          // a normal match always has a live clock + opponent
     STATE.myRole = 'p1';
     STATE._botPick = true;
     STATE._botPickPhase = 1;
@@ -3673,10 +4602,10 @@ const APP = {
     selectKits(STATE.p1Team, STATE.p2Team);
     const t1=STATE.p1Team, t2=STATE.p2Team;
     if(RENDERER.setMatchFlags) RENDERER.setMatchFlags(t1,t2);   // fly the two nations' flags in the stadium
-    document.getElementById('hud-f1').innerHTML=`<img src="${t1.flag}" alt="${t1.name}" style="width:32px;height:22px;object-fit:cover;border-radius:2px">`;
+    document.getElementById('hud-f1').innerHTML=`<img src="${t1.flag}" alt="${t1.name}">`;
     document.getElementById('hud-n1').textContent=CG.username||'You';
-    document.getElementById('hud-f2').innerHTML=`<img src="${t2.flag}" alt="${t2.name}" style="width:32px;height:22px;object-fit:cover;border-radius:2px">`;
-    document.getElementById('hud-n2').textContent='🤖 Bot';
+    document.getElementById('hud-f2').innerHTML=`<img src="${t2.flag}" alt="${t2.name}">`;
+    document.getElementById('hud-n2').textContent='Opponent';
     document.getElementById('mode-badge').textContent='vs Bot';
     document.getElementById('goal-overlay').classList.remove('show');
     document.getElementById('sc1').textContent='0';
@@ -3685,7 +4614,9 @@ const APP = {
     GAME.lastTime=performance.now();
     GAME.start('p1', false, true);
     this.showScreen('screen-game');
-    this.runCountdown(()=>{ AUDIO.playMusic(); });
+    // No 3-2-1 in training — it just delays the first lesson.
+    if(GAME.practice){ GAME.countdownActive=false; AUDIO.playMusic(); }
+    else this.runCountdown(()=>{ AUDIO.playMusic(); });
   },
 
   async init(){
@@ -3696,6 +4627,22 @@ const APP = {
     CG.loadingStart();
     this.showScreen('screen-menu');
     CG.loadingStop();
+    this._offerTutorial();
+  },
+
+  // First-ever visit: offer the interactive tutorial once. Never nags again —
+  // the flag is set both on accept and on decline, and it stays replayable
+  // from How to Play.
+  _offerTutorial(){
+    let seen=true;
+    try{ seen = !!localStorage.getItem('wcbf_tutorial_done'); }catch(e){}
+    if(seen) return;
+    setTimeout(()=>{
+      if(window.TUTORIAL && TUTORIAL.active) return;      // never interrupt a running tutorial
+      if(GAME.running) return;                            // or a match already in progress
+      const el=document.getElementById('tut-offer');
+      if(el) el.classList.add('show');
+    }, 900);
   }
 };
 
@@ -3707,13 +4654,738 @@ const APP = {
 //  since #wrap stays a fixed 900×600 layout box underneath.
 // ═══════════════════════════════════════════════════════════════
 const _wrapEl = document.getElementById('wrap');
-function fitWrap(){
-  const margin = 0.96; // small breathing room so it never touches the edges
-  const scale = Math.min(1.25, (window.innerWidth * margin) / 900, (window.innerHeight * margin) / 600);
-  _wrapEl.style.transform = `scale(${scale})`;
+const _gameCV = document.getElementById('gameCanvas');
+function _isFS(){ return !!(document.fullscreenElement || document.webkitFullscreenElement); }
+// Fit (windowed) vs Fill (fullscreen). In fullscreen we widen #wrap to the screen's
+// aspect (keeping its 600-tall layout box) and scale it uniformly — so the WHOLE game
+// fills the screen with NO black bars and NO distortion — then resize the WebGL
+// renderer + trail overlay to the real on-screen pixels so the 3D fills crisply.
+function applyViewport(){
+  const fs = _isFS();
+  _gameCV.style.width = '100%'; _gameCV.style.height = '100%';   // fill #canvas-wrap (override init inline px)
+  _wrapEl.classList.toggle('fs', fs);
+  if(fs){
+    const asp = window.innerWidth / window.innerHeight;
+    _wrapEl.style.width = Math.round(600 * asp) + 'px';
+    _wrapEl.style.transform = `scale(${window.innerHeight / 600})`;
+  } else {
+    _wrapEl.style.width = '900px';
+    const margin = 0.96;
+    _wrapEl.style.transform = `scale(${Math.min(1.25, (window.innerWidth*margin)/900, (window.innerHeight*margin)/600)})`;
+  }
+  requestAnimationFrame(()=>{
+    if(!RENDERER._gl || !RENDERER._cam) return;
+    const r = _gameCV.getBoundingClientRect();
+    if(r.width < 40 || r.height < 40) return;   // canvas hidden (e.g. menu) — don't shrink the renderer to nothing
+    const w = Math.max(2, Math.round(r.width)), h = Math.max(2, Math.round(r.height));
+    RENDERER._lastViewport = {w, h};
+    // Pixel ratio is capped at 1 and further scaled down by the adaptive quality
+    // manager on slow machines (see RENDERER._perfTick).
+    RENDERER._gl.setPixelRatio(Math.min(devicePixelRatio, 1) * (RENDERER._resScale || 1));
+    RENDERER._gl.setSize(w, h, false);                 // backing = real on-screen px, keep CSS at 100%
+    RENDERER._cam.aspect = w / h; RENDERER._cam.updateProjectionMatrix();
+    const tc = RENDERER._trailCtx && RENDERER._trailCtx.canvas;
+    if(tc){ tc.width = w; tc.height = h; }
+  });
 }
-window.addEventListener('resize', fitWrap);
-fitWrap();
+function toggleFullscreen(){
+  window._fsByButton = true;   // this change came from the FULL button, not from Esc
+  try{
+    if(_isFS()){ (document.exitFullscreen || document.webkitExitFullscreen).call(document); }
+    else { const el = document.documentElement; (el.requestFullscreen || el.webkitRequestFullscreen).call(el); }
+  }catch(e){}
+}
+window.toggleFullscreen = toggleFullscreen;
+// ═══════════════════════════════════════════════════════════════
+//  INTERACTIVE TUTORIAL — runs in a practice arena (clock frozen, opponent
+//  passive) and gates each step on the player actually performing the move.
+//  Order matters: Charge / Loft / Pass only work WHILE holding the ball, so
+//  "Hold" is taught before them. Every step is skippable.
+// ═══════════════════════════════════════════════════════════════
+const TUTORIAL = {
+  active:false, i:0, _t:0, _armed:false,
+  // Guaranteed window (frames @60fps) the ball stays in flight and on screen after
+  // a charged / lofted shot before anything re-stages or advances. 85 ≈ 1.4s.
+  WATCH_FRAMES: 120,        // ~2s of visible ball travel after every shot
+
+  // Each drill locks out every ability except the one being taught (`only`), and
+  // must be repeated `need` times before the tutorial moves on.
+  steps:[
+    { id:'welcome', title:'👋 Welcome!', wait:true, only:'none', move:false, kick:false,
+      text:'Let\'s learn the basics and get you scoring goals in no time! 🏆<br>Don\'t worry! I\'ll guide you through every move, one step at a time.',
+      stage(){ TUTORIAL._parkBall(); } },
+
+    { id:'move', title:'Move your rods', need:3, only:'none', move:true, kick:false,
+      keys:'<span class="keycap">W</span><span class="keycap">S</span>',
+      text:'Press <b>W</b> to go up and <b>S</b> to go down. Do <b>both</b> — 3 times.',
+      // Ball is parked off the pitch — nothing to chase, nothing to distract.
+      stage(){ TUTORIAL._parkBall(); },
+      // A rep needs BOTH keys. Driven by real key presses (set in the keydown
+      // handler), so spamming W-W-W or S-S-S can never complete a rep — the rod
+      // hitting its travel limit used to make position-based detection miscount.
+      tick(){
+        if(TUTORIAL._kW && TUTORIAL._kS){ TUTORIAL._kW=false; TUTORIAL._kS=false; return 1; }
+        return 0;
+      },
+      setup(){ TUTORIAL._kW=false; TUTORIAL._kS=false; } },
+
+    { id:'shoot', title:'Kick it', need:2, only:'none', move:false, kick:true,
+      keys:'<span class="keycap wide">Space</span>',
+      text:'The ball is rolling to your players. <b>Tap Space</b> to kick it away. Do it <b>twice</b>.',
+      // Rolled at the player over and over until they connect.
+      stage(){ TUTORIAL._serveToPlayer(1.15); },
+      setup(){ TUTORIAL._h0=RENDERER._tutHits||0; },
+      // Only YOUR tap counts: a figure drifting into the ball fires the same hit
+      // effect, so the kick must coincide with a recent Space press.
+      tick(){
+        const h=RENDERER._tutHits||0;
+        if(h>TUTORIAL._h0){
+          TUTORIAL._h0=h;
+          // The ball still has to travel from its parked spot to the figure after
+          // the tap, so the window must cover that flight — 420ms was too tight
+          // and a slightly late tap was discarded, resetting the drill.
+          const now = performance.now();
+          const tapped = (GAME._tutSpaceT && now-GAME._tutSpaceT < 1500)
+                      || (TUTORIAL._releasedAt && now-TUTORIAL._releasedAt < 1500);
+          if(tapped){ GAME._tutSpaceT=0; TUTORIAL._releasedAt=0; return 1; }
+        }
+        return 0;
+      } },
+
+    { id:'hold', title:'Trap the ball', need:1, only:'none', move:false, kick:true, glow:'hold-ability-card',
+      keys:'<span class="keycap wide hold">Space</span>',
+      text:'Here it comes again — <b>hold Space</b> as it arrives to catch it. Keep trying, it\'ll keep coming.',
+      stage(){ TUTORIAL._serveToPlayer(1.25); },
+      tick(){ return TUTORIAL._holdingMine() ? 1 : 0; } },
+
+    { id:'charge', title:'Charge shot', need:2, only:'charge', move:false, kick:false, glow:'charge-ability-card', hand:true,
+      keys:'<span class="mouse-icon left"><span class="m-half"></span><span class="m-half"></span></span>',
+      text:'The ball is in your grip. <b>Hold Left-click</b> to build power, then release. Fire <b>2 charged shots</b>.',
+      stage(){ TUTORIAL._giveBall(); },
+      setup(){ GAME._tutCharge=0; TUTORIAL._c0=0; },
+      tick(){ const c=GAME._tutCharge||0; if(c>TUTORIAL._c0){ TUTORIAL._c0=c; return 1; } return 0; } },
+
+    { id:'loft', title:'Lofted shot', need:1, only:'loft', move:false, kick:false, glow:'loft-ability-card', hand:true,
+      keys:'<span class="mouse-icon right"><span class="m-half"></span><span class="m-half"></span></span>',
+      text:'Ball\'s in your grip again. <b>Right-click</b> to chip it up and over the defenders.',
+      stage(){ TUTORIAL._giveBall(); },
+      setup(){ GAME._tutLoft=0; TUTORIAL._l0=0; },
+      tick(){ const l=GAME._tutLoft||0; if(l>TUTORIAL._l0){ TUTORIAL._l0=l; return 1; } return 0; } },
+
+    { id:'pass', title:'Pass between rods', need:2, only:'pass', move:false, kick:false, glow:'pass-ability-card', hand:true,
+      keys:'<span class="keycap pass">Q</span><span class="keycap pass">E</span>',
+      text:'Still holding. Press <b>Q</b> or <b>E</b> to pass to the rod above or below. Make <b>2 passes</b>.',
+      stage(){ TUTORIAL._giveBall(); },
+      setup(){ GAME._tutPass=0; TUTORIAL._p0=0; },
+      tick(){ const p=GAME._tutPass||0; if(p>TUTORIAL._p0){ TUTORIAL._p0=p; return 1; } return 0; } },
+
+    { id:'score', title:'⚽ Now score!', need:1, only:'all',
+      text:'Everything\'s unlocked. The ball is at the centre spot — put it in the <b>opponent\'s net</b> and enjoy the celebration!',
+      // Ball starts on the centre spot — but only somewhere no figure is standing,
+      // otherwise the overlap gets resolved on the next frame and fires the ball
+      // off on its own (which could score without the player touching it).
+      stage(){ TUTORIAL._stageCentre(); },
+      setup(){ TUTORIAL._g0=(GAME.score&&GAME.score.p1)||0; TUTORIAL._scored=false;
+               TUTORIAL._touched=false; TUTORIAL._touch0=RENDERER._tutHits||0; },
+      tick(){
+        if(!TUTORIAL._scored && ((GAME.score&&GAME.score.p1)||0) > TUTORIAL._g0) TUTORIAL._scored=true;
+        // Only finish once the whole goal cinematic + celebration has played out.
+        return (TUTORIAL._scored && !GAME.goalSeq) ? 1 : 0;
+      } },
+  ],
+
+  // Basic inputs are locked per drill too, so nothing the player does can
+  // interfere with the lesson (e.g. sliding rods during the kick drill).
+  allowMove(){ const s=this.steps[this.i]; return !s || s.move !== false; },
+  allowKick(){ const s=this.steps[this.i]; return !s || s.kick !== false; },
+  // Only the final drill may actually score.
+  goalsAllowed(){ const s=this.steps[this.i]; return !!(s && s.id==='score'); },
+  // Called when the ball reaches a goal line during a teaching drill, or whenever
+  // a drill's setup needs rebuilding: put the ball straight back where the lesson
+  // needs it so the player simply tries again.
+  restage(){
+    const s=this.steps[this.i];
+    if(!s) return;
+    this._stageT = 0; this._sinceShot = 0; this._deliver = null;
+    if(s.stage) try{ s.stage(); }catch(e){}
+  },
+  // Which abilities are usable right now. 'none' = nothing special (basic play),
+  // 'all' = everything, otherwise only the named ability works.
+  allows(what){
+    const s=this.steps[this.i];
+    if(!s) return true;
+    if(s.only==='all') return true;
+    if(s.only==='none') return false;
+    return s.only===what;
+  },
+
+  // ── helpers ───────────────────────────────────────────────
+  _holdingMine(){ const h=GAME.heldBy; return !!h && (GAME.testMode ? h.team==='p1' : h.team===GAME.myRole); },
+  _ballIdle(){ const b=GAME.ball; return Math.hypot(b.vx,b.vy) < 0.6; },
+  // Is any figure (either team) sitting on top of this spot right now?
+  _spotBlocked(x, y){
+    const minD = CFG.BALL_R + CFG.FIG_W/2 + 22;   // generous: the ball must not even graze a figure
+    for(const rod of ROD_DEFS_2V2){
+      const rx = P.x + rod.xFrac*P.w;
+      if(Math.abs(rx - x) > minD) continue;               // rod is not in this column
+      const off = rod.team==='p1' ? (GAME.p1Off||0) : (GAME.p2Off||0);
+      const sp  = P.h/(rod.nFigs+1);
+      for(let i=0;i<rod.nFigs;i++){
+        if(Math.abs((P.y + sp*(i+1) + off) - y) < minD) return true;
+      }
+    }
+    return false;
+  },
+  // Drop the ball on the centre spot, sliding it clear of any figure standing there.
+  _stageCentre(){
+    this.pathTo=null;
+    GAME.ballHidden=false; GAME.ballFrozen=false;
+    let y = P.cy;
+    if(this._spotBlocked(P.cx, y)){
+      for(let d=12; d<=P.h/2; d+=12){
+        if(y-d > P.y+CFG.BALL_R+14 && !this._spotBlocked(P.cx, y-d)){ y=y-d; break; }
+        if(y+d < P.bottom-CFG.BALL_R-14 && !this._spotBlocked(P.cx, y+d)){ y=y+d; break; }
+      }
+    }
+    GAME.serveBall(P.cx, y, 0, 0);
+    this._stagedAt = {x:P.cx, y};
+  },
+  // Put the ball into a specific rod's nearest figure (used by the trap drill so
+  // the catch is guaranteed rather than depending on collision timing).
+  _giveBallTo(rod){
+    const rx = P.x + rod.xFrac*P.w, off = GAME.p1Off||0, sp = P.h/(rod.nFigs+1);
+    let bi=0, bd=1e9;
+    for(let i=0;i<rod.nFigs;i++){
+      const d=Math.abs((P.y+sp*(i+1)+off) - GAME.ball.y);
+      if(d<bd){ bd=d; bi=i; }
+    }
+    GAME.serveBall(rx, P.y+sp*(bi+1)+off, 0, 0);
+    GAME.heldBy = {team:'p1', rod, figIdx:bi};
+    GAME.holdTimer = 0;
+    if(AUDIO.kick) AUDIO.kick();
+  },
+  // Take the ball out of play entirely (drills that aren't about the ball):
+  // hidden AND frozen, so nothing can collide with it.
+  _clearPath(){ this.pathTo=null; },
+  // Fade the rods that are non-solid this drill, so the ball passing through them
+  // reads as deliberate ("focus on the keeper") instead of a collision bug.
+  _fadeRods(){
+    if(!GAME._rods) return;
+    const s=this.steps[this.i];
+    const focusing = this.active && s && (s.id==='shoot' || s.id==='hold');
+    const keeper = focusing ? this._keeperRod() : null;
+    for(const {rod, figs} of GAME._rods){
+      const dim = focusing && rod !== keeper;
+      for(const g of figs){
+        g.traverse(o=>{
+          if(!o.isMesh || !o.material) return;
+          if(dim){
+            if(!o.material.transparent){ o.material.transparent = true; }
+            o.material.opacity = 0.22;
+          } else if(o.material.opacity !== 1){
+            o.material.opacity = 1;
+          }
+        });
+      }
+    }
+  },
+  // Find a horizontal lane between fromX and toX with no figure standing in it,
+  // so the delivery reaches the keeper instead of being blocked by midfielders.
+  // Is the straight line from (x1,y1) to (x2,y2) clear of every figure?
+  // Uses the game's own segment/point distance so it matches real collisions.
+  _lineBlocked(x1,y1,x2,y2){
+    const minD = CFG.BALL_R + CFG.FIG_W/2 + 12;
+    for(const r of ROD_DEFS_2V2){
+      const rxr = P.x + r.xFrac*P.w;
+      if(rxr < Math.min(x1,x2)-30 || rxr > Math.max(x1,x2)+30) continue;
+      if(Math.abs(rxr - x2) < 6) continue;            // the target rod itself
+      const off = r.team==='p1' ? (GAME.p1Off||0) : (GAME.p2Off||0);
+      const sp  = P.h/(r.nFigs+1);
+      for(let i=0;i<r.nFigs;i++){
+        const fy2 = P.y + sp*(i+1) + off;
+        if(GAME._segPointDist(x1,y1,x2,y2, rxr, fy2) < minD) return true;
+      }
+    }
+    return false;
+  },
+  // Would any figure sit in this lane, given the p1 rods at offset p1o?
+  _laneBlocked(y, fromX, toX, p1o){
+    const minD = CFG.BALL_R + CFG.FIG_W/2 + 14;
+    for(const r of ROD_DEFS_2V2){
+      const x = P.x + r.xFrac*P.w;
+      if(!(x > toX+20 && x < fromX-10)) continue;      // only rods in the ball's path
+      const off = r.team==='p1' ? p1o : (GAME.p2Off||0);
+      const sp  = P.h/(r.nFigs+1);
+      for(let i=0;i<r.nFigs;i++) if(Math.abs((P.y + sp*(i+1) + off) - y) < minD) return true;
+    }
+    return false;
+  },
+  _clearLaneY(fromX, toX){
+    const minD = CFG.BALL_R + CFG.FIG_W/2 + 14;
+    const rods = ROD_DEFS_2V2.filter(r=>{ const x=P.x+r.xFrac*P.w; return x > toX+20 && x < fromX-10; });
+    const blocked = (y)=>{
+      for(const r of rods){
+        const off = r.team==='p1' ? (GAME.p1Off||0) : (GAME.p2Off||0);
+        const sp  = P.h/(r.nFigs+1);
+        for(let i=0;i<r.nFigs;i++) if(Math.abs((P.y + sp*(i+1) + off) - y) < minD) return true;
+      }
+      return false;
+    };
+    if(!blocked(P.cy)) return P.cy;
+    for(let d=10; d<P.h/2; d+=10){
+      if(P.cy-d > P.y+34 && !blocked(P.cy-d)) return P.cy-d;
+      if(P.cy+d < P.bottom-34 && !blocked(P.cy+d)) return P.cy+d;
+    }
+    return P.cy;
+  },
+  // Spotlight the ball/keeper as the shot arrives. Reuses the existing hit light
+  // (created at init) — adding a NEW light at runtime would force every material
+  // in the scene to recompile and hitch the frame.
+  _focus(on, x, y){
+    const L = RENDERER._hitLight; if(!L) return;
+    if(on){
+      L.distance = 5.5;
+      L.color.setHex(0xfff0c8);
+      L.position.set(RENDERER._tx(x), 0.75, RENDERER._tz(y));
+      L.intensity += (9 - L.intensity) * 0.18;          // ease up
+      this._dimmed = true;
+      if(RENDERER._keyLight) RENDERER._keyLight.intensity += (1.35 - RENDERER._keyLight.intensity)*0.12;
+    } else if(this._dimmed){
+      L.intensity *= 0.85;
+      if(L.intensity < 0.05){ L.intensity = 0; this._dimmed = false; }
+      if(RENDERER._keyLight) RENDERER._keyLight.intensity += (2.6 - RENDERER._keyLight.intensity)*0.12;
+    }
+  },
+  _parkBall(){ this.pathTo=null; GAME.serveBall(P.cx, P.cy, 0, 0); GAME.ballHidden = true; GAME.ballFrozen = true; },
+  // True while the current drill hands the ball to the player (charge/loft/pass/score).
+  holdsBall(){ const s=this.steps[this.i]; return !!(s && s.stage && s.hand); },
+  _myRod(){ return ROD_DEFS_2V2.filter(r=>r.team==='p1')[2] || ROD_DEFS_2V2.find(r=>r.team==='p1'); },
+  // During the keeper drills every rod EXCEPT the goalkeeper is non-solid, so the
+  // delivery always reaches him. Other drills keep the table completely normal.
+  skipRod(rod){
+    const s=this.steps[this.i];
+    if(!s || (s.id!=='shoot' && s.id!=='hold')) return false;
+    // NOTHING is solid during these drills. The tutorial scripts the delivery and
+    // performs the kick/catch itself, so physics contact is not just unnecessary —
+    // it actively fought the scripted pin. Pressing Space while the ball was still
+    // gliding let _collideFigs kick it on the same frame the delivery re-pinned it,
+    // and the two tugging against each other made the ball wobble around in a
+    // circle ("dizzy") with all its speed lost. That was the weak first shot.
+    return true;
+  },
+  // The GOALKEEPER rod — p1's rod closest to their own goal.
+  _keeperRod(){
+    const mine = ROD_DEFS_2V2.filter(r=>r.team==='p1');
+    return mine.reduce((a,b)=> b.xFrac < a.xFrac ? b : a, mine[0]);
+  },
+  // Roll the ball gently at one of the player's rods so it's easy to meet.
+  // Roll the ball AT the goalkeeper, i.e. from midfield back toward the player's
+  // own goal — the natural "here comes a shot, deal with it" framing.
+  _serveToPlayer(spd=2.2){
+    const rod=this._keeperRod(), rx=P.x + rod.xFrac*P.w;
+    const sp2 = P.h/(rod.nFigs+1);
+    GAME.ballHidden=false; GAME.ballFrozen=false;
+    // A straight horizontal roll cannot clear the 5-man rod (figures ~83px apart,
+    // ball needs ~41px either side). A DIAGONAL threads between them and gives a
+    // genuinely long approach. Align the keeper on centre, then search outward for
+    // a launch point with an unobstructed straight line to him.
+    let bi=0, bd=1e9;
+    for(let i=0;i<rod.nFigs;i++){
+      const d=Math.abs((P.y+sp2*(i+1))-P.cy); if(d<bd){ bd=d; bi=i; }
+    }
+    GAME.p1Off = Math.max(LIM.p1.min, Math.min(LIM.p1.max, P.cy-(P.y+sp2*(bi+1))));
+    const tx = rx, ty = P.cy;                       // keeper figure = the target
+    let sxp = rx + 150, syp = P.cy;                 // fallback if nothing is clear
+    let found=false;
+    for(const dx of [430,380,330,280,230,180]){
+      for(const dy of [-190,190,-150,150,-110,110,-70,70,0]){
+        const cx=tx+dx, cy=ty+dy;
+        if(cx > P.right-34 || cy < P.y+34 || cy > P.bottom-34) continue;
+        if(!this._lineBlocked(cx,cy,tx,ty)){ sxp=cx; syp=cy; found=true; break; }
+      }
+      if(found) break;
+    }
+    const L = Math.hypot(tx-sxp, ty-syp) || 1;
+    GAME.serveBall(sxp, syp, (tx-sxp)/L*spd, (ty-syp)/L*spd);
+    // Drive the delivery ourselves along a fixed line. Letting physics carry it
+    // meant bounces, damping and anti-stuck nudges could send it back up the pitch
+    // and the drill would re-serve forever. Scripted = it always arrives.
+    this._deliver = {x0:sxp, y0:syp, x1:tx, y1:ty, len:L, d:0, spd};
+    // Telegraph the delivery so the player can read it coming and time the tap.
+    this.pathTo = {x:tx, y:ty};
+  },
+  // Put the ball straight into the player's grip so the drill can start at once —
+  // this is what makes the ability lessons feel guided instead of "go play".
+  _giveBall(){
+    this.pathTo=null;
+    GAME.ballHidden=false; GAME.ballFrozen=false;
+    if(this._holdingMine()) return;
+    const rod=this._myRod();
+    const off = GAME.p1Off||0, sp = P.h/(rod.nFigs+1);
+    let best=0, bestD=1e9;
+    for(let i=0;i<rod.nFigs;i++){
+      const fy=P.y+sp*(i+1)+off, d=Math.abs(fy-GAME.ball.y);
+      if(d<bestD){ bestD=d; best=i; }
+    }
+    const rx=P.x+rod.xFrac*P.w, fy=P.y+sp*(best+1)+off;
+    GAME.serveBall(rx, fy, 0, 0);
+    GAME.heldBy={team:'p1', rod, figIdx:best};
+    GAME.holdTimer=0;
+  },
+
+  // ── lifecycle ─────────────────────────────────────────────
+  // Put every piece of tutorial UI and state back to "never run before", so the
+  // tutorial is fully replayable from the How to Play screen.
+  _resetUI(){
+    // restore the stadium lighting the focus effect dimmed
+    if(RENDERER._keyLight) RENDERER._keyLight.intensity = 2.6;
+    if(RENDERER._hitLight) RENDERER._hitLight.intensity = 0;
+    this._dimmed=false; this.pathTo=null; this._deliver=null;
+    try{ this._fadeRods(); }catch(e){}
+    this._finishing=false; this._waiting=false; this._waitT=0;
+    this._got=0; this._t=0; this._stageT=0; this._sinceShot=0; this._scored=false; this._touched=false;
+    const sk=document.getElementById('tut-skip');
+    if(sk){ sk.style.display=''; sk.onclick=()=>TUTORIAL.stop(false); }
+    const nb=document.getElementById('tut-next');
+    if(nb){ nb.style.display=''; nb.textContent="Let's go"; nb.onclick=()=>TUTORIAL.next(); }
+    const ok=document.getElementById('tut-ok'); if(ok){ ok.textContent='✔'; ok.classList.remove('pop'); }
+    ['tut-keys','tut-prog','tut-dots'].forEach(id=>{ const e=document.getElementById(id); if(e) e.innerHTML=''; });
+  },
+
+  start(){
+    if(this.active) return;
+    hideHowTo();
+    this._resetUI();                 // clear anything left over from a previous run
+    this.active=true; this.i=0;
+    try{ localStorage.setItem('wcbf_tutorial_done','1'); }catch(e){}
+    STATE.p1Team = STATE.p1Team || TEAMS[0];
+    STATE.p2Team = STATE.p2Team || TEAMS.find(t=>t.id!==STATE.p1Team.id);
+    STATE._botPick = false;
+    GAME.practice = true;                       // passive opponent + frozen clock
+    APP.enterBotMode();
+    document.getElementById('tut-layer').classList.add('show');
+    setTimeout(()=>this._show(0), 350);       // no countdown to wait for
+  },
+  stop(finished){
+    if(!this.active) return;
+    this.active=false;
+    document.getElementById('tut-layer').classList.remove('show');
+    this._resetUI();
+    this._clearGlow();
+    // hand everything back to normal play
+    GAME.practice=false; GAME.ballHidden=false; GAME.ballFrozen=false;
+    APP.quitToMenu();
+  },
+
+  // Final drill cleared: celebrate, let it land, THEN leave — previously it
+  // snapped straight back to the menu the instant the goal went in.
+  _finish(){
+    if(this._finishing) return;
+    this._finishing=true;
+    this._clearGlow();
+    GAME.ballFrozen=true;
+    document.getElementById('tut-title').innerHTML='🎉 Tutorial Complete!';
+    document.getElementById('tut-text').innerHTML='<b>You\'re now ready to play!</b><br>You\'ve mastered every move — moving, kicking, trapping, charging, lofting, passing and scoring. Good luck out there! ⚽';
+    document.getElementById('tut-keys').innerHTML='';
+    document.getElementById('tut-prog').innerHTML='';
+    document.getElementById('tut-dots').innerHTML =
+      this.steps.map(()=>'<span class="tut-dot done"></span>').join('');
+    // The player leaves when THEY are ready — no forced exit.
+    const btn=document.getElementById('tut-next');
+    btn.style.display=''; btn.textContent='Return to Main Menu'; btn.onclick=()=>this.stop(true);
+    const sk=document.getElementById('tut-skip'); if(sk) sk.style.display='none';
+    const ok=document.getElementById('tut-ok');
+    ok.textContent='★'; ok.classList.remove('pop'); void ok.offsetWidth; ok.classList.add('pop');
+    if(RENDERER.triggerCrowdCheer) RENDERER.triggerCrowdCheer();
+    [523,659,784,1047].forEach((f,k)=> setTimeout(()=>AUDIO.tone(f,0.18,0.11), k*90));
+  },
+
+  _show(i){
+    this.i=i; this._t=0; this._got=0; this._stageT=0; this._sinceShot=0; this._deliver=null;
+    // drop any keys still held from the previous drill so a locked input
+    // can't leak through as an already-pressed key
+    GAME.myInput = {up:false, down:false, kick:false};
+    const s=this.steps[i]; if(!s) return this._finish();
+    document.getElementById('tut-title').textContent = s.title;
+    document.getElementById('tut-text').innerHTML = s.text;
+    document.getElementById('tut-keys').innerHTML = s.keys||'';
+    // The only button is "Let's go" on the intro. Action drills have no skip
+    // button at all — the banner tells you what to do and you do it.
+    // Text AND handler are re-applied every time: the completion card repurposes
+    // this same button ("Return to Main Menu"), so replaying the tutorial must
+    // restore it or the intro button would still say — and do — the wrong thing.
+    const btn=document.getElementById('tut-next');
+    btn.style.display = s.wait ? '' : 'none';
+    btn.textContent = "Let's go";
+    btn.onclick = ()=>TUTORIAL.next();
+    // step dots + per-drill repetition ticks
+    document.getElementById('tut-dots').innerHTML =
+      this.steps.map((_,k)=>`<span class="tut-dot ${k<i?'done':(k===i?'on':'')}"></span>`).join('');
+    this._renderTicks();
+    this._clearGlow();
+    if(s.glow){
+      const el=document.getElementById(s.glow);
+      if(el){ el.classList.add('tut-glow'); this._glowEl=el; this._placeArrow(el); }
+    } else this._hideArrow();
+    if(s.setup) try{ s.setup(); }catch(e){}
+    if(s.stage) try{ s.stage(); }catch(e){}     // put the ball exactly where this drill needs it
+    this._fadeRods();
+  },
+  _renderTicks(){
+    const s=this.steps[this.i], el=document.getElementById('tut-prog');
+    if(!s || !s.need || s.need<2){ el.innerHTML=''; return; }
+    // clamp so the final rep always shows every box filled
+    if(this._got > s.need) this._got = s.need;
+    let h=''; for(let k=0;k<s.need;k++) h+=`<span class="tut-tick ${k<this._got?'on':''}"></span>`;
+    el.innerHTML=h;
+  },
+  // Park the bouncing arrow just above whatever is highlighted.
+  _placeArrow(el){
+    const a=document.getElementById('tut-arrow'), wrap=document.getElementById('canvas-wrap');
+    if(!a||!wrap) return;
+    const r=el.getBoundingClientRect(), w=wrap.getBoundingClientRect();
+    a.style.left=(r.left-w.left+r.width/2-11)+'px';
+    a.style.top =(r.top -w.top -34)+'px';
+    a.classList.add('show');
+  },
+  _hideArrow(){ const a=document.getElementById('tut-arrow'); if(a) a.classList.remove('show'); },
+  _clearGlow(){ if(this._glowEl){ this._glowEl.classList.remove('tut-glow'); this._glowEl=null; } this._hideArrow(); },
+  next(){ if(!this.active) return; this._show(this.i+1); },
+  // Declining the first-launch offer still records it, so it never asks again.
+  decline(){
+    try{ localStorage.setItem('wcbf_tutorial_done','1'); }catch(e){}
+    const el=document.getElementById('tut-offer'); if(el) el.classList.remove('show');
+  },
+  _rep(){                                         // one repetition banked
+    AUDIO.tone(1050,.07,.08);
+    this._renderTicks();
+    const el=document.getElementById('tut-prog');
+    if(el){ el.animate([{transform:'scale(1)'},{transform:'scale(1.25)'},{transform:'scale(1)'}],{duration:220}); }
+  },
+  _pass(){                                        // whole drill cleared
+    // Fill in the FINAL tick first — this used to be skipped (only _rep() drew
+    // them), so the last box never turned green before the step changed.
+    this._renderTicks();
+    const ok=document.getElementById('tut-ok');
+    ok.classList.remove('pop'); void ok.offsetWidth; ok.classList.add('pop');
+    AUDIO.tone(880,.10,.10); AUDIO.tone(1320,.12,.09,.07);
+    this._clearGlow();
+    // Don't advance on a fixed timer — WATCH the shot finish. The player needs to
+    // see the ball leave the figure, travel, and (for a loft) arc back down before
+    // the next instruction replaces it.
+    // Give the ✔ room to breathe: the pop animation is ~0.75s, so hold well past
+    // it before swapping in the next instruction. Shot drills additionally wait
+    // for the ball to finish travelling.
+    const s=this.steps[this.i];
+    this._waiting = true; this._waitT = 0;
+    this._minWait = (s && s.hand) ? (this.WATCH_FRAMES + 45) : 105;
+  },
+  // The shot is "done" once the ball is back on the deck and has slowed down.
+  _shotSettled(){
+    if(this._holdingMine()) return true;          // they caught it again — fine
+    if(GAME.ballHidden) return true;
+    if((GAME.ballZ||0) > 0.02) return false;      // still airborne (lofted shot)
+    const b=GAME.ball;
+    return Math.hypot(b.vx,b.vy) < 1.6;
+  },
+
+  // polled every frame from the render loop
+  update(){
+    if(!this.active || GAME.paused || GAME.countdownActive) return;
+    // Post-drill beat: let the shot play out fully before the next instruction.
+    if(this._waiting){
+      this._waitT++;
+      // Shot drills get the full watch window so the ball is always seen travelling;
+      // non-shot drills just need a beat to read the ✔.
+      const minBeat = this._waitT > (this._minWait||55);
+      const settled = this._shotSettled();
+      const timeout = this._waitT > 420;                      // 7s safety net
+      if((minBeat && settled) || timeout){ this._waiting=false; this.next(); }
+      return;
+    }
+    const s=this.steps[this.i]; if(!s) return;
+    this._keepOnScript(s);                        // the ball never free-roams during a drill
+    if(s.wait) return;
+    this._t++;
+    if(this._t<18) return;                        // brief arm so the previous action can't double-count
+    let got=0; try{ got=s.tick()|0; }catch(e){}
+    if(got>0){
+      this._got += got;
+      const need=s.need||1;
+      // Last drill goes straight to the celebration card (the goal cinematic has
+      // already had its moment); everything else gets the "watch your shot" beat.
+      if(this._got>=need){ if(this.i>=this.steps.length-1) this._finish(); else this._pass(); }
+      else { this._rep(); this._stageT = 0; }     // watchdog re-stages after the shot has flown
+    }
+  },
+
+  // Watchdog: the tutorial owns the ball at all times. If a drill's ball drifts,
+  // stops, leaves the player's zone, or was never launched, it is put straight back
+  // — so "keep launching until they succeed" happens automatically, forever.
+  _keepOnScript(s){
+    if(!s.stage) return;
+    this._stageT = (this._stageT||0) + 1;
+    if(s.id==='welcome' || s.id==='move'){        // ball must stay parked away
+      if(!GAME.ballHidden) this.restage();
+      return;
+    }
+    if(s.hand && s.id!=='score'){
+      // Hand-held drills. Timing is measured from the moment the ball LEAVES the
+      // hand, not from when the drill started — otherwise a player who took a few
+      // seconds before clicking had the ball snatched back the instant they fired,
+      // so they never saw the shot at all.
+      if(this._holdingMine()){ this._sinceShot = 0; return; }
+      this._sinceShot = (this._sinceShot||0) + 1;
+      // Keep the catch disabled for the whole watch window. Otherwise the very
+      // next figure downfield snatches the ball ~0.4s after it's fired and the
+      // player never sees the shot travel.
+      if(this._sinceShot < TUTORIAL.WATCH_FRAMES){
+        GAME.holdCooldownP1 = Math.max(GAME.holdCooldownP1||0, 0.4);
+      }
+      // Between reps, use the SAME rule as the final rep: hold the ball out there
+      // for the full watch window AND until the shot has actually settled. Rep 1
+      // used to be cut short on a bare frame count, which is why the first charged
+      // shot was the hard one to see.
+      if(this._sinceShot > TUTORIAL.WATCH_FRAMES && (this._shotSettled() || this._sinceShot > 260)){
+        this.restage();
+      }
+      return;
+    }
+    if(s.id==='score'){
+      // Never interfere while the goal cinematic is running. Only rescue a ball
+      // that has sat dead somewhere unreachable.
+      if(GAME.goalSeq || this._scored || this._holdingMine()){ this._stageT=0; return; }
+      // No motion guard here: _stageCentre() already drops the ball on a spot with
+      // no figure touching it, so it cannot be ejected on its own. An extra "did it
+      // move?" check re-staged the ball every time the PLAYER kicked it, which made
+      // scoring impossible. Only rescue a ball that has gone dead and unreachable.
+      if(this._ballIdle() && this._stageT>360) this.restage();
+      return;
+    }
+    if(s.id==='shoot' || s.id==='hold'){
+      if(this._holdingMine()){ this._focus(false); this._deliver=null; return; }
+      const b=GAME.ball, rod=this._keeperRod(), rx=P.x + rod.xFrac*P.w;
+      // ── Scripted delivery: walk the ball along the launch→keeper line at a
+      //    controlled pace, easing down as it nears him. Hand control back to
+      //    physics once it's in kicking range so the tap still works normally.
+      const D=this._deliver;
+      if(D){
+        const ux=(D.x1-D.x0)/D.len, uy=(D.y1-D.y0)/D.len;   // unit vector along the path
+        const left = D.len - D.d;
+        const PARK = 38;                                     // just OUTSIDE kick range
+        if(left <= PARK){
+          // ── Arrived: hold the ball at the keeper's feet and WAIT for the tap.
+          //    Handing it to physics here was what made it skitter about randomly.
+          b.x = D.x1 - ux*PARK; b.y = D.y1 - uy*PARK;
+          b.vx = 0; b.vy = 0; GAME.ballZ = 0; GAME.ballVZ = 0;
+          this._focus(true, rx, b.y);
+          // Player tapped Space -> release it into the figure so the normal kick fires.
+          // ── The tap is resolved DIRECTLY here rather than by releasing the ball
+          //    and hoping the collision registers. Relying on the physics contact
+          //    meant the powered-kick window, the catch cooldown and the flight
+          //    time all had to line up, and any one of them failing silently ate
+          //    the input. This cannot fail: press Space, the action happens.
+          // Accept a press made slightly EARLY (while the ball was still gliding
+          // in) as well as one made now — otherwise that press was silently
+          // swallowed and the player had to tap a second time.
+          if(GAME._tutSpaceT && (performance.now()-GAME._tutSpaceT) < 2500){
+            GAME._tutSpaceT = 0;
+            this._deliver = null;
+            this._focus(false);
+            if(s.id === 'hold'){
+              // Trap: put the ball straight into the keeper's grip.
+              this._giveBallTo(rod);
+            } else {
+              // Kick: fire it upfield with the SAME power as a real powered
+              // contact (8.2). Nudge it just clear of the figure on the attacking
+              // side first — dropping it exactly ON the figure made the collision
+              // system resolve the overlap and bleed off the speed, which is why
+              // the first kick came out weak while later ones felt right.
+              b.x = D.x1 + (CFG.BALL_R + CFG.FIG_W/2 + 6);
+              b.y = D.y1;
+              b.vx = 8.2; b.vy = (Math.random()-0.5)*1.6;
+              GAME.lastTouchTeam = 'p1';
+              GAME.holdCooldownP1 = Math.max(GAME.holdCooldownP1||0, 0.8);  // don't re-catch it
+              GAME.p1KickAngle = 0.65;
+              if(RENDERER.triggerHitEffect) RENDERER.triggerHitEffect(b, 0.8);
+              if(AUDIO.kick) AUDIO.kick();
+            }
+            this._releasedAt = performance.now();
+          }
+          return;
+        }
+        // Glide in, easing down over the last stretch.
+        const step = Math.max(0.45, Math.min(D.spd, D.spd*(left/190)));
+        D.d += step;
+        const t = D.d / D.len;
+        b.x = D.x0 + (D.x1-D.x0)*t;
+        b.y = D.y0 + (D.y1-D.y0)*t;
+        b.vx = ux*step; b.vy = uy*step;
+        GAME.ballZ=0; GAME.ballVZ=0;
+        this._focus(left < 190, rx, b.y);
+        return;                                     // no miss/stall checks while delivering
+      }
+      // ── Slow-motion + spotlight as the ball closes on the keeper, so there's
+      //    plenty of time to read it and tap Space.
+      // NO speed clamp here any more. The scripted delivery already eases the ball
+      // in, and this clamp was still running AFTER the player kicked: the ball
+      // leaves from ~22px in front of the keeper, which is inside the old 170px
+      // window, so an 8.2 kick was instantly throttled back to ~1.1. That was the
+      // weak first shot — the kick was correct, this just crushed it a frame later.
+      this._focus(false);
+      const missed = b.x < rx - 70;               // rolled past the keeper
+      const stalled = this._ballIdle();
+      const tooLong = this._stageT > 480;         // 8s — the slow-mo approach alone
+                                                  // takes ~4.8s, so 4s cut it short
+                                                  // and re-served mid-delivery
+      if(missed || stalled || tooLong) this.restage();
+      return;
+    }
+  },
+};
+window.TUTORIAL = TUTORIAL;
+document.addEventListener('DOMContentLoaded', ()=>{
+  const nx=document.getElementById('tut-next'), sk=document.getElementById('tut-skip');
+  if(nx) nx.onclick = ()=>{ const s=TUTORIAL.steps[TUTORIAL.i];
+    if(s && s.wait) TUTORIAL.next(); else TUTORIAL.next(); };   // "Let's go" / "Skip step"
+  if(sk) sk.onclick = ()=> TUTORIAL.stop(false);
+});
+
+// ── How to Play overlay (reachable from Main Menu + Pause) ──
+function showHowTo(){ var o=document.getElementById('howto-overlay'); if(o) o.classList.add('show'); }
+function hideHowTo(){ var o=document.getElementById('howto-overlay'); if(o) o.classList.remove('show'); }
+window.showHowTo = showHowTo; window.hideHowTo = hideHowTo;
+window.addEventListener('resize', applyViewport);
+document.addEventListener('fullscreenchange', applyViewport);
+document.addEventListener('webkitfullscreenchange', applyViewport);
+// Keep Esc as PAUSE while in fullscreen. The Keyboard Lock API lets a fullscreen page
+// capture Escape (Chrome/Edge), so a quick Esc opens the pause menu instead of leaving
+// fullscreen. Fullscreen then only exits via the FULL button (holding Esc is still
+// allowed by the browser as a hard-coded safety and cannot be disabled). Lock on enter,
+// unlock on exit.
+function _manageEscLock(){
+  try{
+    if(_isFS()){
+      if(navigator.keyboard && navigator.keyboard.lock){ navigator.keyboard.lock(['Escape']).catch(function(){}); }
+    } else {
+      if(navigator.keyboard && navigator.keyboard.unlock){ navigator.keyboard.unlock(); }
+    }
+  }catch(e){}
+}
+document.addEventListener('fullscreenchange', _manageEscLock);
+document.addEventListener('webkitfullscreenchange', _manageEscLock);
+// Fallback for browsers WITHOUT Keyboard Lock (Firefox/Safari): there Esc still exits
+// fullscreen, so on a non-button exit during play we open the pause menu instead. On
+// browsers with Keyboard Lock this rarely fires (Esc no longer exits fullscreen).
+function _pauseOnFsExit(){
+  if(!_isFS() && !window._fsByButton && typeof GAME!=='undefined' && GAME.running && !GAME.paused && !GAME.countdownActive && !GAME.goalSeq){
+    GAME.togglePause();
+  }
+  window._fsByButton = false;
+}
+document.addEventListener('fullscreenchange', _pauseOnFsExit);
+document.addEventListener('webkitfullscreenchange', _pauseOnFsExit);
+applyViewport();
 
 // ═══════════════════════════════════════════════════════════════
 //  BOOT
