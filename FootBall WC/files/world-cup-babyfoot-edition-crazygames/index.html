@@ -378,6 +378,14 @@ button:hover, .btn:hover, #btn-mute:hover, [onclick]:hover{transform:scale(1.06)
 .howto-txt{display:flex;flex-direction:column;gap:1px;line-height:1.22}
 .howto-txt b{color:var(--pg);font-style:italic;font-weight:900;text-transform:uppercase;font-size:12px;letter-spacing:.5px}
 .howto-txt span{color:var(--pw);font-size:11px;opacity:.85;font-weight:600}
+/* ── Ball-gated abilities ──
+   Charge, Loft and Pass are unusable unless the ball is trapped. In-match their
+   HUD cards are dimmed, but a dimmed card never says WHY it is dimmed, so the
+   reference panel spells it out: a gold border, an inline badge, and a footnote. */
+.howto-item.needs-ball{border-color:rgba(255,215,0,.5);background:rgba(30,24,8,.5)}
+.howto-txt b .nb{display:inline-block;vertical-align:middle;margin-left:5px;padding:1.5px 5px;border-radius:4px;background:linear-gradient(180deg,#ffe53b,#ffb800);color:#3a2a00;font-size:8px;font-weight:900;font-style:normal;letter-spacing:.3px;text-transform:uppercase;box-shadow:0 1px 0 rgba(0,0,0,.35)}
+.howto-note{margin-top:13px;text-align:center;color:var(--pw);font-size:11.5px;font-weight:700;font-style:italic;opacity:.92;line-height:1.35}
+.howto-note b{color:var(--pg);font-style:normal}
 .howto-close{display:block;margin:18px auto 2px;font-family:Impact,'Arial Black',sans-serif;background:var(--pg);color:var(--pk);border:3px solid var(--pk);border-radius:0;clip-path:polygon(6% 0,100% 0,94% 100%,0 100%);font-style:italic;font-weight:900;font-size:20px;letter-spacing:2px;padding:12px 42px;text-transform:uppercase;box-shadow:6px 6px 0 rgba(0,0,0,.4);transform:skewX(-8deg);cursor:pointer;transition:transform .1s,box-shadow .1s}
 .howto-close:hover{transform:skewX(-8deg) translate(-2px,-2px);box-shadow:9px 9px 0 rgba(0,0,0,.45)}
 /* Main-menu 'How to Play' secondary button */
@@ -457,6 +465,20 @@ button:hover, .btn:hover, #btn-mute:hover, [onclick]:hover{transform:scale(1.06)
 #global-sound.ac-round{position:absolute;top:14px;right:14px;z-index:35;clip-path:none;border-radius:50%;width:44px;height:44px;padding:0;justify-content:center;gap:0;box-shadow:0 3px 0 rgba(0,0,0,.45),0 0 0 3px var(--pk)}
 #global-sound.ac-round:hover{transform:translateY(-2px);box-shadow:0 5px 0 rgba(0,0,0,.45),0 0 0 3px var(--pk)}
 #global-sound .ac-ico{font-size:19px}
+/* ── In-match pause button ──
+   Same round chip as the global sound button (which is hidden during a match,
+   so this slot is free), parked in the top-right of the pitch view. */
+#btn-pause.ac-round{position:absolute;top:12px;right:12px;z-index:22;clip-path:none;border-radius:50%;width:34px;height:34px;padding:0;justify-content:center;align-items:center;gap:0;line-height:0;box-shadow:0 2.5px 0 rgba(0,0,0,.45),0 0 0 2.5px var(--pk)}
+#btn-pause.ac-round:hover{transform:translateY(-2px);box-shadow:0 4.5px 0 rgba(0,0,0,.45),0 0 0 2.5px var(--pk)}
+#btn-pause.ac-round:active{transform:translateY(1px);box-shadow:0 1.5px 0 rgba(0,0,0,.45),0 0 0 2.5px var(--pk)}
+/* The bars are an inline SVG rather than the ⏸ glyph: emoji carry their own
+   baseline and side bearings, which pushed the icon off-centre in the circle.
+   The two rects are symmetric about the 24x24 viewBox centre, so they land dead
+   centre regardless of font. display:block + line-height:0 kill the baseline gap. */
+#btn-pause svg{display:block}
+/* The tutorial blocks pausing so its scripted drills stay in sync — hide the
+   button rather than leave a dead control on screen. */
+#tut-layer.show ~ #btn-pause{display:none}
 </style>
 </head>
 <body>
@@ -486,7 +508,7 @@ button:hover, .btn:hover, #btn-mute:hover, [onclick]:hover{transform:scale(1.06)
     <div class="menu-title">WORLD<br>CUP</div>
     <div class="menu-sub">Babyfoot Edition</div>
     <button class="btn-play" onclick="APP.startBotPick()">▶ PLAY NOW!</button>
-    <button class="btn-howto" onclick="showHowTo()">❔ How to Play</button>
+    <button class="btn-play btn-tutorial" onclick="TUTORIAL.start()">🎓 Tutorial</button>
   </div>
 </div>
 
@@ -576,6 +598,9 @@ button:hover, .btn:hover, #btn-mute:hover, [onclick]:hover{transform:scale(1.06)
       </div>
       <button class="tut-skip" id="tut-skip">Skip tutorial</button>
     </div>
+    <!-- In-match pause. Sits after #tut-layer on purpose: the CSS sibling rule
+         hides it while the tutorial is running, since pausing is blocked there. -->
+    <button id="btn-pause" class="ac-btn ac-round" onclick="GAME.togglePause()" title="Pause" aria-label="Pause game"><svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true"><rect x="7" y="4" width="4" height="16" rx="1.5" fill="currentColor"/><rect x="13" y="4" width="4" height="16" rx="1.5" fill="currentColor"/></svg></button>
     <div id="ability-hud">
       <div class="ability-card" id="hold-ability-card" title="Hold Ball — hold Space to trap the ball">
         <div class="ab-slot"><div class="ability-ring" id="hold-ability-ring"><span class="ability-icon">✋</span></div></div>
@@ -639,20 +664,19 @@ button:hover, .btn:hover, #btn-mute:hover, [onclick]:hover{transform:scale(1.06)
   <div class="pause-title">⏸ PAUSED</div>
   <div class="pause-btns">
     <button class="btn-lobby btn-create" style="width:auto;padding:14px 40px" onclick="GAME.resume()">▶ Resume</button>
-    <button class="btn-back-lnk" onclick="showHowTo()">❔ How to Play</button>
+    <button class="btn-back-lnk" onclick="showControls()">🎮 Controls</button>
     <button class="btn-back-lnk" onclick="APP.quitToMenu()">✖ Quit to Menu</button>
   </div>
   <div class="pause-audio">
     <button class="ac-btn js-audio-music" onclick="AUDIO.toggleMusic()" title="Music on/off"><span class="ac-ico">🎵</span><span class="ac-lbl">Music</span></button>
     <button class="ac-btn js-audio-sound" onclick="AUDIO.toggleMasterMute()" title="Sound on/off"><span class="ac-ico">🔊</span><span class="ac-lbl">Sound</span></button>
   </div>
-  <div class="pause-hint">Press <b>Esc</b> to resume</div>
 </div>
 
 <!-- HOW TO PLAY overlay: reachable from Main Menu and Pause -->
 <div id="howto-overlay" class="overlay" onclick="if(event.target===this) hideHowTo()">
   <div class="howto-panel">
-    <div class="howto-title">How to Play</div>
+    <div class="howto-title">Controls</div>
     <div class="howto-goal">Knock the ball into your opponent's goal and defend your own. Whoever has the <b>most goals</b> when the clock runs out wins.</div>
     <div class="howto-grid">
       <div class="howto-item">
@@ -663,26 +687,34 @@ button:hover, .btn:hover, #btn-mute:hover, [onclick]:hover{transform:scale(1.06)
         <div class="howto-keys"><span class="keycap wide">Space</span></div>
         <div class="howto-txt"><b>Shoot</b><span>Tap to kick the ball.</span></div>
       </div>
-      <div class="howto-item">
-        <div class="howto-keys"><span class="mouse-icon left"><span class="m-half"></span><span class="m-half"></span></span></div>
-        <div class="howto-txt"><b>Charge Shot</b><span>Hold Left-click, release to blast.</span></div>
-      </div>
-      <div class="howto-item">
-        <div class="howto-keys"><span class="mouse-icon right"><span class="m-half"></span><span class="m-half"></span></span></div>
-        <div class="howto-txt"><b>Lofted Shot</b><span>Right-click to lob over defenders.</span></div>
-      </div>
+      <!-- Hold Ball is listed BEFORE the three abilities that depend on it, so the
+           order itself teaches the prerequisite. Those three are badged, because
+           their HUD cards are dimmed until you trap the ball and a dimmed card on
+           its own never explains why it is dimmed. -->
       <div class="howto-item">
         <div class="howto-keys"><span class="keycap wide hold">Space</span></div>
         <div class="howto-txt"><b>Hold Ball</b><span>Hold to trap it (short cooldown).</span></div>
       </div>
-      <div class="howto-item">
+      <div class="howto-item needs-ball">
+        <div class="howto-keys"><span class="mouse-icon left"><span class="m-half"></span><span class="m-half"></span></span></div>
+        <div class="howto-txt"><b>Charge Shot <span class="nb">needs ball</span></b><span>Hold Left-click, release to blast.</span></div>
+      </div>
+      <div class="howto-item needs-ball">
+        <div class="howto-keys"><span class="mouse-icon right"><span class="m-half"></span><span class="m-half"></span></span></div>
+        <div class="howto-txt"><b>Lofted Shot <span class="nb">needs ball</span></b><span>Right-click to lob over defenders.</span></div>
+      </div>
+      <div class="howto-item needs-ball">
         <div class="howto-keys"><span class="keycap pass">Q</span><span class="keycap pass">E</span></div>
-        <div class="howto-txt"><b>Pass ▲▼</b><span>Pass between rods — 3 charges.</span></div>
+        <div class="howto-txt"><b>Pass ▲▼ <span class="nb">needs ball</span></b><span>Pass between rods — 3 charges.</span></div>
       </div>
     </div>
+    <div class="howto-note">Charge, Loft and Pass only work while you're <b>holding the ball</b> — hold <b>Space</b> to trap it first.</div>
+    <!-- Controls-only reference. The tutorial is deliberately NOT reachable from
+         here: this overlay opens from the pause menu mid-match, and starting
+         training would tear down the match in progress. Training lives on the
+         main menu instead. -->
     <div style="display:flex;gap:12px;justify-content:center;align-items:center;flex-wrap:wrap">
-      <button class="howto-close" style="margin:18px 0 2px" onclick="TUTORIAL.start()">▶ Tutorial</button>
-      <button class="howto-close" style="margin:18px 0 2px;background:rgba(255,255,255,.08);color:var(--pw);border-color:var(--pw)" onclick="hideHowTo()">Got it!</button>
+      <button class="howto-close" style="margin:18px 0 2px" onclick="hideHowTo()">Got it!</button>
     </div>
   </div>
 </div>
@@ -4248,13 +4280,10 @@ window.addEventListener('keydown',e=>{
     var _ho=document.getElementById('howto-overlay');
     if(_ho && _ho.classList.contains('show')){ e.preventDefault(); hideHowTo(); return; }
   }
-  // Esc toggles pause while a match is on the screen (ignored during the countdown).
-  if(e.key==='Escape' && GAME.running && !GAME.countdownActive && !GAME.goalSeq
-     && !(window.TUTORIAL && TUTORIAL.active)){
-    e.preventDefault();
-    GAME.togglePause();
-    return;
-  }
+  // Esc deliberately does NOT pause or resume. In fullscreen the browser uses
+  // Escape to leave fullscreen, so binding pause to it meant every pause also
+  // dropped the player out of fullscreen. The on-screen pause button is now the
+  // only way in or out of the pause menu.
   // While paused, swallow all other gameplay keys so nothing sneaks through.
   if(GAME.paused) return;
   // Bot mode: map the local player's keys to myInput (local 2P mode reads KEY_P1/KEY_P2 directly instead)
@@ -4298,6 +4327,9 @@ window.addEventListener('keydown',e=>{
       if(e.key==='e'||e.key==='E'||e.key==='ArrowRight') dir='next';
       if(dir && _tutAllows('pass')){ GAME._passRequest = dir; GAME._tutPass = (GAME._tutPass||0)+1; }
     }
+  } else if(GAME.running && !GAME.heldBy &&
+            (e.key==='q'||e.key==='Q'||e.key==='e'||e.key==='E'||e.key==='ArrowLeft'||e.key==='ArrowRight')){
+    _hintNeedBall();   // reached for Pass with no ball
   }
 });
 window.addEventListener('keyup',e=>{
@@ -4323,9 +4355,29 @@ function _canShoot(){
   if(GAME.testMode) return h.team==='p1'; // local 2P: mouse always represents p1's perspective
   return h.team===GAME.myRole; // bot mode (always p1)
 }
+// ── Just-in-time coaching for the ball-gated abilities ──
+// Charge, Loft and Pass do nothing unless the ball is trapped. The HUD cards are
+// dimmed to signal that, but a dimmed card never explains WHY it is dimmed — and
+// because the dim rule works via opacity, a lock badge drawn on the card would
+// simply fade out along with it. So instead of decorating the card we speak up at
+// the exact moment the player reaches for a locked ability. Rate-limited to once
+// every few seconds so it teaches instead of nagging.
+let _needBallT = 0;
+function _hintNeedBall(){
+  if(!GAME.running || GAME.paused || GAME.countdownActive || GAME.goalSeq) return;
+  if(GAME.heldBy) return;                              // they do have it — nothing to say
+  if(window.TUTORIAL && TUTORIAL.active) return;       // the tutorial does its own teaching
+  const now = performance.now();
+  if(now - _needBallT < 4000) return;
+  _needBallT = now;
+  APP.toast('Hold Space to trap the ball first', 1800);
+}
 CV_EL.addEventListener('contextmenu', e => e.preventDefault());
 CV_EL.addEventListener('mousedown', e => {
-  if(!_canShoot()) return;
+  if(!_canShoot()){
+    if(e.button === 0 || e.button === 2) _hintNeedBall();   // reached for Charge / Loft with no ball
+    return;
+  }
   if(e.button === 0){          // Left click: start charging a ground shot
     if(!_tutAllows('charge')) return;
     GAME._chargeActive = true;
@@ -4627,7 +4679,36 @@ const APP = {
     CG.loadingStart();
     this.showScreen('screen-menu');
     CG.loadingStop();
+    this._prewarmFlags();
     this._offerTutorial();
+  },
+
+  // ── Flag cache warm-up ──
+  // The team screen builds 96 <img> tags (48 teams x 2 grids) the moment it
+  // opens. Served from local disk those resolve instantly, which is why this
+  // never showed up in local testing — but on a portal CDN they are 48 separate
+  // round trips on a cold cache, so the flags visibly popped in one by one.
+  //
+  // Warming them while the player is still reading the main menu means they are
+  // already cached before PLAY NOW is ever clicked. Deliberately best-effort:
+  // it runs in idle time so it never competes with first paint, and if it has
+  // not finished the real <img> tags still load normally — nothing waits on it.
+  _prewarmFlags(){
+    if(this._flagsWarmed) return;
+    this._flagsWarmed = true;
+    // Hold references until each request settles. A bare `new Image()` with no
+    // reference can be collected mid-flight, which would defeat the warm-up.
+    this._flagWarmCache = [];
+    const warm = () => {
+      for(const t of TEAMS){
+        const img = new Image();
+        img.decoding = 'async';
+        img.src = t.flag;
+        this._flagWarmCache.push(img);
+      }
+    };
+    if(window.requestIdleCallback) requestIdleCallback(warm, {timeout:1200});
+    else setTimeout(warm, 250);
   },
 
   // First-ever visit: offer the interactive tutorial once. Never nags again —
@@ -4656,22 +4737,41 @@ const APP = {
 const _wrapEl = document.getElementById('wrap');
 const _gameCV = document.getElementById('gameCanvas');
 function _isFS(){ return !!(document.fullscreenElement || document.webkitFullscreenElement); }
-// Fit (windowed) vs Fill (fullscreen). In fullscreen we widen #wrap to the screen's
-// aspect (keeping its 600-tall layout box) and scale it uniformly — so the WHOLE game
-// fills the screen with NO black bars and NO distortion — then resize the WebGL
-// renderer + trail overlay to the real on-screen pixels so the 3D fills crisply.
+// Are we inside an iframe? Game portals (CrazyGames included) embed the game in
+// one. A cross-origin parent makes window.top throw, which is itself proof that
+// we are framed — so the catch returns true rather than false.
+const _inFrame = (function(){ try{ return window.self !== window.top; }catch(e){ return true; } })();
+// Fit (a standalone 900x600 card) vs Fill (use the entire viewport).
+//
+// We fill when we own the fullscreen, AND whenever we are embedded — because a
+// portal sizes the iframe to its player area and resizes it again for fullscreen,
+// so filling the viewport is always the right answer there.
+//
+// This deliberately does NOT rely on document.fullscreenElement when embedded.
+// CrazyGames fullscreens the IFRAME ELEMENT, so the fullscreen element belongs to
+// the PARENT document and document.fullscreenElement is null inside our frame.
+// Keying off it meant fullscreen fell through to the windowed branch below, whose
+// 1.25 scale cap pinned the game to a small box in the middle of a black screen.
+function _shouldFill(){ return _isFS() || _inFrame; }
 function applyViewport(){
-  const fs = _isFS();
+  const fill = _shouldFill();
   _gameCV.style.width = '100%'; _gameCV.style.height = '100%';   // fill #canvas-wrap (override init inline px)
-  _wrapEl.classList.toggle('fs', fs);
-  if(fs){
+  _wrapEl.classList.toggle('fs', fill);
+  if(fill){
+    // Widen the 600-tall layout box to the viewport's aspect so the 3D reaches
+    // edge to edge with no black bars and no distortion — but never below 900,
+    // or the fixed-width UI would overflow in a narrow embed. Then scale by
+    // whichever axis runs out first.
     const asp = window.innerWidth / window.innerHeight;
-    _wrapEl.style.width = Math.round(600 * asp) + 'px';
-    _wrapEl.style.transform = `scale(${window.innerHeight / 600})`;
+    const logicalW = Math.max(900, Math.round(600 * asp));
+    _wrapEl.style.width = logicalW + 'px';
+    _wrapEl.style.transform = `scale(${Math.min(window.innerHeight / 600, window.innerWidth / logicalW)})`;
   } else {
     _wrapEl.style.width = '900px';
     const margin = 0.96;
-    _wrapEl.style.transform = `scale(${Math.min(1.25, (window.innerWidth*margin)/900, (window.innerHeight*margin)/600)})`;
+    // No upper cap here on purpose — a cap is what stopped the game growing to
+    // fill a large viewport.
+    _wrapEl.style.transform = `scale(${Math.min((window.innerWidth*margin)/900, (window.innerHeight*margin)/600)})`;
   }
   requestAnimationFrame(()=>{
     if(!RENDERER._gl || !RENDERER._cam) return;
@@ -5354,37 +5454,21 @@ document.addEventListener('DOMContentLoaded', ()=>{
 // ── How to Play overlay (reachable from Main Menu + Pause) ──
 function showHowTo(){ var o=document.getElementById('howto-overlay'); if(o) o.classList.add('show'); }
 function hideHowTo(){ var o=document.getElementById('howto-overlay'); if(o) o.classList.remove('show'); }
-window.showHowTo = showHowTo; window.hideHowTo = hideHowTo;
+// Opened from the pause menu. Same panel, but it is now a pure controls
+// reference — the tutorial is launched from the main menu only.
+function showControls(){ showHowTo(); }
+window.showHowTo = showHowTo; window.hideHowTo = hideHowTo; window.showControls = showControls;
 window.addEventListener('resize', applyViewport);
 document.addEventListener('fullscreenchange', applyViewport);
 document.addEventListener('webkitfullscreenchange', applyViewport);
-// Keep Esc as PAUSE while in fullscreen. The Keyboard Lock API lets a fullscreen page
-// capture Escape (Chrome/Edge), so a quick Esc opens the pause menu instead of leaving
-// fullscreen. Fullscreen then only exits via the FULL button (holding Esc is still
-// allowed by the browser as a hard-coded safety and cannot be disabled). Lock on enter,
-// unlock on exit.
-function _manageEscLock(){
-  try{
-    if(_isFS()){
-      if(navigator.keyboard && navigator.keyboard.lock){ navigator.keyboard.lock(['Escape']).catch(function(){}); }
-    } else {
-      if(navigator.keyboard && navigator.keyboard.unlock){ navigator.keyboard.unlock(); }
-    }
-  }catch(e){}
-}
-document.addEventListener('fullscreenchange', _manageEscLock);
-document.addEventListener('webkitfullscreenchange', _manageEscLock);
-// Fallback for browsers WITHOUT Keyboard Lock (Firefox/Safari): there Esc still exits
-// fullscreen, so on a non-button exit during play we open the pause menu instead. On
-// browsers with Keyboard Lock this rarely fires (Esc no longer exits fullscreen).
-function _pauseOnFsExit(){
-  if(!_isFS() && !window._fsByButton && typeof GAME!=='undefined' && GAME.running && !GAME.paused && !GAME.countdownActive && !GAME.goalSeq){
-    GAME.togglePause();
-  }
-  window._fsByButton = false;
-}
-document.addEventListener('fullscreenchange', _pauseOnFsExit);
-document.addEventListener('webkitfullscreenchange', _pauseOnFsExit);
+// Escape is intentionally left entirely to the browser.
+//
+// There used to be two mechanisms here: a Keyboard Lock call that trapped Escape
+// in fullscreen so it could pause instead, and a fullscreenchange fallback that
+// paused the match whenever fullscreen exited without the FULL button. Both are
+// gone. Trapping Escape fought the browser's own fullscreen exit, and the
+// fallback meant pressing Escape still paused the game indirectly — the exact
+// behaviour we set out to remove. Pausing is now the on-screen button only.
 applyViewport();
 
 // ═══════════════════════════════════════════════════════════════
