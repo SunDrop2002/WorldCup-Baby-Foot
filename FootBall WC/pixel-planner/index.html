@@ -1,0 +1,605 @@
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Pixel Planner</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link
+  href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Silkscreen:wght@400;700&display=swap"
+  rel="stylesheet"
+/>
+
+<style>
+  /* ---------- theme tokens ---------- */
+  :root {
+    --pixel: "Press Start 2P", monospace;
+    --body: "Silkscreen", "Press Start 2P", monospace;
+
+    --desk1: #ffe0c2;
+    --desk2: #ffd4ae;
+    --panel: #fff8ec;
+    --panel2: #fdeccf;
+    --ink: #2b2b3a;
+    --line: #2b2b3a;
+    --muted: #a8927a;
+
+    --pink: #ff8fab;
+    --mint: #6fd6bf;
+    --blue: #8ecae6;
+    --yellow: #ffd166;
+    --done: #bfe8cf;
+    --shadow: rgba(43, 43, 58, 0.25);
+  }
+  body[data-theme="night"] {
+    --desk1: #221d38;
+    --desk2: #1a1630;
+    --panel: #2c2648;
+    --panel2: #241f3d;
+    --ink: #f3ecff;
+    --line: #100c1e;
+    --muted: #9787c9;
+
+    --pink: #ff8fab;
+    --mint: #58e0c2;
+    --blue: #7cc4ff;
+    --yellow: #ffd166;
+    --done: #3a4a7a;
+    --shadow: rgba(0, 0, 0, 0.45);
+  }
+
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+
+  body {
+    font-family: var(--body);
+    color: var(--ink);
+    background-color: var(--desk1);
+    background-image:
+      linear-gradient(45deg, var(--desk2) 25%, transparent 25%),
+      linear-gradient(-45deg, var(--desk2) 25%, transparent 25%),
+      linear-gradient(45deg, transparent 75%, var(--desk2) 75%),
+      linear-gradient(-45deg, transparent 75%, var(--desk2) 75%);
+    background-size: 32px 32px;
+    background-position: 0 0, 0 16px, 16px -16px, -16px 0;
+    display: flex; align-items: center; justify-content: center;
+    padding: 20px;
+    -webkit-font-smoothing: none; font-smooth: never;
+  }
+
+  .pixel { border: 3px solid var(--line); box-shadow: 5px 5px 0 var(--shadow); image-rendering: pixelated; }
+
+  /* ---------- window ---------- */
+  .window {
+    width: min(1000px, 100%);
+    height: min(660px, calc(100vh - 40px));
+    background: var(--panel);
+    border: 4px solid var(--line);
+    box-shadow: 10px 10px 0 var(--shadow);
+    display: flex; flex-direction: column; overflow: hidden;
+  }
+  .titlebar {
+    background: var(--pink); border-bottom: 4px solid var(--line);
+    display: flex; align-items: center; gap: 10px; padding: 10px 12px; color: #2b2b3a;
+    -webkit-app-region: drag; user-select: none;
+  }
+  .titlebar .dot { -webkit-app-region: no-drag; }
+  body.app .titlebar .dot.r, body.app .titlebar .dot.y, body.app .titlebar .dot.g { cursor: pointer; }
+  .titlebar .title { font-family: var(--pixel); font-size: 12px; letter-spacing: 1px; flex: 1; }
+  .dots { display: flex; gap: 6px; }
+  .dot { width: 14px; height: 14px; border: 2px solid var(--line); background: #fff; }
+  .dot.y { background: var(--yellow); } .dot.g { background: var(--mint); } .dot.r { background: #ff6b6b; }
+
+  .body { flex: 1; display: flex; min-height: 0; }
+
+  /* ---------- sidebar ---------- */
+  .sidebar { width: 188px; background: var(--panel2); border-right: 4px solid var(--line); display: flex; flex-direction: column; min-height: 0; }
+  .sidebar h2 { font-family: var(--pixel); font-size: 9px; letter-spacing: 1px; color: var(--muted); margin: 14px 14px 8px; text-transform: uppercase; }
+  .plans { list-style: none; margin: 0; padding: 0 10px; overflow-y: auto; flex: 1; }
+  .plan {
+    display: flex; align-items: center; gap: 8px; padding: 9px 8px; margin-bottom: 8px;
+    background: var(--panel); border: 2px solid var(--line); box-shadow: 3px 3px 0 var(--shadow);
+    cursor: pointer; font-size: 15px; user-select: none;
+  }
+  .plan.active { background: var(--yellow); }
+  .plan .emoji { font-size: 16px; }
+  .plan .pname { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .plan .count { font-family: var(--pixel); font-size: 7px; background: var(--mint); color: #2b2b3a; border: 2px solid var(--line); padding: 2px 4px; }
+  .plan .x, .task .x { font-family: var(--pixel); font-size: 8px; opacity: 0; padding: 2px 3px; border: 2px solid transparent; }
+  .plan:hover .x { opacity: 0.6; } .plan .x:hover, .task .x:hover { opacity: 1; background: #ff6b6b; border-color: var(--line); }
+  .newplan { display: flex; gap: 6px; padding: 10px; border-top: 3px dashed var(--line); }
+
+  /* ---------- main ---------- */
+  .main { flex: 1; display: flex; flex-direction: column; min-height: 0; background: var(--panel); }
+  .mainhead { display: flex; align-items: center; gap: 14px; padding: 12px 18px; border-bottom: 4px solid var(--line); background: var(--panel2); }
+  .mainhead .info { flex: 1; min-width: 0; }
+  .mainhead .planttl { font-family: var(--pixel); font-size: 13px; letter-spacing: 1px; display: flex; align-items: center; gap: 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .bar { margin-top: 10px; height: 16px; background: var(--panel); border: 2px solid var(--line); position: relative; overflow: hidden; }
+  .bar .fill { height: 100%; width: 0%; background: var(--mint); transition: width .35s steps(12); }
+  .bar .pct { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-family: var(--pixel); font-size: 7px; color: #2b2b3a; }
+  #mascot { width: 84px; height: 84px; image-rendering: pixelated; flex: none; }
+
+  .addrow { display: flex; gap: 8px; padding: 14px 18px 6px; }
+  .addopts { display: flex; align-items: center; gap: 8px; padding: 0 18px 4px; flex-wrap: wrap; }
+  .tgt { display: inline-flex; align-items: center; gap: 6px; font-family: var(--pixel); font-size: 7px; color: var(--muted); border: 2px solid var(--line); background: var(--panel); padding: 4px 6px; }
+  .tgt.set { background: var(--blue); color: #2b2b3a; }
+  .tgt .clr { cursor: pointer; }
+
+  input[type="text"] { font-family: var(--body); font-size: 16px; color: var(--ink); background: var(--panel); border: 3px solid var(--line); padding: 8px 10px; flex: 1; min-width: 0; outline: none; box-shadow: inset 2px 2px 0 var(--shadow); }
+  input[type="text"]::placeholder { color: var(--muted); }
+  .newplan input { font-size: 13px; padding: 6px 8px; box-shadow: none; }
+
+  button.btn { font-family: var(--pixel); font-size: 9px; color: #2b2b3a; background: var(--yellow); border: 3px solid var(--line); padding: 0 12px; cursor: pointer; box-shadow: 3px 3px 0 var(--shadow); }
+  button.btn:active { transform: translate(3px, 3px); box-shadow: 0 0 0 var(--shadow); }
+  button.btn.sm { font-size: 7px; padding: 6px 8px; box-shadow: 2px 2px 0 var(--shadow); }
+  button.btn.mint { background: var(--mint); } button.btn.pink { background: var(--pink); } button.btn.blue { background: var(--blue); }
+  button.btn.ghost { background: var(--panel); color: var(--muted); }
+  button.btn.on { background: var(--pink); color: #2b2b3a; }
+
+  .filters { display: flex; gap: 8px; padding: 4px 18px 10px; align-items: center; }
+  .filters .tab { font-family: var(--pixel); font-size: 8px; cursor: pointer; padding: 6px 8px; border: 2px solid var(--line); background: var(--panel); color: var(--muted); }
+  .filters .tab.on { background: var(--blue); color: #2b2b3a; }
+  .filters .spacer { flex: 1; }
+
+  .tasks { list-style: none; margin: 0; padding: 0 18px 18px; overflow-y: auto; flex: 1; }
+  .task { display: flex; align-items: center; gap: 9px; background: var(--panel2); border: 3px solid var(--line); box-shadow: 4px 4px 0 var(--shadow); padding: 9px 11px; margin-bottom: 10px; }
+  .task.done { background: var(--done); }
+  .task.done .ttext { text-decoration: line-through; color: var(--muted); }
+  .check { width: 26px; height: 26px; flex: none; cursor: pointer; border: 3px solid var(--line); background: var(--panel); display: flex; align-items: center; justify-content: center; }
+  .task.done .check { background: var(--mint); }
+  .check svg { width: 16px; height: 16px; display: none; } .task.done .check svg { display: block; }
+  .ttext { flex: 1; font-size: 16px; word-break: break-word; cursor: text; }
+
+  .badge { font-family: var(--pixel); font-size: 7px; border: 2px solid var(--line); padding: 3px 4px; white-space: nowrap; }
+  .badge.daily { background: var(--pink); color: #2b2b3a; }
+  .badge.date { background: var(--blue); color: #2b2b3a; cursor: pointer; }
+  .mini { cursor: pointer; font-size: 15px; opacity: 0; line-height: 1; }
+  .task:hover .mini { opacity: .55; } .mini:hover { opacity: 1; }
+  .mini.on { opacity: 1; }
+  .star { cursor: pointer; font-size: 16px; filter: grayscale(1); opacity: .45; }
+  .star.on { filter: none; opacity: 1; }
+  .empty { text-align: center; color: var(--muted); font-size: 14px; padding: 30px 20px; line-height: 1.9; }
+
+  /* ---------- calendar panel ---------- */
+  .calpanel { width: 252px; background: var(--panel2); border-left: 4px solid var(--line); display: flex; flex-direction: column; min-height: 0; }
+  .calpanel.hidden { display: none; }
+  .calhead { display: flex; align-items: center; gap: 6px; padding: 12px 12px 8px; }
+  .calhead .mtitle { font-family: var(--pixel); font-size: 9px; flex: 1; text-align: center; letter-spacing: 1px; }
+  .navbtn { font-family: var(--pixel); font-size: 9px; cursor: pointer; border: 2px solid var(--line); background: var(--panel); padding: 5px 8px; box-shadow: 2px 2px 0 var(--shadow); }
+  .navbtn:active { transform: translate(2px,2px); box-shadow: none; }
+  .weekdays { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; padding: 0 12px; }
+  .weekdays span { font-family: var(--pixel); font-size: 7px; text-align: center; color: var(--muted); }
+  .caldays { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; padding: 6px 12px; }
+  .cell { aspect-ratio: 1 / 1; border: 2px solid var(--line); background: var(--panel); position: relative; cursor: pointer; }
+  .cell.out { visibility: hidden; }
+  .cell .dnum { font-family: var(--body); font-size: 12px; position: absolute; top: 1px; left: 3px; line-height: 1; }
+  .cell.today { box-shadow: inset 0 0 0 3px var(--blue); }
+  .cell.sel { background: var(--yellow); }
+  .cell .dot { position: absolute; bottom: 3px; right: 3px; width: 7px; height: 7px; background: var(--pink); border: 1px solid var(--line); }
+  .cell .dot.done { background: var(--mint); }
+  .selinfo { font-family: var(--pixel); font-size: 7px; color: var(--muted); text-align: center; padding: 2px 12px 8px; line-height: 1.6; }
+  .calfoot { margin-top: auto; padding: 10px 12px; display: flex; gap: 6px; border-top: 3px dashed var(--line); }
+  .calfoot .btn { flex: 1; }
+
+  /* ---------- statusbar ---------- */
+  .statusbar { display: flex; align-items: center; gap: 10px; border-top: 4px solid var(--line); background: var(--panel2); padding: 8px 14px; font-family: var(--pixel); font-size: 8px; color: var(--muted); }
+  .statusbar .spacer { flex: 1; }
+  .editing { font-family: var(--body); font-size: 16px; color: var(--ink); background: var(--panel); border: 2px solid var(--line); padding: 4px 6px; outline: none; flex: 1; }
+  .confetti { position: fixed; width: 8px; height: 8px; z-index: 50; pointer-events: none; image-rendering: pixelated; }
+</style>
+
+<div class="window">
+  <div class="titlebar">
+    <div class="dots"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span></div>
+    <div class="title">✿ PIXEL PLANNER</div>
+    <div class="dots"><span class="dot"></span><span class="dot"></span></div>
+  </div>
+
+  <div class="body">
+    <aside class="sidebar">
+      <h2>Plans</h2>
+      <ul class="plans" id="plans"></ul>
+      <div class="newplan">
+        <input type="text" id="newPlan" placeholder="new plan..." maxlength="24" />
+        <button class="btn sm mint" id="addPlan">+</button>
+      </div>
+    </aside>
+
+    <section class="main">
+      <div class="mainhead">
+        <div class="info">
+          <div class="planttl" id="planTitle">Tasks</div>
+          <div class="bar"><div class="fill" id="fill"></div><div class="pct" id="pct">0%</div></div>
+        </div>
+        <canvas id="mascot" width="22" height="22"></canvas>
+      </div>
+
+      <div class="addrow">
+        <input type="text" id="newTask" placeholder="type a task + press enter..." maxlength="120" />
+        <button class="btn" id="addTask">ADD</button>
+      </div>
+      <div class="addopts">
+        <span class="tgt" id="tgt"></span>
+        <button class="btn sm ghost" id="dailyToggle">☀ DAILY</button>
+      </div>
+
+      <div class="filters">
+        <span class="tab on" data-f="all">ALL</span>
+        <span class="tab" data-f="active">TO DO</span>
+        <span class="tab" data-f="done">DONE</span>
+        <span class="spacer"></span>
+        <button class="btn sm pink" id="clearDone">CLEAR DONE</button>
+      </div>
+
+      <ul class="tasks" id="tasks"></ul>
+
+      <div class="statusbar">
+        <span id="stat">0 tasks</span>
+        <span class="spacer"></span>
+        <span id="saved">saved ✓</span>
+        <button class="btn sm blue" id="calToggle">CAL</button>
+        <button class="btn sm" id="theme">NIGHT</button>
+      </div>
+    </section>
+
+    <aside class="calpanel" id="calpanel">
+      <div class="calhead">
+        <span class="navbtn" id="prevM">‹</span>
+        <span class="mtitle" id="mtitle">MONTH</span>
+        <span class="navbtn" id="nextM">›</span>
+      </div>
+      <div class="weekdays"><span>S</span><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span></div>
+      <div class="caldays" id="caldays"></div>
+      <div class="selinfo" id="selinfo"></div>
+      <div class="calfoot">
+        <button class="btn sm mint" id="todayBtn">TODAY</button>
+        <button class="btn sm ghost" id="allDates">ALL DAYS</button>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<script>
+  // ---------- date helpers ----------
+  var MON = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  function pad(n) { return (n < 10 ? "0" : "") + n; }
+  function ymd(y, m, d) { return y + "-" + pad(m + 1) + "-" + pad(d); }       // m is 0-based
+  function todayStr() { var t = new Date(); return ymd(t.getFullYear(), t.getMonth(), t.getDate()); }
+  function niceDate(s) { var p = s.split("-"); return MON[(+p[1]) - 1] + " " + (+p[2]); }
+  function shortDate(s) { var p = s.split("-"); return (+p[1]) + "/" + (+p[2]); }
+
+  // ---------- state ----------
+  var KEY = "pixelPlanner.v2";
+  var EMOJIS = ["✿", "★", "☀", "☂", "♫", "☕", "✎", "❤", "⚡", "☘"];
+  function uid() { return "id" + Date.now().toString(36) + Math.floor(Math.random() * 1e6).toString(36); }
+
+  function seed() {
+    var t = todayStr();
+    return {
+      theme: "day", currentPlanId: "p1", filter: "all",
+      plans: [
+        { id: "p1", name: "Today", emoji: "☀", tasks: [
+          { id: "t1", text: "Welcome to Pixel Planner!", done: true, star: false, date: null, daily: false },
+          { id: "t2", text: "Drink some water", star: true, daily: true, doneDates: {} },
+          { id: "t3", text: "Click a day to schedule a task", done: false, star: false, date: t, daily: false },
+          { id: "t4", text: "Double-click text to edit", done: false, star: false, date: null, daily: false }
+        ]},
+        { id: "p2", name: "This Week", emoji: "★", tasks: [
+          { id: "t5", text: "Plan something fun", done: false, star: false, date: null, daily: false }
+        ]}
+      ]
+    };
+  }
+
+  var state;
+  try { state = JSON.parse(localStorage.getItem(KEY)) || JSON.parse(localStorage.getItem("pixelPlanner.v1")) || seed(); }
+  catch (e) { state = seed(); }
+  // normalize older tasks
+  state.plans.forEach(function (p) {
+    p.tasks.forEach(function (t) {
+      if (t.date === undefined) t.date = null;
+      if (t.daily === undefined) t.daily = false;
+      if (t.daily && !t.doneDates) t.doneDates = {};
+    });
+  });
+
+  // runtime-only UI state (not persisted)
+  var _now = new Date();
+  var calY = _now.getFullYear(), calM = _now.getMonth();
+  var selectedDate = null;   // null => all days
+  var addDaily = false;
+  var showCal = true;
+
+  function save() {
+    try { localStorage.setItem(KEY, JSON.stringify(state)); flashSaved(); } catch (e) {}
+  }
+  var savedTimer;
+  function flashSaved() {
+    var el = $("saved"); el.textContent = "saving...";
+    clearTimeout(savedTimer); savedTimer = setTimeout(function () { el.textContent = "saved ✓"; }, 300);
+  }
+  function currentPlan() { return state.plans.find(function (p) { return p.id === state.currentPlanId; }) || state.plans[0]; }
+
+  // ---------- task-completion model ----------
+  function activeDate() { return selectedDate || todayStr(); }
+  function isDone(t, d) { return t.daily ? !!(t.doneDates && t.doneDates[d]) : !!t.done; }
+  function toggleDone(t) {
+    var d = activeDate();
+    if (t.daily) {
+      t.doneDates = t.doneDates || {};
+      if (t.doneDates[d]) delete t.doneDates[d]; else t.doneDates[d] = true;
+      return !!t.doneDates[d];
+    }
+    t.done = !t.done; return t.done;
+  }
+  // tasks in scope for the current view (before the All/ToDo/Done tab)
+  function scopeTasks(p) {
+    if (selectedDate) return p.tasks.filter(function (t) { return t.daily || t.date === selectedDate; });
+    return p.tasks.slice();
+  }
+
+  // ---------- render ----------
+  var $ = function (id) { return document.getElementById(id); };
+
+  function render() {
+    document.body.setAttribute("data-theme", state.theme);
+    $("theme").textContent = state.theme === "day" ? "NIGHT" : "DAY";
+    $("calpanel").classList.toggle("hidden", !showCal);
+    renderPlans(); renderMain(); renderCal();
+  }
+
+  function renderPlans() {
+    var ul = $("plans"); ul.innerHTML = "";
+    var td = todayStr();
+    state.plans.forEach(function (p) {
+      var li = document.createElement("li");
+      li.className = "plan" + (p.id === state.currentPlanId ? " active" : "");
+      var left = p.tasks.filter(function (t) { return !isDone(t, td); }).length;
+      li.innerHTML = '<span class="emoji">' + p.emoji + "</span><span class=\"pname\"></span><span class=\"count\">" + left + "</span><span class=\"x\" title=\"delete plan\">✕</span>";
+      li.querySelector(".pname").textContent = p.name;
+      li.addEventListener("click", function (e) {
+        if (e.target.classList.contains("x")) { deletePlan(p.id); return; }
+        state.currentPlanId = p.id; save(); render();
+      });
+      li.querySelector(".pname").addEventListener("dblclick", function (e) {
+        e.stopPropagation(); editInline(e.target, function (v) { p.name = v || p.name; save(); render(); });
+      });
+      ul.appendChild(li);
+    });
+  }
+
+  function renderMain() {
+    var p = currentPlan();
+    $("planTitle").innerHTML = "<span>" + p.emoji + "</span><span id='ptl'></span>";
+    $("planTitle").querySelector("#ptl").textContent = p.name;
+
+    // add-target chip
+    var tgt = $("tgt");
+    if (selectedDate) { tgt.className = "tgt set"; tgt.innerHTML = "📅 " + niceDate(selectedDate) + " <span class='clr' id='clrDate'>✕</span>"; }
+    else { tgt.className = "tgt"; tgt.innerHTML = "📅 NO DATE"; }
+    $("dailyToggle").className = "btn sm " + (addDaily ? "on" : "ghost");
+
+    document.querySelectorAll(".filters .tab").forEach(function (t) { t.classList.toggle("on", t.getAttribute("data-f") === state.filter); });
+
+    var scope = scopeTasks(p);
+    var d = activeDate();
+    var shown = scope.filter(function (t) {
+      return state.filter === "all" || (state.filter === "active" && !isDone(t, d)) || (state.filter === "done" && isDone(t, d));
+    });
+    shown.sort(function (a, b) {
+      if ((b.star ? 1 : 0) !== (a.star ? 1 : 0)) return (b.star ? 1 : 0) - (a.star ? 1 : 0);
+      return (b.daily ? 1 : 0) - (a.daily ? 1 : 0);
+    });
+
+    var ul = $("tasks"); ul.innerHTML = "";
+    if (shown.length === 0) {
+      var li = document.createElement("li"); li.className = "empty";
+      li.innerHTML = scope.length === 0
+        ? (selectedDate ? "(๑•ᴗ•๑)<br>nothing on " + niceDate(selectedDate) + "<br>add one above!" : "◟(๑•ᴗ•๑)◞<br>no tasks yet —<br>type one above!")
+        : "all clear here! ✿<br>nothing to show";
+      ul.appendChild(li);
+    } else {
+      shown.forEach(function (t) { ul.appendChild(taskEl(p, t, d)); });
+    }
+
+    var total = scope.length, done = scope.filter(function (t) { return isDone(t, d); }).length;
+    var pctv = total ? Math.round((done / total) * 100) : 0;
+    $("fill").style.width = pctv + "%";
+    $("fill").style.background = (pctv === 100 && total) ? "var(--yellow)" : "var(--mint)";
+    $("pct").textContent = pctv + "%";
+    $("stat").textContent = (selectedDate ? niceDate(selectedDate) + " · " : "") + total + (total === 1 ? " task" : " tasks") + " · " + done + " done";
+
+    drawMascot(mood(pctv, total));
+    var clr = $("clrDate"); if (clr) clr.addEventListener("click", function () { selectedDate = null; render(); });
+  }
+
+  function taskEl(p, t, d) {
+    var li = document.createElement("li");
+    var done = isDone(t, d);
+    li.className = "task" + (done ? " done" : "");
+
+    var meta = t.daily ? '<span class="badge daily" title="every day">DAILY</span>'
+             : (t.date ? '<span class="badge date" title="click to unschedule">' + shortDate(t.date) + "</span>" : "");
+
+    li.innerHTML =
+      '<span class="check"><svg viewBox="0 0 8 8"><path fill="#2b2b3a" d="M0 4h1v1h1v1h1v-1h1v-1h1v-1h1v-1h1v-1h-1v1h-1v1h-1v1h-1v-1h-1v-1z"/></svg></span>' +
+      '<span class="ttext"></span>' + meta +
+      '<span class="mini cal" title="schedule for ' + niceDate(d) + '">📅</span>' +
+      '<span class="mini rep' + (t.daily ? " on" : "") + '" title="toggle daily">♻</span>' +
+      '<span class="star' + (t.star ? " on" : "") + '" title="star">★</span>' +
+      '<span class="x" title="delete">✕</span>';
+    li.querySelector(".ttext").textContent = t.text;
+
+    li.querySelector(".check").addEventListener("click", function () {
+      var nowDone = toggleDone(t);
+      if (nowDone) burst(li.querySelector(".check"));
+      save(); renderMain(); renderPlans(); renderCal();
+    });
+    li.querySelector(".star").addEventListener("click", function () { t.star = !t.star; save(); renderMain(); });
+    li.querySelector(".x").addEventListener("click", function () {
+      p.tasks = p.tasks.filter(function (x) { return x.id !== t.id; }); save(); renderMain(); renderPlans(); renderCal();
+    });
+    li.querySelector(".cal").addEventListener("click", function () {
+      t.daily = false; t.date = activeDate(); save(); renderMain(); renderPlans(); renderCal();
+    });
+    li.querySelector(".rep").addEventListener("click", function () {
+      t.daily = !t.daily;
+      if (t.daily) { t.date = null; t.doneDates = t.doneDates || {}; }
+      else { t.done = false; }
+      save(); renderMain(); renderPlans(); renderCal();
+    });
+    var badge = li.querySelector(".badge.date");
+    if (badge) badge.addEventListener("click", function () { t.date = null; save(); renderMain(); renderCal(); });
+    li.querySelector(".ttext").addEventListener("dblclick", function (e) {
+      editInline(e.target, function (v) { if (v) t.text = v; save(); renderMain(); });
+    });
+    return li;
+  }
+
+  // ---------- calendar ----------
+  function renderCal() {
+    $("mtitle").textContent = MON[calM].toUpperCase() + " " + calY;
+    var p = currentPlan();
+    var first = new Date(calY, calM, 1).getDay();       // 0=Sun
+    var days = new Date(calY, calM + 1, 0).getDate();
+    var td = todayStr();
+
+    // count dated tasks per day for this plan
+    var byDay = {};
+    p.tasks.forEach(function (t) {
+      if (!t.daily && t.date) {
+        var k = t.date; if (!byDay[k]) byDay[k] = { total: 0, done: 0 };
+        byDay[k].total++; if (t.done) byDay[k].done++;
+      }
+    });
+
+    var wrap = $("caldays"); wrap.innerHTML = "";
+    for (var i = 0; i < 42; i++) {
+      var cell = document.createElement("div");
+      var dayNum = i - first + 1;
+      if (dayNum < 1 || dayNum > days) { cell.className = "cell out"; wrap.appendChild(cell); continue; }
+      var ds = ymd(calY, calM, dayNum);
+      cell.className = "cell" + (ds === td ? " today" : "") + (ds === selectedDate ? " sel" : "");
+      var html = '<span class="dnum">' + dayNum + "</span>";
+      if (byDay[ds]) html += '<span class="dot' + (byDay[ds].done === byDay[ds].total ? " done" : "") + '"></span>';
+      cell.innerHTML = html;
+      (function (ds) {
+        cell.addEventListener("click", function () {
+          selectedDate = (selectedDate === ds) ? null : ds;
+          render();
+        });
+      })(ds);
+      wrap.appendChild(cell);
+    }
+    $("selinfo").textContent = selectedDate ? ("SHOWING " + niceDate(selectedDate)) : "SHOWING ALL DAYS";
+  }
+
+  // ---------- actions ----------
+  function addTask() {
+    var inp = $("newTask"), v = inp.value.trim(); if (!v) return;
+    var t = addDaily
+      ? { id: uid(), text: v, star: false, daily: true, doneDates: {} }
+      : { id: uid(), text: v, done: false, star: false, date: selectedDate || null, daily: false };
+    currentPlan().tasks.push(t);
+    inp.value = ""; save(); renderMain(); renderPlans(); renderCal();
+  }
+  function addPlan() {
+    var inp = $("newPlan"), v = inp.value.trim(); if (!v) return;
+    var id = uid();
+    state.plans.push({ id: id, name: v, emoji: EMOJIS[state.plans.length % EMOJIS.length], tasks: [] });
+    state.currentPlanId = id; inp.value = ""; save(); render();
+  }
+  function deletePlan(id) {
+    if (state.plans.length <= 1) return;
+    state.plans = state.plans.filter(function (p) { return p.id !== id; });
+    if (state.currentPlanId === id) state.currentPlanId = state.plans[0].id;
+    save(); render();
+  }
+
+  // inline editing
+  function editInline(span, commit) {
+    var old = span.textContent;
+    var input = document.createElement("input");
+    input.type = "text"; input.className = "editing"; input.value = old;
+    span.replaceWith(input); input.focus(); input.select();
+    var d = false;
+    function finish(keep) { if (d) return; d = true; commit(keep ? input.value.trim() : old); }
+    input.addEventListener("keydown", function (e) { if (e.key === "Enter") finish(true); if (e.key === "Escape") finish(false); });
+    input.addEventListener("blur", function () { finish(true); });
+  }
+
+  // ---------- mascot ----------
+  function mood(pct, total) { if (!total) return "sleep"; if (pct === 100) return "party"; if (pct >= 60) return "happy"; if (pct > 0) return "ok"; return "sleep"; }
+  function drawMascot(m) {
+    var cv = $("mascot"), ctx = cv.getContext("2d"); var W = 22, H = 22;
+    ctx.clearRect(0, 0, W, H);
+    var css = getComputedStyle(document.body);
+    var FUR = css.getPropertyValue("--mint").trim(), LINE = css.getPropertyValue("--line").trim(), PINK = css.getPropertyValue("--pink").trim();
+    var rows = { 3:[8,13],4:[7,14],5:[6,15],6:[5,16],7:[4,17],8:[4,17],9:[3,18],10:[3,18],11:[3,18],12:[3,18],13:[3,18],14:[3,18],15:[4,17] };
+    var g = []; for (var y = 0; y < H; y++) g.push(new Array(W).fill(0));
+    for (var k in rows) { var a = rows[k][0], b = rows[k][1]; for (var x = a; x <= b; x++) g[k][x] = "F"; }
+    for (var yy = 0; yy < H; yy++) for (var xx = 0; xx < W; xx++) if (g[yy][xx] === 0) {
+      var near = false;
+      for (var dy = -1; dy <= 1; dy++) for (var dx = -1; dx <= 1; dx++) { var ny = yy + dy, nx = xx + dx; if (ny >= 0 && ny < H && nx >= 0 && nx < W && g[ny][nx] === "F") near = true; }
+      if (near) g[yy][xx] = "K";
+    }
+    g[5][7] = "W"; g[5][8] = "W"; g[6][7] = "W";
+    g[10][5] = "P"; g[10][6] = "P"; g[10][15] = "P"; g[10][16] = "P";
+    function set(x, y, c) { if (g[y] && x >= 0 && x < W) g[y][x] = c; }
+    if (m === "sleep") { set(7,9,"K"); set(8,9,"K"); set(13,9,"K"); set(14,9,"K"); set(10,12,"K"); set(11,12,"K"); }
+    else if (m === "ok") { set(8,9,"K"); set(13,9,"K"); set(9,12,"K"); set(10,13,"K"); set(11,13,"K"); set(12,12,"K"); }
+    else if (m === "happy") { set(8,8,"K"); set(8,9,"K"); set(13,8,"K"); set(13,9,"K"); set(9,12,"K"); set(10,13,"K"); set(11,13,"K"); set(12,12,"K"); }
+    else { set(7,9,"K"); set(8,8,"K"); set(9,9,"K"); set(12,9,"K"); set(13,8,"K"); set(14,9,"K"); set(9,12,"K"); set(10,13,"K"); set(11,13,"K"); set(12,12,"K"); set(10,12,"P"); set(11,12,"P"); }
+    var colors = { F: FUR, K: LINE, W: "#ffffff", P: PINK };
+    for (var py = 0; py < H; py++) for (var px = 0; px < W; px++) { var c = g[py][px]; if (c) { ctx.fillStyle = colors[c]; ctx.fillRect(px, py, 1, 1); } }
+  }
+
+  // ---------- confetti ----------
+  function burst(anchor) {
+    var r = anchor.getBoundingClientRect(); var cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+    var cols = ["#ff8fab", "#ffd166", "#6fd6bf", "#8ecae6", "#c3f584"];
+    for (var i = 0; i < 16; i++) {
+      var el = document.createElement("div"); el.className = "confetti pixel";
+      el.style.left = cx + "px"; el.style.top = cy + "px"; el.style.background = cols[i % cols.length];
+      el.style.transition = "transform .7s ease-out, opacity .7s ease-out";
+      document.body.appendChild(el);
+      (function (el, i) {
+        requestAnimationFrame(function () {
+          var ang = (i / 16) * Math.PI * 2, dist = 34 + (i % 4) * 12;
+          el.style.transform = "translate(" + Math.cos(ang) * dist + "px," + (Math.sin(ang) * dist + 30) + "px) rotate(180deg)";
+          el.style.opacity = "0";
+        });
+        setTimeout(function () { el.remove(); }, 750);
+      })(el, i);
+    }
+  }
+
+  // ---------- wire up ----------
+  $("addTask").addEventListener("click", addTask);
+  $("newTask").addEventListener("keydown", function (e) { if (e.key === "Enter") addTask(); });
+  $("addPlan").addEventListener("click", addPlan);
+  $("newPlan").addEventListener("keydown", function (e) { if (e.key === "Enter") addPlan(); });
+  $("dailyToggle").addEventListener("click", function () { addDaily = !addDaily; renderMain(); });
+  $("clearDone").addEventListener("click", function () {
+    var p = currentPlan(), d = activeDate();
+    p.tasks = p.tasks.filter(function (t) { return t.daily || !isDone(t, d); });
+    save(); renderMain(); renderPlans(); renderCal();
+  });
+  document.querySelectorAll(".filters .tab").forEach(function (t) { t.addEventListener("click", function () { state.filter = t.getAttribute("data-f"); render(); }); });
+  $("theme").addEventListener("click", function () { state.theme = state.theme === "day" ? "night" : "day"; save(); render(); });
+  $("calToggle").addEventListener("click", function () { showCal = !showCal; render(); });
+
+  $("prevM").addEventListener("click", function () { calM--; if (calM < 0) { calM = 11; calY--; } renderCal(); });
+  $("nextM").addEventListener("click", function () { calM++; if (calM > 11) { calM = 0; calY++; } renderCal(); });
+  $("todayBtn").addEventListener("click", function () { var n = new Date(); calY = n.getFullYear(); calM = n.getMonth(); selectedDate = todayStr(); render(); });
+  $("allDates").addEventListener("click", function () { selectedDate = null; render(); });
+
+  if (window.win) {
+    document.body.classList.add("app");
+    var tb = document.querySelector(".titlebar");
+    tb.querySelector(".dot.r").addEventListener("click", function () { window.win.close(); });
+    tb.querySelector(".dot.y").addEventListener("click", function () { window.win.minimize(); });
+    tb.querySelector(".dot.g").addEventListener("click", function () { window.win.toggleMax(); });
+  }
+
+  render();
+</script>
