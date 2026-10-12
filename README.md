@@ -37,3 +37,5 @@ Trap the ball, charge up a devastating power shot, or lob it over the defenders.
 Choose your moves wisely, outplay your opponent, and fight your way to the trophy.
 
 **47 nations. One champion. Is it going to be you?**
+
+[![World Cup: Babyfoot Edition](<FootBall WC/cover/1920x1080.png>)](YOUR_VIDEO_URL_HERE)
