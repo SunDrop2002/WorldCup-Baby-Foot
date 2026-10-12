@@ -153,6 +153,20 @@ button:hover, .btn:hover, #btn-mute:hover, [onclick]:hover{transform:scale(1.06)
 .team-btn .tn{color:rgba(255,255,255,.85);font-size:7.5px;margin-top:3px;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700;letter-spacing:.3px}
 .team-btn .tc{height:3px;border-radius:0 0 7px 7px;position:absolute;bottom:0;left:0;right:0}
 .ts-vs{display:flex;flex-direction:column;align-items:center;justify-content:center;padding-top:44px;gap:10px}
+/* ── Solo picker (tournament entry) ──
+   There is no opponent to choose — the draw decides that — so the two-player
+   layout would leave half the screen showing an empty panel. Collapse to a
+   single centred picker with the action buttons underneath. The VS column still
+   holds READY/BACK, so it is re-flowed rather than hidden. */
+#screen-teams.solo .ts-layout{flex-direction:column;align-items:center;gap:12px}
+#screen-teams.solo #ts-panel-p2{display:none}
+#screen-teams.solo .ts-panel{width:352px}
+#screen-teams.solo .ts-vs{flex-direction:row;padding-top:0;gap:16px}
+#screen-teams.solo .ts-vs .vs-txt,
+#screen-teams.solo .ts-vs #vote-timer{display:none}
+#screen-teams.solo .ts-label.p1{background:var(--pg) !important;color:var(--pk) !important;
+  -webkit-text-stroke:0 !important}
+#screen-teams.solo .teams-grid{max-height:230px}
 .vs-txt{color:#fff;font-size:30px;font-weight:900;text-shadow:0 4px 0 rgba(0,0,0,.3),0 2px 0 rgba(0,0,0,.2)}
 .vote-status{text-align:center;font-size:10px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;padding:5px 12px;border-radius:20px;margin-top:5px}
 .vote-status.waiting{color:#0a5c1e;background:#ffd700;box-shadow:0 2px 0 #9a6800}
@@ -231,6 +245,59 @@ button:hover, .btn:hover, #btn-mute:hover, [onclick]:hover{transform:scale(1.06)
 .mouse-icon .m-half{flex:1;background:rgba(255,255,255,.18)}
 .mouse-icon.left .m-half:first-child{background:linear-gradient(180deg,#ffe53b,#ffb800)}
 .mouse-icon.right .m-half:last-child{background:linear-gradient(180deg,#c084fc,#7c3aed)}
+/* ── Big mouse glyph (HUD cards + Controls panel) ──
+   Deliberately the same picture as the prompt drawn next to the ball: cable,
+   scroll wheel and a clear button split are what make a silhouette read as a
+   MOUSE rather than a rounded rectangle. The corner card and the in-play hint
+   now teach an identical image. */
+.mouse-ico{position:relative;display:block;width:24px;height:32px;margin:0 auto}
+.mouse-ico .mi-cable{position:absolute;left:50%;top:-8px;width:9px;height:9px;margin-left:-4px;
+  border-left:1.5px solid rgba(255,255,255,.55);border-top:1.5px solid rgba(255,255,255,.55);
+  border-radius:7px 0 0 0;transform:rotate(20deg)}
+.mouse-ico .mi-body{position:absolute;inset:0;border:1.7px solid rgba(255,255,255,.85);
+  border-radius:12px 12px 8px 8px;overflow:hidden;background:rgba(238,243,255,.14)}
+.mouse-ico .mi-body::after{content:'';position:absolute;left:0;right:0;top:44%;height:1.3px;background:rgba(255,255,255,.7)}
+.mouse-ico .mi-btn{position:absolute;top:0;height:44%;width:50%}
+.mouse-ico .mi-btn.l{left:0;border-right:1.2px solid rgba(255,255,255,.7)}
+.mouse-ico .mi-btn.r{right:0}
+.mouse-ico .mi-wheel{position:absolute;left:50%;top:15%;width:4px;height:9px;margin-left:-2px;
+  border-radius:2px;background:rgba(255,255,255,.92);z-index:2}
+/* Each button keeps its colour even while the card is dimmed, so you can always
+   tell which half is which — only the intensity changes. */
+.mouse-ico.left  .mi-btn.l{background:linear-gradient(180deg,#ffe53b,#ffb800);opacity:.5}
+.mouse-ico.right .mi-btn.r{background:linear-gradient(180deg,#c084fc,#7c3aed);opacity:.5}
+
+/* The two buttons animate DIFFERENTLY on purpose: LMB sinks and STAYS down
+   while its bar fills (a hold), RMB is a single quick tap. The contrast is what
+   teaches "hold LMB for more power" without a sentence of explanation. */
+.ability-card.lit .mouse-ico.left  .mi-btn.l,
+.howto-item .mouse-ico.left  .mi-btn.l{opacity:1;animation:miHold 2.4s ease-in-out infinite}
+.ability-card.lit .mouse-ico.right .mi-btn.r,
+.howto-item .mouse-ico.right .mi-btn.r{opacity:1;animation:miTap 2.4s ease-in-out infinite}
+@keyframes miHold{
+  0%,4%   {transform:translateY(0);   filter:brightness(.7)}
+  9%,50%  {transform:translateY(2.2px);filter:brightness(1.4)}
+  57%,100%{transform:translateY(0);   filter:brightness(.7)}
+}
+@keyframes miTap{
+  0%,63%  {transform:translateY(0);   filter:brightness(.7)}
+  69%     {transform:translateY(2.2px);filter:brightness(1.45)}
+  77%,100%{transform:translateY(0);   filter:brightness(.7)}
+}
+/* ── Animated mouse glyph (small legacy icon) ──
+   A static picture of a mouse reads as decoration; a button that visibly
+   depresses reads as an instruction. The relevant half sinks and brightens on a
+   slow loop whenever the ability is actually usable. .mouse-icon already clips
+   its children, so the travel stays inside the mouse body.
+   Left and right are offset by half a cycle so each gets its own moment. */
+@keyframes mousePress{
+  0%,68%,100%{transform:translateY(0);filter:brightness(1)}
+  84%{transform:translateY(2.5px);filter:brightness(1.5)}
+}
+.ability-card.lit .mouse-icon.left  .m-half:first-child,
+.howto-item .mouse-icon.left  .m-half:first-child{animation:mousePress 1.6s ease-in-out infinite}
+.ability-card.lit .mouse-icon.right .m-half:last-child,
+.howto-item .mouse-icon.right .m-half:last-child{animation:mousePress 1.6s ease-in-out .8s infinite}
 .ctrl-desc{color:#fff;font-size:10.5px;font-weight:700;text-shadow:0 1px 0 rgba(0,0,0,.5);white-space:nowrap}
 
 /* ── OVERLAY ── */
@@ -238,6 +305,54 @@ button:hover, .btn:hover, #btn-mute:hover, [onclick]:hover{transform:scale(1.06)
 #goal-overlay.show,.overlay.show{display:flex}
 .goal-word{font-size:88px;font-weight:900;background:linear-gradient(90deg,#ffe53b,#ff6b35);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:gpop .4s cubic-bezier(.34,1.56,.64,1)}
 .goal-sub{color:#fff;font-size:20px;margin-top:8px}
+/* ── MEGA celebration ──
+   Only for goals actually STRUCK by the player — a charged rocket or a chip —
+   never for a scrappy deflection. The whole point is that earning it with a
+   mechanic you had to learn should feel completely different from a lucky bounce. */
+/* overflow:hidden matters — the rays and shockwave are deliberately oversized
+   and would otherwise spill outside the game frame onto the page background. */
+#goal-overlay.mega{background:radial-gradient(120% 90% at 50% 45%, rgba(255,180,0,.55) 0%, rgba(191,0,29,.75) 38%, rgba(4,8,26,.93) 78%) !important;
+  overflow:hidden}
+/* Rotating light rays behind the text */
+#goal-overlay.mega::before{content:'';position:absolute;inset:-60%;pointer-events:none;
+  background:repeating-conic-gradient(from 0deg at 50% 50%, rgba(255,255,255,.16) 0deg 7deg, transparent 7deg 20deg);
+  animation:megaRays 5.5s linear infinite}
+@keyframes megaRays{to{transform:rotate(360deg)}}
+/* Shockwave ring punching outward */
+#goal-overlay.mega::after{content:'';position:absolute;left:50%;top:48%;width:60px;height:60px;margin:-30px 0 0 -30px;
+  border-radius:50%;border:7px solid rgba(255,255,255,.9);pointer-events:none;animation:megaRing .85s ease-out 2}
+@keyframes megaRing{from{transform:scale(.2);opacity:.95} to{transform:scale(16);opacity:0}}
+#goal-overlay.mega .goal-word{
+  font-size:150px !important;
+  -webkit-text-stroke:6px var(--pk);
+  text-shadow:0 0 26px #ffd700, 12px 12px 0 var(--prd) !important;
+  animation:megaSlam .5s cubic-bezier(.2,2.2,.35,1), megaShake .12s linear .5s 7;
+}
+@keyframes megaSlam{
+  0%{transform:skewX(-9deg) rotate(-3deg) scale(5);opacity:0;filter:blur(9px)}
+  55%{transform:skewX(-9deg) rotate(-3deg) scale(.86);opacity:1;filter:blur(0)}
+  100%{transform:skewX(-9deg) rotate(-3deg) scale(1)}
+}
+@keyframes megaShake{
+  0%,100%{margin-left:0;margin-top:0} 25%{margin-left:-9px;margin-top:4px}
+  50%{margin-left:8px;margin-top:-5px} 75%{margin-left:-5px;margin-top:-3px}
+}
+#goal-overlay.mega .goal-sub{font-size:26px !important;animation:megaSubIn .45s cubic-bezier(.2,1.8,.4,1) .28s both}
+@keyframes megaSubIn{from{opacity:0;transform:skewX(-6deg) translateY(26px) scale(.7)} to{opacity:1;transform:skewX(-6deg) translateY(0) scale(1)}}
+/* The strike type, stamped above the GOAL word */
+.goal-tag{position:relative;font-family:Impact,'Arial Black',sans-serif;font-style:italic;font-size:34px;
+  letter-spacing:4px;text-transform:uppercase;color:#fff;-webkit-text-stroke:3px var(--pk);paint-order:stroke fill;
+  text-shadow:0 0 20px #ffd700;transform:skewX(-9deg) rotate(-2deg);margin-bottom:-6px;display:none}
+#goal-overlay.mega .goal-tag{display:block;animation:megaTag .5s cubic-bezier(.2,2,.4,1) both}
+@keyframes megaTag{from{opacity:0;transform:skewX(-9deg) rotate(-2deg) translateY(-40px) scale(1.8)}
+                   to{opacity:1;transform:skewX(-9deg) rotate(-2deg) translateY(0) scale(1)}}
+/* Whole-screen kick */
+#wrap.mega-shake{animation:wrapShake .5s cubic-bezier(.36,.07,.19,.97)}
+@keyframes wrapShake{
+  10%{transform:translate(-6px,3px) rotate(-.4deg)} 25%{transform:translate(7px,-4px) rotate(.5deg)}
+  40%{transform:translate(-5px,-3px) rotate(-.3deg)} 60%{transform:translate(5px,4px) rotate(.35deg)}
+  80%{transform:translate(-3px,2px) rotate(-.2deg)} 100%{transform:none}
+}
 @keyframes gpop{from{transform:scale(.2);opacity:0}to{transform:scale(1);opacity:1}}
 #matchend-overlay{background:rgba(0,0,0,.72);z-index:25}
 .matchend-msg{font-size:42px;font-weight:900;color:#ffe53b;text-shadow:0 4px 0 rgba(0,0,0,.5),0 0 40px rgba(255,220,0,.5);text-align:center;padding:0 30px;animation:gpop .4s cubic-bezier(.34,1.56,.64,1)}
@@ -304,6 +419,25 @@ button:hover, .btn:hover, #btn-mute:hover, [onclick]:hover{transform:scale(1.06)
 .ts-label.p2{background:var(--pr) !important}
 .ts-preview{border:2px solid var(--pk) !important;background:rgba(6,12,40,.55) !important;box-shadow:5px 5px 0 rgba(0,0,0,.35)}
 .pn{font-style:italic;font-weight:900;text-transform:uppercase;color:var(--pw)}
+/* ── Jersey picker ──
+   Swatches show the ACTUAL shirt and shorts colours for that strip, so the
+   choice is made by looking rather than by guessing what "Away" means. */
+.kit-pick{display:flex;gap:6px;justify-content:center;margin-top:9px}
+.kit-btn{display:flex;align-items:center;gap:5px;font-family:'Arial Black',sans-serif;font-style:italic;
+  font-weight:900;font-size:9.5px;letter-spacing:.6px;text-transform:uppercase;color:var(--pw);
+  background:rgba(4,10,34,.6);border:2px solid rgba(255,255,255,.32);border-radius:7px;
+  padding:4px 8px;cursor:pointer;transition:transform .1s,border-color .15s,background .15s,opacity .15s;opacity:.72}
+.kit-btn:hover{transform:translateY(-1px);border-color:rgba(255,255,255,.6);opacity:1}
+.kit-btn.on{opacity:1;border-color:var(--pg);background:rgba(255,215,0,.16);box-shadow:0 0 0 2px rgba(255,215,0,.25)}
+.kit-sw{display:flex;flex-direction:column;width:11px;height:15px;border-radius:2.5px;overflow:hidden;
+  border:1px solid rgba(0,0,0,.55);flex-shrink:0}
+.kit-sw i{display:block;width:100%}
+.kit-sw .ks-shirt{height:62%}
+.kit-sw .ks-shorts{height:38%}
+.kit-clash{display:none;margin:6px auto 0;max-width:330px;text-align:center;font-size:10.5px;font-weight:800;
+  font-style:italic;color:#ffd166;background:rgba(120,60,0,.4);border:1.5px solid rgba(255,209,102,.5);
+  border-radius:7px;padding:4px 9px}
+.kit-clash.show{display:block}
 .teams-grid>*{border:2px solid rgba(255,255,255,.35) !important;border-radius:6px !important;background:rgba(8,16,50,.45) !important;transition:transform .1s}
 .teams-grid>*:hover{transform:translateY(-2px)}
 .vs-txt{font-family:Impact,sans-serif !important;font-size:54px !important;font-style:italic;color:var(--pg) !important;-webkit-text-stroke:3px var(--pk);paint-order:stroke fill;transform:skewX(-8deg) rotate(-4deg);text-shadow:5px 5px 0 rgba(0,0,0,.4)}
@@ -389,6 +523,97 @@ button:hover, .btn:hover, #btn-mute:hover, [onclick]:hover{transform:scale(1.06)
 .howto-close{display:block;margin:18px auto 2px;font-family:Impact,'Arial Black',sans-serif;background:var(--pg);color:var(--pk);border:3px solid var(--pk);border-radius:0;clip-path:polygon(6% 0,100% 0,94% 100%,0 100%);font-style:italic;font-weight:900;font-size:20px;letter-spacing:2px;padding:12px 42px;text-transform:uppercase;box-shadow:6px 6px 0 rgba(0,0,0,.4);transform:skewX(-8deg);cursor:pointer;transition:transform .1s,box-shadow .1s}
 .howto-close:hover{transform:skewX(-8deg) translate(-2px,-2px);box-shadow:9px 9px 0 rgba(0,0,0,.45)}
 /* Main-menu 'How to Play' secondary button */
+/* Tertiary menu button (Tutorial) — deliberately quieter than the two play modes. */
+.btn-howto2{position:relative;z-index:2;margin-top:10px;font-family:'Arial Black',sans-serif;font-style:italic;
+  font-weight:900;text-transform:uppercase;letter-spacing:1.2px;color:var(--pw);background:rgba(255,255,255,.08);
+  border:2.5px solid var(--pw);border-radius:0;clip-path:polygon(5% 0,100% 0,95% 100%,0 100%);
+  padding:9px 26px;font-size:13.5px;transform:skewX(-8deg);cursor:pointer;box-shadow:5px 5px 0 rgba(0,0,0,.4);
+  transition:transform .1s,box-shadow .1s}
+.btn-howto2:hover{transform:skewX(-8deg) translate(-2px,-2px);box-shadow:8px 8px 0 rgba(0,0,0,.5);background:rgba(255,255,255,.14)}
+/* Best tournament finish, shown under the menu buttons once you have a record. */
+.menu-best{position:relative;z-index:2;margin-top:12px;font-family:'Arial Black',sans-serif;font-style:italic;
+  font-weight:900;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--pg);
+  text-shadow:0 2px 0 rgba(0,0,0,.5);min-height:14px}
+
+/* ── Tournament matchup intro ("VS" card) ──
+   Plays between the bracket and kickoff. Everything is CSS keyframes with
+   staggered delays, triggered by adding .play, so the sequence is declarative
+   and restarting it is just a class toggle + reflow. */
+#vs-overlay{position:absolute;inset:0;z-index:60;display:none;align-items:center;justify-content:center;
+  flex-direction:column;overflow:hidden;
+  background:radial-gradient(120% 90% at 50% 50%, rgba(20,40,120,.96) 0%, rgba(4,8,26,.99) 70%)}
+#vs-overlay.show{display:flex}
+/* Diagonal speed streaks sweeping behind everything */
+#vs-overlay::before{content:'';position:absolute;inset:-40%;
+  background:repeating-linear-gradient(68deg, rgba(255,255,255,.055) 0 2px, transparent 2px 26px);
+  animation:vsSweep 1.1s linear infinite}
+@keyframes vsSweep{from{transform:translateX(0)}to{transform:translateX(28px)}}
+
+.vs-round{position:relative;font-family:Impact,'Arial Black',sans-serif;font-size:26px;font-style:italic;
+  letter-spacing:3px;text-transform:uppercase;color:var(--pg);-webkit-text-stroke:2px var(--pk);
+  paint-order:stroke fill;transform:skewX(-8deg);margin-bottom:20px;opacity:0}
+#vs-overlay.play .vs-round{animation:vsDrop .5s cubic-bezier(.2,1.5,.4,1) .05s both}
+@keyframes vsDrop{from{opacity:0;transform:skewX(-8deg) translateY(-40px) scale(.8)}
+                  to{opacity:1;transform:skewX(-8deg) translateY(0) scale(1)}}
+
+.vs-row{position:relative;display:flex;align-items:center;gap:26px}
+.vs-side{display:flex;flex-direction:column;align-items:center;gap:9px;opacity:0;width:190px}
+.vs-flag{width:118px;height:80px;border-radius:8px;overflow:hidden;
+  box-shadow:0 0 0 3px var(--pw),0 0 0 6px var(--pk),0 12px 26px rgba(0,0,0,.6)}
+.vs-flag img{width:100%;height:100%;object-fit:cover;display:block}
+.vs-name{font-family:'Arial Black',sans-serif;font-style:italic;font-weight:900;font-size:17px;
+  letter-spacing:1px;text-transform:uppercase;color:var(--pw);-webkit-text-stroke:1.5px var(--pk);
+  paint-order:stroke fill;text-align:center;line-height:1.1}
+#vs-overlay.play .vs-side.left {animation:vsInL .55s cubic-bezier(.18,1.3,.35,1) .18s both}
+#vs-overlay.play .vs-side.right{animation:vsInR .55s cubic-bezier(.18,1.3,.35,1) .34s both}
+@keyframes vsInL{from{opacity:0;transform:translateX(-190px) rotate(-7deg)} to{opacity:1;transform:none}}
+@keyframes vsInR{from{opacity:0;transform:translateX( 190px) rotate( 7deg)} to{opacity:1;transform:none}}
+
+.vs-badge{font-family:Impact,'Arial Black',sans-serif;font-size:62px;font-style:italic;color:var(--pw);
+  -webkit-text-stroke:4px var(--pk);paint-order:stroke fill;text-shadow:6px 6px 0 var(--prd);
+  transform:skewX(-8deg);opacity:0}
+#vs-overlay.play .vs-badge{animation:vsSlam .45s cubic-bezier(.2,2,.4,1) .62s both}
+@keyframes vsSlam{from{opacity:0;transform:skewX(-8deg) scale(3.2) rotate(-12deg)}
+                  to{opacity:1;transform:skewX(-8deg) scale(1) rotate(0)}}
+/* White flash on the slam */
+.vs-flash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none}
+#vs-overlay.play .vs-flash{animation:vsFlash .34s ease-out .62s both}
+@keyframes vsFlash{0%{opacity:.85} 100%{opacity:0}}
+
+.vs-kick{position:relative;margin-top:24px;font-family:'Arial Black',sans-serif;font-style:italic;font-weight:900;
+  font-size:13px;letter-spacing:3px;text-transform:uppercase;color:var(--pw);opacity:0}
+#vs-overlay.play .vs-kick{animation:vsPulse 1s ease-in-out 1.05s infinite}
+@keyframes vsPulse{0%,100%{opacity:.35} 50%{opacity:1}}
+
+/* ── Tournament bracket screen ── */
+#screen-tourney{background:radial-gradient(130% 100% at 50% 0%, #3f79ff 0%, #123fd6 42%, #08196a 100%) !important;overflow:hidden}
+.tny-wrap{position:relative;z-index:2;width:min(560px,94%);text-align:center}
+.tny-title{font-family:Impact,'Arial Black',sans-serif;font-size:40px;font-style:italic;color:var(--pw);
+  -webkit-text-stroke:2.5px var(--pk);paint-order:stroke fill;text-shadow:5px 5px 0 var(--prd);
+  transform:skewX(-8deg);text-transform:uppercase;letter-spacing:1px;margin-bottom:2px}
+.tny-sub{color:var(--pw);font-style:italic;font-weight:800;font-size:12.5px;opacity:.9;margin-bottom:14px}
+.tny-path{display:flex;flex-direction:column;gap:8px;margin-bottom:16px}
+.tny-round{display:flex;align-items:center;gap:11px;background:rgba(6,12,40,.6);border:2px solid rgba(255,255,255,.25);
+  border-radius:11px;padding:9px 13px;transition:border-color .2s,background .2s,opacity .2s}
+.tny-round.done{opacity:.55;border-color:rgba(120,255,150,.5)}
+.tny-round.now{border-color:var(--pg);background:rgba(255,215,0,.14);box-shadow:0 0 0 2px rgba(255,215,0,.3)}
+.tny-round.locked{opacity:.4}
+.tny-rname{font-family:'Arial Black',sans-serif;font-style:italic;font-weight:900;font-size:11.5px;
+  text-transform:uppercase;letter-spacing:.8px;color:var(--pw);width:104px;text-align:left;flex-shrink:0}
+.tny-vs{color:var(--pw);opacity:.6;font-weight:900;font-size:10px;font-style:italic}
+.tny-opp{display:flex;align-items:center;gap:7px;flex:1;justify-content:flex-start}
+.tny-opp img{width:26px;height:18px;object-fit:cover;border-radius:2px;box-shadow:0 0 0 1.5px rgba(0,0,0,.5)}
+.tny-opp span{font-style:italic;font-weight:800;color:var(--pw);font-size:12.5px}
+.tny-res{font-family:'Arial Black',sans-serif;font-style:italic;font-weight:900;font-size:12px;letter-spacing:.5px}
+.tny-res.w{color:#7dffa4} .tny-res.l{color:#ff6b8a}
+.tny-you{display:inline-flex;align-items:center;gap:8px;background:rgba(6,12,40,.6);border:2px solid var(--pg);
+  border-radius:10px;padding:6px 13px;margin-bottom:14px}
+.tny-you img{width:30px;height:21px;object-fit:cover;border-radius:2px}
+.tny-you span{font-style:italic;font-weight:900;color:var(--pw);text-transform:uppercase;font-size:13px;letter-spacing:.6px}
+.tny-btns{display:flex;gap:12px;justify-content:center;align-items:center;flex-wrap:wrap}
+.tny-trophy{width:78px;margin:0 auto 6px;display:block}
+.tny-trophy img{width:100%;display:block;filter:drop-shadow(0 6px 14px rgba(0,0,0,.5))}
+
 .btn-howto{position:relative;z-index:2;margin-top:12px;font-family:'Arial Black',sans-serif;font-style:italic;font-weight:900;text-transform:uppercase;letter-spacing:1.5px;color:var(--pw);background:rgba(255,255,255,.08);border:2.5px solid var(--pw);border-radius:0;clip-path:polygon(5% 0,100% 0,95% 100%,0 100%);padding:11px 30px;font-size:15px;transform:skewX(-8deg);cursor:pointer;box-shadow:5px 5px 0 rgba(0,0,0,.4);transition:transform .1s,box-shadow .1s}
 .btn-howto:hover{transform:skewX(-8deg) translate(-2px,-2px);box-shadow:8px 8px 0 rgba(0,0,0,.5);background:rgba(255,255,255,.14)}
 
@@ -507,8 +732,10 @@ button:hover, .btn:hover, #btn-mute:hover, [onclick]:hover{transform:scale(1.06)
     <div class="menu-crest"><img src="models/cup_logo.png" alt="World Cup trophy" draggable="false"></div>
     <div class="menu-title">WORLD<br>CUP</div>
     <div class="menu-sub">Babyfoot Edition</div>
-    <button class="btn-play" onclick="APP.startBotPick()">▶ PLAY NOW!</button>
-    <button class="btn-play btn-tutorial" onclick="TUTORIAL.start()">🎓 Tutorial</button>
+    <button class="btn-play" onclick="TOURNEY.start()">🏆 Tournament</button>
+    <button class="btn-play btn-tutorial" onclick="APP.startBotPick()">⚡ Quick Match</button>
+    <button class="btn-howto2" onclick="TUTORIAL.start()">🎓 Tutorial</button>
+    <div class="menu-best" id="menu-best"></div>
   </div>
 </div>
 
@@ -518,9 +745,13 @@ button:hover, .btn:hover, #btn-mute:hover, [onclick]:hover{transform:scale(1.06)
     <div class="teams-hdr"><h2>Choose Your Team</h2><p id="team-sub"></p></div>
     <div class="ts-layout">
       <div class="ts-panel">
-        <div class="ts-label p1">🟡 Player 1</div>
+        <div class="ts-label p1" id="ts-label-p1">🟡 Player 1</div>
         <div class="ts-preview" id="preview-p1">
           <div class="pf" id="p1-pf"><img src="worldcup countries/Flag_of_Brazil.png" alt="Brazil" style="width:38px;height:26px;object-fit:cover;border-radius:3px;vertical-align:middle"></div><div class="pn" id="p1-pn">Brazil</div>
+          <div class="kit-pick" id="kit-p1">
+            <button class="kit-btn" data-kit="home" onclick="APP.pickKit('p1','home')"><span class="kit-sw"><i class="ks-shirt"></i><i class="ks-shorts"></i></span>Home</button>
+            <button class="kit-btn" data-kit="away" onclick="APP.pickKit('p1','away')"><span class="kit-sw"><i class="ks-shirt"></i><i class="ks-shorts"></i></span>Away</button>
+          </div>
           <div class="conflict-badge">⚠ TAKEN — repick!</div>
         </div>
         <div class="vote-status waiting" id="vstatus-p1">Choosing…</div>
@@ -532,12 +763,17 @@ button:hover, .btn:hover, #btn-mute:hover, [onclick]:hover{transform:scale(1.06)
         <button class="btn btn-gold" onclick="APP.confirmTeam()" id="btn-ready" style="padding:11px 26px;font-size:13px">▶ READY</button>
         <button class="btn-back-lnk" onclick="APP._backTeamSelect()">← Back</button>
       </div>
-      <div class="ts-panel">
+      <div class="ts-panel" id="ts-panel-p2">
         <div class="ts-label p2">🔴 Player 2</div>
         <div class="ts-preview" id="preview-p2">
           <div class="pf" id="p2-pf"><img src="worldcup countries/Flag_of_germany.png" alt="Germany" style="width:38px;height:26px;object-fit:cover;border-radius:3px;vertical-align:middle"></div><div class="pn" id="p2-pn">Germany</div>
+          <div class="kit-pick" id="kit-p2">
+            <button class="kit-btn" data-kit="home" onclick="APP.pickKit('p2','home')"><span class="kit-sw"><i class="ks-shirt"></i><i class="ks-shorts"></i></span>Home</button>
+            <button class="kit-btn" data-kit="away" onclick="APP.pickKit('p2','away')"><span class="kit-sw"><i class="ks-shirt"></i><i class="ks-shorts"></i></span>Away</button>
+          </div>
           <div class="conflict-badge">⚠ TAKEN — repick!</div>
         </div>
+        <div class="kit-clash" id="kit-clash">⚠ Both strips look alike — hard to tell apart</div>
         <div class="vote-status waiting" id="vstatus-p2">Choosing…</div>
         <div class="teams-grid" id="grid-p2"></div>
       </div>
@@ -602,29 +838,20 @@ button:hover, .btn:hover, #btn-mute:hover, [onclick]:hover{transform:scale(1.06)
          hides it while the tutorial is running, since pausing is blocked there. -->
     <button id="btn-pause" class="ac-btn ac-round" onclick="GAME.togglePause()" title="Pause" aria-label="Pause game"><svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true"><rect x="7" y="4" width="4" height="16" rx="1.5" fill="currentColor"/><rect x="13" y="4" width="4" height="16" rx="1.5" fill="currentColor"/></svg></button>
     <div id="ability-hud">
-      <div class="ability-card" id="hold-ability-card" title="Hold Ball — hold Space to trap the ball">
+      <div class="ability-card" id="hold-ability-card" title="Trap Ball — press Space to grab the ball, press again to drop it">
         <div class="ab-slot"><div class="ability-ring" id="hold-ability-ring"><span class="ability-icon">✋</span></div></div>
-        <span class="ability-label">Hold</span>
+        <span class="ability-label">Trap</span>
         <span class="ab-key">Space</span>
       </div>
-      <div class="ability-card gated dim" id="charge-ability-card" title="Charge Shot — hold Left-click while holding the ball">
-        <div class="ab-slot"><span class="mouse-icon left"><span class="m-half"></span><span class="m-half"></span></span></div>
-        <span class="ability-label">Charge</span>
-        <span class="ab-key">L-Click</span>
+      <div class="ability-card gated dim" id="charge-ability-card" title="Power Shot — HOLD Left-click while holding the ball; the longer you hold, the harder it flies (with no ball, Left-click is a plain kick)">
+        <div class="ab-slot"><span class="mouse-ico left"><i class="mi-cable"></i><i class="mi-body"><i class="mi-btn l"></i><i class="mi-btn r"></i><i class="mi-wheel"></i></i></span></div>
+        <span class="ability-label">Power</span>
+        <span class="ab-key">Hold LMB</span>
       </div>
-      <div class="ability-card gated dim" id="loft-ability-card" title="Lofted Shot — Right-click while holding the ball">
-        <div class="ab-slot"><span class="mouse-icon right"><span class="m-half"></span><span class="m-half"></span></span></div>
+      <div class="ability-card gated dim" id="loft-ability-card" title="Lofted Shot — tap Right-click while holding the ball">
+        <div class="ab-slot"><span class="mouse-ico right"><i class="mi-cable"></i><i class="mi-body"><i class="mi-btn l"></i><i class="mi-btn r"></i><i class="mi-wheel"></i></i></span></div>
         <span class="ability-label">Loft</span>
-        <span class="ab-key">R-Click</span>
-      </div>
-      <div class="ability-card gated dim" id="pass-ability-card" title="Pass — Q / E while holding the ball">
-        <div class="ab-slot"><span class="ability-icon standalone">⇅</span></div>
-        <span class="ability-label">Pass</span>
-        <div class="pc-pips" id="pass-charges">
-          <span class="charge-pip" data-i="0"></span>
-          <span class="charge-pip" data-i="1"></span>
-          <span class="charge-pip" data-i="2"></span>
-        </div>
+        <span class="ab-key">Tap RMB</span>
       </div>
     </div>
 
@@ -648,9 +875,50 @@ button:hover, .btn:hover, #btn-mute:hover, [onclick]:hover{transform:scale(1.06)
   </div>
 </div>
 
+<!-- TOURNAMENT: matchup intro, played just before kickoff -->
+<div id="vs-overlay">
+  <div class="vs-flash"></div>
+  <div class="vs-round" id="vs-round">Quarter-Final</div>
+  <div class="vs-row">
+    <div class="vs-side left"  id="vs-left"></div>
+    <div class="vs-badge">VS</div>
+    <div class="vs-side right" id="vs-right"></div>
+  </div>
+  <div class="vs-kick">Kick off</div>
+</div>
+
+<!-- TOURNAMENT: bracket / run progress -->
+<div id="screen-tourney" class="screen">
+  <div class="tny-wrap">
+    <div class="tny-trophy" id="tny-trophy"><img src="models/cup_logo.png" alt="" draggable="false"></div>
+    <div class="tny-title" id="tny-title">World Cup</div>
+    <div class="tny-sub" id="tny-sub">Three matches to lift the trophy</div>
+    <div class="tny-you" id="tny-you"></div>
+    <div class="tny-path" id="tny-path"></div>
+    <div class="tny-btns">
+      <button class="btn-play" style="margin-top:0;font-size:21px !important;padding:12px 34px !important" id="tny-go" onclick="TOURNEY.playRound()">▶ Play</button>
+      <button class="btn-back-lnk" onclick="TOURNEY.quit()">✖ Quit</button>
+    </div>
+  </div>
+</div>
+
+<!-- Quitting a live tournament throws the whole run away, so it is confirmed.
+     Only ever shown while a run is actually in progress — see TOURNEY.quit(). -->
+<div id="tny-quit-overlay" class="overlay" onclick="if(event.target===this) TOURNEY.cancelQuit()">
+  <div class="howto-panel" style="width:min(420px,92%);text-align:center">
+    <div class="howto-title" style="font-size:30px">Quit tournament?</div>
+    <div class="howto-goal" style="margin-bottom:6px">You'll lose <b>all progress</b> in this run — your next tournament starts again from the Quarter-Final.</div>
+    <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:6px">
+      <button class="howto-close" style="margin:8px 0 0;background:var(--pr);color:var(--pw)" onclick="TOURNEY.confirmQuit()">✖ Quit Run</button>
+      <button class="howto-close" style="margin:8px 0 0;background:rgba(255,255,255,.08);color:var(--pw);border-color:var(--pw)" onclick="TOURNEY.cancelQuit()">Cancel</button>
+    </div>
+  </div>
+</div>
+
 <!-- GOAL OVERLAY -->
 <div id="goal-overlay">
-  <div class="goal-word">GOAL!</div>
+  <div class="goal-tag" id="goal-tag"></div>
+  <div class="goal-word" id="goal-word">GOAL!</div>
   <div class="goal-sub" id="goal-sub">Brazil scores!</div>
 </div>
 
@@ -680,12 +948,12 @@ button:hover, .btn:hover, #btn-mute:hover, [onclick]:hover{transform:scale(1.06)
     <div class="howto-goal">Knock the ball into your opponent's goal and defend your own. Whoever has the <b>most goals</b> when the clock runs out wins.</div>
     <div class="howto-grid">
       <div class="howto-item">
-        <div class="howto-keys"><span class="keycap">W</span><span class="keycap">S</span></div>
+        <div class="howto-keys"><span class="keycap js-key-up">W</span><span class="keycap js-key-down">S</span></div>
         <div class="howto-txt"><b>Move</b><span>Slide your rods up &amp; down.</span></div>
       </div>
       <div class="howto-item">
-        <div class="howto-keys"><span class="keycap wide">Space</span></div>
-        <div class="howto-txt"><b>Shoot</b><span>Tap to kick the ball.</span></div>
+        <div class="howto-keys"><span class="mouse-ico left"><i class="mi-cable"></i><i class="mi-body"><i class="mi-btn l"></i><i class="mi-btn r"></i><i class="mi-wheel"></i></i></span></div>
+        <div class="howto-txt"><b>Kick</b><span>Tap <b>LMB</b> to strike a loose ball.</span></div>
       </div>
       <!-- Hold Ball is listed BEFORE the three abilities that depend on it, so the
            order itself teaches the prerequisite. Those three are badged, because
@@ -693,22 +961,18 @@ button:hover, .btn:hover, #btn-mute:hover, [onclick]:hover{transform:scale(1.06)
            its own never explains why it is dimmed. -->
       <div class="howto-item">
         <div class="howto-keys"><span class="keycap wide hold">Space</span></div>
-        <div class="howto-txt"><b>Hold Ball</b><span>Hold to trap it (short cooldown).</span></div>
+        <div class="howto-txt"><b>Trap Ball</b><span>Press once to grab it — press again to drop.</span></div>
       </div>
       <div class="howto-item needs-ball">
-        <div class="howto-keys"><span class="mouse-icon left"><span class="m-half"></span><span class="m-half"></span></span></div>
-        <div class="howto-txt"><b>Charge Shot <span class="nb">needs ball</span></b><span>Hold Left-click, release to blast.</span></div>
+        <div class="howto-keys"><span class="mouse-ico left"><i class="mi-cable"></i><i class="mi-body"><i class="mi-btn l"></i><i class="mi-btn r"></i><i class="mi-wheel"></i></i></span></div>
+        <div class="howto-txt"><b>Power Shot <span class="nb">needs ball</span></b><span><b>HOLD LMB FOR POWER</b> — the longer you hold, the harder it flies. Release to fire.</span></div>
       </div>
       <div class="howto-item needs-ball">
-        <div class="howto-keys"><span class="mouse-icon right"><span class="m-half"></span><span class="m-half"></span></span></div>
-        <div class="howto-txt"><b>Lofted Shot <span class="nb">needs ball</span></b><span>Right-click to lob over defenders.</span></div>
-      </div>
-      <div class="howto-item needs-ball">
-        <div class="howto-keys"><span class="keycap pass">Q</span><span class="keycap pass">E</span></div>
-        <div class="howto-txt"><b>Pass ▲▼ <span class="nb">needs ball</span></b><span>Pass between rods — 3 charges.</span></div>
+        <div class="howto-keys"><span class="mouse-ico right"><i class="mi-cable"></i><i class="mi-body"><i class="mi-btn l"></i><i class="mi-btn r"></i><i class="mi-wheel"></i></i></span></div>
+        <div class="howto-txt"><b>Lofted Shot <span class="nb">needs ball</span></b><span>Tap <b>RMB</b> to lob over defenders.</span></div>
       </div>
     </div>
-    <div class="howto-note">Charge, Loft and Pass only work while you're <b>holding the ball</b> — hold <b>Space</b> to trap it first.</div>
+    <div class="howto-note">Charge and Loft only work while you're <b>holding the ball</b> — press <b>Space</b> to trap it first, then shoot with the mouse. You don't need to keep Space held.</div>
     <!-- Controls-only reference. The tutorial is deliberately NOT reachable from
          here: this overlay opens from the pause menu mid-match, and starting
          training would tear down the match in progress. Training lives on the
@@ -737,8 +1001,15 @@ button:hover, .btn:hover, #btn-mute:hover, [onclick]:hover{transform:scale(1.06)
 <!-- TOAST -->
 <div id="toast"></div>
 <audio id="snd-applause" src="sounds/applause.mp3" preload="auto"></audio>
-<audio id="snd-music" src="sounds/Windmill Isle_loop.mp3" preload="auto" loop></audio>
-<audio id="snd-menu-music" src="sounds/Menu_loop.mp3" preload="auto" loop></audio>
+<!-- The two music loops are 4.5 MB of the ~4.8 MB sound payload, and unlike the
+     model scripts (which gzip ~7:1) MP3 is already compressed, so they dominate
+     the real transfer. preload="none" keeps them off the critical path: nothing
+     needs them until a screen actually asks for music, and both playMusic() and
+     playMenuMusic() already .catch() a rejected play(), so a not-yet-loaded
+     element is handled. Cost is a second or two of silence on the menu; the
+     benefit is every player reaching the game sooner. -->
+<audio id="snd-music" src="sounds/Windmill Isle_loop.mp3" preload="none" loop></audio>
+<audio id="snd-menu-music" src="sounds/Menu_loop.mp3" preload="none" loop></audio>
 <audio id="snd-countdown" src="sounds/321_GO_sound_effect.mp3" preload="auto"></audio>
 <audio id="snd-whistle-full" src="sounds/Whistle_sound_effect.mp3" preload="auto"></audio>
 
@@ -750,7 +1021,11 @@ button:hover, .btn:hover, #btn-mute:hover, [onclick]:hover{transform:scale(1.06)
 //  CONFIG
 // ═══════════════════════════════════════════════════════════════
 const CFG = {
-  MATCH_SECS: 300,
+  // 2 minutes. Analytics showed an average session of 2m15s against 5-minute
+  // matches — meaning the typical player quit MID-MATCH and never saw a final
+  // whistle or a result. A 2-minute match means an average session now contains
+  // a complete match, and a loss costs little enough to try again.
+  MATCH_SECS: 120,
   BALL_R: 10,
   FIG_W: 13,
   FIG_H: 34,
@@ -942,6 +1217,51 @@ function _kitContrast(h1,h2){
   const hi=Math.max(l1,l2),lo=Math.min(l1,l2);
   return (hi+0.05)/(lo+0.05);
 }
+// Picks which strip each side wears. Auto-selection exists so the two teams
+// never end up in near-identical colours — a red-vs-red match is genuinely
+// unplayable. The player can now override either side from the team screen, and
+// any kit they explicitly chose becomes a HARD constraint: we only optimise
+// contrast across whatever is left free. That keeps their choice intact while
+// still protecting readability wherever we can.
+// ═══════════════════════════════════════════════════════════════
+//  BOT DIFFICULTY LEVELS
+// ═══════════════════════════════════════════════════════════════
+// Simulation showed the previous settings (this table's `normal`) beat a player
+// with PERFECT ball-tracking and instant reactions 75% of the time — so the old
+// default was far too strong, which is what testers were reporting as "you lose
+// easily". These levels are calibrated against the headless simulator rather
+// than guessed; see the numbers recorded next to each one.
+//
+//   spd      fraction of the PLAYER's rod speed the bot may move at
+//   jitter   px of positional error added to its target
+//   reactMs  how stale the ball position it reacts to is
+//   kickProb fraction of contacts it actually strikes rather than fumbles
+//   restProb per-frame chance of a brief hesitation
+// Feel tuning, kept in one place so it can be swept against the simulator rather
+// than guessed. Both numbers came out of measured play, not intuition:
+//   aimAssist   — power shots fired dead straight and only scored when the figure
+//                 happened to line up with the 112px goal. Measured 12% accuracy.
+//   behindClear — a ball behind a figure used to be nudged along the contact
+//                 normal, i.e. straight at our own net: 85% of everything conceded.
+// Values chosen by sweeping these against the simulator, best of five pairings:
+//   accuracy   12% -> 27%      own goals  85% of conceded -> a rare deflection
+const TUNE = {
+  aimAssist:   1.0,    // 0 = no help, 1 = shot leads the goal mouth exactly
+  aimSpread:   0.9,    // small random vy so shots are not all identical
+  aimVyMax:    9,      // cap so assist never becomes a cross-pitch lob
+  behindClear: 1.6,    // upfield push when the ball is on our own-goal side
+};
+
+const BOT_LEVELS = {
+  rookie: { spd:0.30, jitter:70, reactMs:460, kickProb:0.40, restProb:0.0040 },
+  easy:   { spd:0.36, jitter:58, reactMs:380, kickProb:0.48, restProb:0.0030 },
+  medium: { spd:0.42, jitter:48, reactMs:320, kickProb:0.56, restProb:0.0024 },
+  hard:   { spd:0.50, jitter:40, reactMs:260, kickProb:0.65, restProb:0.0018 }, // the old default
+  elite:  { spd:0.58, jitter:32, reactMs:200, kickProb:0.74, restProb:0.0012 },
+};
+// Alias kept so anything referring to the historical default still resolves.
+BOT_LEVELS.normal = BOT_LEVELS.hard;
+
 function selectKits(t1,t2){
   const opts=[
     {p1Kit:'home',p2Kit:'home', c:_kitContrast(t1.home,t2.home)},
@@ -949,7 +1269,11 @@ function selectKits(t1,t2){
     {p1Kit:'away',p2Kit:'home', c:_kitContrast(t1.away,t2.home)},
     {p1Kit:'away',p2Kit:'away', c:_kitContrast(t1.away,t2.away)},
   ];
-  opts.sort((a,b)=>{
+  let pool = opts;
+  if(STATE.p1KitChoice) pool = pool.filter(o=>o.p1Kit===STATE.p1KitChoice);
+  if(STATE.p2KitChoice) pool = pool.filter(o=>o.p2Kit===STATE.p2KitChoice);
+  if(!pool.length) pool = opts;          // defensive: never leave it unset
+  pool.sort((a,b)=>{
     const diff=b.c-a.c;
     if(Math.abs(diff)<0.4){
       // near-tie: prefer home kits
@@ -959,8 +1283,10 @@ function selectKits(t1,t2){
     }
     return diff;
   });
-  STATE.p1Kit=opts[0].p1Kit;
-  STATE.p2Kit=opts[0].p2Kit;
+  STATE.p1Kit=pool[0].p1Kit;
+  STATE.p2Kit=pool[0].p2Kit;
+  // How readable the resulting matchup is — the team screen warns on a clash.
+  STATE._kitContrast = pool[0].c;
   // Invalidate renderer kit cache so new colors get applied
   if(RENDERER._rods) RENDERER._rods.forEach(({figs})=>figs.forEach(g=>{ g.userData.lastTeam=null; }));
 }
@@ -1153,6 +1479,7 @@ const GAME = {
   countdownActive: false,
   lastTouchTeam: null,
   heldBy: null,      // { team, rod, figIdx } while ball is held
+  goldenGoal: false, // knockout tie level at full time — next goal settles it
   holdTimer: 0,      // seconds ball has been held
   holdCooldownP1: 0, // seconds until P1's hold ability is available again
   holdCooldownP2: 0, // seconds until P2's hold ability is available again
@@ -1160,9 +1487,22 @@ const GAME = {
   passAnim: null,    // { fromBaseY, toBaseY, newFigIdx, t, frames } during pass animation
   catchIndicator: null, // { team, rod, figIdx } — figure that CAN catch right now
   _passRequest: null,   // 'prev' | 'next' — set by keydown, consumed in _updateHeld
-  _holdBufferP1: 0, // frames of "hold was just pressed" leniency, refreshed on keydown
+  // Which opponent tuning is in force. Set per tournament round, or by the
+  // difficulty setting in a one-off match.
+  botCfg: null,     // resolved to a BOT_LEVELS entry in start()
+  _holdBufferP1: 0, // frames of "grab is armed" leniency, refreshed on the Space press
   _holdBufferP2: 0,
-  HOLD_BUFFER_FRAMES: 14, // ~230ms at 60fps — forgives slightly early/late presses
+  HOLD_BUFFER_FRAMES: 14, // ~230ms at 60fps — the bot's window, unchanged
+  // Space LATCHES the ball: one press traps it, another press drops it, and it
+  // stays held in between without the key being down. Because the player no
+  // longer holds the key through the catch, the arming window has to be much
+  // wider than the old 230ms or an anticipated press would simply be forgotten.
+  GRAB_ARM_FRAMES: 60,      // ~1s at 60fps
+  // The powered strike moved from Space to left-click. A click is instantaneous
+  // and the ball is rarely touching a figure on that exact frame, so it needs its
+  // own short buffer — the same trick the catch already used.
+  _kickBufferP1: 0,
+  KICK_BUFFER_FRAMES: 14,   // ~230ms
   HOLD_CATCH_BONUS: 16,   // extra reach (px) beyond normal contact radius, catch-only
   _ballPrevX: null, _ballPrevY: null, // ball position at start of frame, for swept catch detection
 
@@ -1175,7 +1515,12 @@ const GAME = {
   // ── Charged / lofted shot mechanics (mouse-driven, local player only) ──
   _chargeActive: false, _chargeFrames: 0,
   CHARGE_MAX_FRAMES: 72, // ~1.2s at 60fps to reach full charge
-  CHARGE_BASE_POW: 7.5, CHARGE_MAX_POW: 19,
+  // Max power doubled 19 -> 38 for a properly explosive charged shot.
+  // NOTE: at 38px/frame the ball travels nearly twice a figure's collision
+  // radius (19.5px) between frames, so the non-swept bounce test in _collideFigs
+  // can miss it entirely and the shot passes THROUGH defenders. _collideFigs now
+  // sub-steps fast balls to stop that.
+  CHARGE_BASE_POW: 7.5, CHARGE_MAX_POW: 38,
   ballZ: 0, ballVZ: 0,   // airborne height state for the lofted shot arc
   // Tuned for a short controlled "chip" — peak ~0.6 world units (a few ball-radii,
   // well under the camera height of 4.6), landing in well under a second.
@@ -1224,6 +1569,9 @@ const GAME = {
   start(role, testMode=false, botMode=false){
     this.running=true; this.paused=false; this.testMode=testMode; this.botMode=botMode; this.myRole=role;
     this.score={p1:0,p2:0}; this.timeLeft=CFG.MATCH_SECS;
+    // Must never leak from a previous knockout tie, or the next match would end
+    // on its very first goal.
+    this.goldenGoal=false;
     this.p1Off=0; this.p2Off=0;
     this.holdCooldownP1=0; this.holdCooldownP2=0;
     this.passChargesP1=this.PASS_CHARGE_MAX; this.passChargesP2=this.PASS_CHARGE_MAX;
@@ -1311,6 +1659,7 @@ const GAME = {
     // ── Hold input buffer: forgives presses slightly early/late ──
     if(this._holdBufferP1 > 0) this._holdBufferP1 = Math.max(0, this._holdBufferP1 - dt);
     if(this._holdBufferP2 > 0) this._holdBufferP2 = Math.max(0, this._holdBufferP2 - dt);
+    if(this._kickBufferP1 > 0) this._kickBufferP1 = Math.max(0, this._kickBufferP1 - dt);
     // ── Pass charge regeneration: one charge every PASS_RECHARGE_SECS ──
     if(this.passChargesP1 < this.PASS_CHARGE_MAX){
       this.passRechargeP1 += dt/60;
@@ -1480,27 +1829,28 @@ const GAME = {
       ? (this.testMode ? KEY_P1 : this.myInput)
       : (this.testMode ? KEY_P2 : (this.botMode ? this._botInput : null));
 
-    // Handle pass request (edge-triggered from keydown)
-    if(!forceRelease && this._passRequest){
-      const delta = this._passRequest === 'prev' ? -1 : 1;
-      this._passRequest = null;
-      this._doPass(delta);
-      return;
-    }
-    this._passRequest = null;
 
-    // Ball stays held if either Space is down OR a mouse charge is in progress —
-    // lets the player switch from "catch with Space" to "aim with the mouse".
-    // In the tutorial's hand-held drills the ball is GIVEN to the player, so it
-    // must stay put until they fire the move being taught. Without this it was
-    // thrown again on the very next frame, then re-handed, then thrown — the
-    // "charging keeps looping / loft never shows" glitch.
-    const spaceStillHeld = tutHold || (((inp && inp.kick) || this._chargeActive) && !forceRelease);
+    // Space LATCHES the ball. It used to be thrown the instant the key came up,
+    // which forced the player to keep Space held with one hand while doing a
+    // hold-and-release on the mouse with the other. Now the ball simply stays
+    // put, and there are exactly three ways out:
+    //
+    //   1. a shot          — left-click charge or right-click loft (handled elsewhere)
+    //   2. a deliberate drop — a second press of Space
+    //   3. the 3s timeout  — so camping on the ball is still not rewarded
+    //
+    // The tutorial's hand-held drills additionally pin the ball until the player
+    // performs the move being taught.
+    // The bot has no latch: its ball used to be released the instant its kick
+    // flag went false — which is most frames. Without restoring that, a bot
+    // that caught the ball would sit on it for the whole 3s timeout.
+    const botHolding = this.botMode && h.team === 'p2';
+    const botRelease = botHolding && !(inp && inp.kick);
 
-    if(!spaceStillHeld){
-      // Throw: aim based on W/S at release; full power
+    if(forceRelease || botRelease){
       const rodDir = inp ? (inp.up ? -1 : inp.down ? 1 : 0) : 0;
-      b.vx = dir * 7.5;
+      const speed = 7.5;
+      b.vx = dir * speed;
       b.vy = rodDir * 6;
       if(h.team==='p1') this.p1KickAngle = 0.65; else this.p2KickAngle = 0.65;
       this.lastTouchTeam = h.team;
@@ -1526,9 +1876,29 @@ const GAME = {
       : (this.testMode ? KEY_P2 : (this.botMode ? this._botInput : null));
     const rodDir = inp ? (inp.up ? -1 : inp.down ? 1 : 0) : 0;
     b.vx = dir * power;
-    b.vy = rodDir * (6 + frac * 2);
+
+    // ── Aim assist ──
+    // The shot used to fire dead straight unless the player happened to be
+    // holding W/S, so it only scored when the figure was already lined up with
+    // the goal mouth (112px of a 512px backline). Measured accuracy: 12% — seven
+    // of every eight power shots missed, which is why scoring felt impossible.
+    //
+    // Work out the vy that would carry the ball to the middle of the target goal
+    // over its flight, and blend that in. The player's own W/S aim is added on
+    // top, so deliberate aiming still overrides it and shots can still miss.
+    const goalX = dir > 0 ? P.right : P.x;
+    const flight = Math.abs(goalX - b.x) / Math.max(1, Math.abs(b.vx));   // frames
+    const leadVy = flight > 0 ? (P.cy - b.y) / flight : 0;
+    // A touch of spread, so shots aren't all funnelled through the exact same
+    // point in the goal mouth.
+    b.vy = rodDir * (6 + frac * 2) + leadVy * TUNE.aimAssist
+         + (Math.random() - 0.5) * 2 * TUNE.aimSpread;
+    // Never let assist turn the shot into a lob across the pitch.
+    b.vy = Math.max(-TUNE.aimVyMax, Math.min(TUNE.aimVyMax, b.vy));
     if(h.team==='p1') this.p1KickAngle = 0.9; else this.p2KickAngle = 0.9;
     this.lastTouchTeam = h.team;
+    // Remember HOW this was struck, so a goal from it can be celebrated properly.
+    this._lastShot = { type:'power', team:h.team, frac, t:performance.now() };
     if(h.team==='p1') this.holdCooldownP1 = this.HOLD_COOLDOWN_MAX;
     else              this.holdCooldownP2 = this.HOLD_COOLDOWN_MAX;
     this.heldBy = null; this.holdTimer = 0; this.passAnim = null;
@@ -1555,6 +1925,7 @@ const GAME = {
     this.ballVZ = this.LOFT_LAUNCH_VZ;
     if(h.team==='p1') this.p1KickAngle = 0.9; else this.p2KickAngle = 0.9;
     this.lastTouchTeam = h.team;
+    this._lastShot = { type:'loft', team:h.team, frac:1, t:performance.now() };
     if(h.team==='p1') this.holdCooldownP1 = this.HOLD_COOLDOWN_MAX;
     else              this.holdCooldownP2 = this.HOLD_COOLDOWN_MAX;
     this.heldBy = null; this.holdTimer = 0; this.passAnim = null;
@@ -1622,7 +1993,37 @@ const GAME = {
     this.catchIndicator = best;
   },
 
+  // Fast balls are resolved in sub-steps. The bounce test below compares the
+  // ball's CURRENT position against each figure, so a ball moving further than a
+  // figure's collision radius in one frame can jump clean over it. At the old max
+  // power (19) that was already marginal against a 19.5px radius; at 38 a charged
+  // shot would pass straight through defenders. Splitting the frame into hops no
+  // larger than half a radius keeps every contact detectable, at a cost of a few
+  // extra iterations only on the rare frames where the ball is genuinely flying.
   _collideFigs(dt){
+    const b = this.ball;
+    const step = Math.hypot(b.vx, b.vy) * dt;
+    const MAX_HOP = (CFG.BALL_R + CFG.FIG_W / 2) * 0.5;      // ~8px
+    if(step > MAX_HOP && !this.heldBy){
+      const n = Math.min(6, Math.ceil(step / MAX_HOP));       // capped: never a stall risk
+      const sx = b.x, sy = b.y;
+      const px = this._ballPrevX ?? sx, py = this._ballPrevY ?? sy;
+      for(let i = 1; i <= n; i++){
+        if(this.heldBy) break;
+        // Walk the ball back along the path it took this frame and test each point.
+        const f = i / n;
+        b.x = px + (sx - px) * f;
+        b.y = py + (sy - py) * f;
+        this._ballPrevX = px + (sx - px) * ((i - 1) / n);
+        this._ballPrevY = py + (sy - py) * ((i - 1) / n);
+        this._collideFigsOnce(dt / n);
+      }
+      return;
+    }
+    this._collideFigsOnce(dt);
+  },
+
+  _collideFigsOnce(dt){
     const b = this.ball;
     const prevX = this._ballPrevX ?? b.x, prevY = this._ballPrevY ?? b.y;
     const minD   = CFG.BALL_R + CFG.FIG_W/2 + 3;      // tight radius: normal bounce/kick contact
@@ -1644,8 +2045,16 @@ const GAME = {
       const inp = rod.team==='p1'
         ? (this.testMode ? KEY_P1 : this.myInput)
         : (this.testMode ? KEY_P2 : (this.botMode ? this._botInput : null));
-      const bufferedKick = rod.team==='p1' ? (this._holdBufferP1 > 0) : (this._holdBufferP2 > 0);
-      const powered = (inp ? !!inp.kick : false) || bufferedKick;
+      // Catching and the powered strike used to be the same signal — both came
+      // from "is the kick input down". They are now different inputs for the
+      // human: Space arms a catch, left-click powers a strike. So they have to
+      // be evaluated separately. The bot (p2) keeps the old combined behaviour,
+      // since nothing about its decision-making changed.
+      const isMine = rod.team === 'p1' && !this.testMode;
+      const botLike = (inp ? !!inp.kick : false)
+                    || (rod.team==='p1' ? this._holdBufferP1 > 0 : this._holdBufferP2 > 0);
+      const armed       = isMine ? (this._holdBufferP1 > 0) : botLike;   // Space  → trap
+      const poweredKick = isMine ? (this._kickBufferP1 > 0) : botLike;   // L-click → 8.2 strike
       const teamCooldown = rod.team==='p1' ? this.holdCooldownP1 : this.holdCooldownP2;
 
       for(let i=0;i<rod.nFigs;i++){
@@ -1654,7 +2063,7 @@ const GAME = {
 
         // ── Catch: generous swept radius + buffered input, so a ball that ──
         // ── clearly passed near the figure this frame is always caught.   ──
-        if(powered && teamCooldown <= 0){
+        if(armed && teamCooldown <= 0){
           const segDist = this._segPointDist(prevX, prevY, b.x, b.y, rx, fy);
           if(segDist < catchR){
             this.heldBy = { team: rod.team, rod, figIdx: i };
@@ -1697,16 +2106,25 @@ const GAME = {
             else                this.p2KickAngle = 0.65;
             this.lastTouchTeam = rod.team;
             const rodDir = inp ? (inp.up ? -1 : inp.down ? 1 : 0) : 0;
-            const power = powered ? 8.2 : 4.9;
+            const power = poweredKick ? 8.2 : 4.9;
             b.vx = dir * power + dir * Math.abs(b.vx) * 0.12;
             b.vy = rodDir * 5.5 + (Math.random()-.5) * 1.5;
-            RENDERER.triggerHitEffect(b, powered ? 0.9 : 0.45);
+            if(poweredKick && rod.team==='p1') this._kickBufferP1 = 0;   // consume the click
+            RENDERER.triggerHitEffect(b, poweredKick ? 0.9 : 0.45);
             AUDIO.kick();
             this._figKickCd = 5;   // ~5-frame lockout stops machine-gun re-hits
           } else if(!onFront){
-            // Ball is BEHIND the figure → nudge it further out the back so it
-            // separates cleanly instead of being repeatedly driven into the post.
-            b.vx += nx * 3.2;
+            // Ball is BEHIND the figure, i.e. on our own-goal side.
+            //
+            // This used to nudge along the contact normal (b.vx += nx*3.2), and
+            // since nx points from the figure toward the ball, that drove the
+            // ball STRAIGHT AT OUR OWN NET. Measured: 85% of everything conceded
+            // was an own goal produced here.
+            //
+            // Separate laterally as before, but send it back upfield instead of
+            // deeper. A defender who gets beaten should not also fire the ball
+            // into his own goal.
+            b.vx += dir * TUNE.behindClear;
             b.vy += ny * 3.2;
             this.lastTouchTeam = rod.team;
           }
@@ -1747,12 +2165,16 @@ const GAME = {
     if(this.practice) return;
 
     // ── Difficulty knobs ──
-    const BOT_SPD    = CFG.ROD_SPD * dt * 0.50;  // 50% of player speed (was 72%)
-    const JITTER_AMP = 40;                         // ±40px positional error (was ±12)
+    // Read from GAME.botCfg rather than hard-coded, so the tournament ramp and
+    // the Easy/Hard setting can tune the opponent at runtime. Defaults below
+    // preserve the previous behaviour exactly if botCfg is ever missing.
+    const BC = this.botCfg || BOT_LEVELS.normal;
+    const BOT_SPD    = CFG.ROD_SPD * dt * BC.spd;  // fraction of player rod speed
+    const JITTER_AMP = BC.jitter;                  // px of positional error
     const JITTER_SPDS= [310, 870];                 // two slow sine waves for natural wobble
-    const REACT_MS   = 260;                        // 260ms reaction delay (was 0)
-    const KICK_PROB  = 0.65;                       // only kicks 65% of contacts (was 100%)
-    const REST_PROB  = 0.0018;                     // random brief hesitation per frame
+    const REACT_MS   = BC.reactMs;                 // reaction delay
+    const KICK_PROB  = BC.kickProb;                // fraction of contacts it actually kicks
+    const REST_PROB  = BC.restProb;                // random brief hesitation per frame
 
     // Reaction-time delay: track ball history and use a stale position
     if(!this._botHist) this._botHist = [];
@@ -1811,6 +2233,8 @@ const GAME = {
     setTimeout(()=>{
       document.getElementById('goal-overlay').classList.remove('show');
       AUDIO.stopApplause();
+      // Golden goal: this strike settled the tie, so finish rather than restart.
+      if(this.goldenGoal){ this.goldenGoal = false; this._localGameEnd(); return; }
       if(this.timeLeft>0 && this.running) this.reset();
       else this._localGameEnd();
     },3000);
@@ -1882,18 +2306,88 @@ const GAME = {
     AUDIO.stopMusic();
     const t1=STATE.p1Team, t2=STATE.p2Team;
     const _fi=(t)=>`<img src="${t.flag}" alt="${t.name}" style="width:28px;height:19px;object-fit:cover;border-radius:2px;vertical-align:middle;margin-right:5px">`;
+    // A knockout tie cannot end level. Rather than a whole penalty mini-game up
+    // front, the tie goes to GOLDEN GOAL: play continues and the next goal wins.
+    // At the current scoring rate this resolves in seconds, and it reuses the
+    // match loop wholesale. (A proper shootout is the planned upgrade.)
+    if(window.TOURNEY && TOURNEY.active && this.score.p1 === this.score.p2){
+      this._enterGoldenGoal();
+      return;
+    }
     let winner;
     if(this.score.p1>this.score.p2) winner=`${_fi(t1)}${t1.name} wins!`;
     else if(this.score.p2>this.score.p1) winner=`${_fi(t2)}${t2.name} wins!`;
     else winner="It's a draw! 🤝";
+    // In a tournament the result advances (or ends) the run instead of showing
+    // the normal full-time screen.
+    if(window.TOURNEY && TOURNEY.active){
+      TOURNEY.onMatchEnd(this.score.p1, this.score.p2);
+      return;
+    }
     APP._playMatchEndSequence(winner, `${this.score.p1} — ${this.score.p2}`);
+  },
+
+  // ── Golden goal ──
+  // Keeps the match running with the clock parked at zero; the next goal ends it.
+  // _localGoal checks goldenGoal and finishes immediately rather than resetting.
+  _enterGoldenGoal(){
+    if(this.goldenGoal) return;
+    this.goldenGoal = true;
+    this.timeLeft = 0;
+    const el = document.getElementById('timer');
+    if(el){ el.textContent = 'GOLDEN'; el.style.color = '#ffd700'; }
+    APP.toast('⚡ GOLDEN GOAL — next goal wins!', 2600);
+    AUDIO.tone && AUDIO.tone(660, 0.12, 0.25);
+  },
+
+  // Was this goal actually STRUCK by the scorer with a charged shot or a chip?
+  // Only then does it earn the big celebration — a deflection or a scrappy poke
+  // gets the normal one, so the spectacle stays tied to doing something well.
+  _megaShotFor(scorer){
+    const s = this._lastShot;
+    if(!s || s.team !== scorer) return null;
+    if(performance.now() - s.t > 6000) return null;   // stale — something else happened since
+    if(s.type === 'power' && s.frac < 0.45) return null; // a weak tap is not a screamer
+    return s;
   },
 
   _showGoalOverlay(scorer){
     const team=scorer==='p1'?STATE.p1Team:STATE.p2Team;
     document.getElementById('goal-sub').innerHTML=`<img src="${team.flag}" alt="${team.name}" style="width:28px;height:19px;object-fit:cover;border-radius:2px;vertical-align:middle;margin-right:5px">${team.name} scores!`;
-    document.getElementById('goal-overlay').classList.add('show');
+    const ov = document.getElementById('goal-overlay');
+    const mega = this._megaShotFor(scorer);
+    const tag = document.getElementById('goal-tag');
+    const word = document.getElementById('goal-word');
+    ov.classList.remove('mega');
+    if(mega){
+      const POWER = ['SCREAMER!','ROCKET!','UNSTOPPABLE!','WHAT A HIT!','THUNDERBOLT!'];
+      const LOFT  = ['WHAT A CHIP!','AUDACIOUS!','OVER THE TOP!','SUBLIME!'];
+      const pool = mega.type === 'loft' ? LOFT : POWER;
+      tag.textContent = pool[Math.floor(Math.random() * pool.length)];
+      word.textContent = 'GOAL!!!';
+      // Restart the keyframes — without the reflow the second goal of a match
+      // would show the overlay with no animation at all.
+      void ov.offsetWidth;
+      ov.classList.add('mega');
+      const wrap = document.getElementById('wrap');
+      if(wrap){ wrap.classList.remove('mega-shake'); void wrap.offsetWidth; wrap.classList.add('mega-shake');
+                setTimeout(()=>wrap.classList.remove('mega-shake'), 600); }
+      // Layered stinger: impact, then a rising fanfare.
+      try{
+        AUDIO.tone(70, 0.30, 0.34); AUDIO.tone(140, 0.22, 0.24);
+        [523,659,784,1047,1319].forEach((f,k)=> setTimeout(()=>AUDIO.tone(f, 0.22, 0.15), 90 + k*80));
+      }catch(e){}
+    } else {
+      word.textContent = 'GOAL!';
+      tag.textContent = '';
+    }
+    ov.classList.add('show');
     if(RENDERER && RENDERER.triggerCrowdCheer) RENDERER.triggerCrowdCheer();  // crowd erupts + confetti
+    if(mega && RENDERER && RENDERER.triggerCrowdCheer){
+      setTimeout(()=>RENDERER.triggerCrowdCheer(), 260);   // second wave of noise + confetti
+      setTimeout(()=>RENDERER.triggerCrowdCheer(), 560);
+    }
+    this._lastShot = null;   // consumed
   },
 };
 
@@ -3891,7 +4385,13 @@ const RENDERER = {
     const sp = this._project(GAME.ball.x, GAME.ball.y);
     const BAR_W = 52, BAR_H = 8, R = 4;
     const x = sp.x - BAR_W / 2;
-    const y = sp.y - 36; // above the ball
+    // Sits UNDER the player. It used to be 36px above the ball, which is now
+    // underneath the LMB/RMB prompt (that panel spans -34 to -102), so the
+    // countdown was being covered exactly when it mattered. Below the ball it is
+    // clear of both that panel and the 24px charge ring.
+    // If the prompt has flipped below the ball — which it does near the top edge
+    // of the pitch — move back above so the two never collide.
+    const y = this._promptBelow ? (sp.y - 42) : (sp.y + 32);
     const fill = Math.max(0, 1 - GAME.holdTimer / 3.0);
 
     // Background
@@ -3957,38 +4457,132 @@ const RENDERER = {
   },
 
   // ── Pass direction indicator: shows ↑Q / ↓E while holding, hides missing directions ──
-  _drawPassDirIndicator(){
+  // ── "You can click now" prompt, drawn NEXT TO THE BALL ──────────────────
+  //
+  // The Charge and Loft cards live in the bottom-right corner, and during play
+  // nobody looks there — their eyes are on the ball. So the moment the ball is
+  // trapped we draw the two mouse buttons right beside it, where the player is
+  // already looking. The latch makes this work: the ball now sits still in your
+  // grip until you act, which is a calm moment a prompt can actually be read in.
+  //
+  // Anchored with _project(), the same game→screen mapping the catch indicator
+  // uses, and it occupies the slot the old Q/E pass chips used to.
+  _drawClickPrompt(){
     const ctx = this._trailCtx;
     const h = GAME.heldBy;
-    if(!ctx || !h || GAME.passAnim) return;
-    const canUp   = h.figIdx > 0;
-    const canDown = h.figIdx < h.rod.nFigs - 1;
-    if(!canUp && !canDown) return;
+    // Only for the local player's own held ball — never narrate the bot's.
+    const mine = h && (GAME.testMode ? h.team === 'p1' : h.team === GAME.myRole);
+
+    // Ease in while held, out once released, so it never pops or lingers.
+    const want = mine ? 1 : 0;
+    this._clickPromptA = (this._clickPromptA || 0) + (want - (this._clickPromptA || 0)) * 0.22;
+    if(this._clickPromptA < 0.02 || !ctx) return;
 
     const sp = this._project(GAME.ball.x, GAME.ball.y);
-    const pulse = 0.6 + 0.4 * Math.sin(Date.now() / 260);
-    const hasCharges = (h.team==='p1' ? GAME.passChargesP1 : GAME.passChargesP2) > 0;
+    const t  = Date.now();
+    const a  = this._clickPromptA;
 
-    const drawChip = (label, y, active) => {
-      if(!active) return; // hide the direction entirely when no teammate that way
+    // The two buttons demonstrate themselves in turn, and crucially they move
+    // DIFFERENTLY: the left one sinks and STAYS down while a charge bar fills,
+    // the right one is a quick tap. That contrast is what teaches "hold LMB for
+    // more power" without needing a sentence to explain it.
+    const cycle = (t % 2400) / 2400;
+    let leftPress = 0;
+    if(cycle >= 0.05 && cycle < 0.52){
+      const p = (cycle - 0.05) / 0.47;
+      leftPress = Math.min(1, p / 0.10);          // pushes down fast, then HOLDS
+    }
+    const rightPress = (cycle >= 0.64 && cycle < 0.76)
+      ? Math.sin((cycle - 0.64) / 0.12 * Math.PI) // a single quick tap
+      : 0;
+
+    // Sit above the ball, flipping below if it would run off the top edge, and
+    // clamped horizontally so it is never clipped at the pitch edges.
+    const W = 196, H = 68, GAP = 34;
+    let bx = sp.x - W / 2;
+    let by = sp.y - GAP - H;
+    if(by < 6) by = sp.y + GAP;
+    bx = Math.max(4, Math.min((ctx.canvas.width || 900) - W - 4, bx));
+    // Tell the possession countdown which side we took, so it can sit opposite.
+    // _drawPossBar runs earlier in the frame, so it reads last frame's value —
+    // one frame of lag on an edge case nobody will ever perceive.
+    this._promptBelow = by > sp.y;
+
+    ctx.save();
+    ctx.globalAlpha = a;
+
+    // ── Panel ──
+    ctx.fillStyle = 'rgba(6,12,30,0.88)';
+    ctx.strokeStyle = 'rgba(255,255,255,0.62)';
+    ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.roundRect(bx, by, W, H, 11); ctx.fill(); ctx.stroke();
+
+    // ── The mouse itself ──
+    // Drawn big enough to actually read as a mouse: cable, a scroll wheel, and a
+    // clear split between the two buttons. The previous version was a 20px blob
+    // that nobody could identify as a mouse at all.
+    const mw = 34, mh = 48;
+    const mx = bx + 13, my = by + (H - mh) / 2;
+    const splitY = my + mh * 0.44;          // where the buttons end and the body begins
+
+    // Cable — a small detail, but it is what makes the silhouette unmistakable.
+    ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+    ctx.lineWidth = 1.6;
+    ctx.beginPath();
+    ctx.moveTo(mx + mw / 2, my);
+    ctx.quadraticCurveTo(mx + mw / 2 - 7, my - 9, mx + mw / 2 + 2, my - 14);
+    ctx.stroke();
+
+    // Body
+    ctx.fillStyle = 'rgba(238,243,255,0.16)';
+    ctx.beginPath(); ctx.roundRect(mx, my, mw, mh, [17, 17, 11, 11]); ctx.fill();
+
+    // Highlight whichever button is currently pressing
+    const button = (side, press, colA, colB) => {
       ctx.save();
-      // Out of pass charges — dim and greyed out so players don't press for nothing
-      ctx.globalAlpha = hasCharges ? (0.55 + pulse * 0.35) : 0.35;
-      ctx.strokeStyle = hasCharges ? '#8fe0ff' : 'rgba(255,255,255,0.3)';
-      ctx.fillStyle = 'rgba(0,0,0,0.5)';
-      ctx.beginPath(); ctx.roundRect(sp.x - 18, y - 9, 36, 18, 9); ctx.fill();
-      ctx.lineWidth = 1.3;
-      ctx.stroke();
-      ctx.font = 'bold 10px sans-serif';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillStyle = hasCharges ? '#bff0ff' : 'rgba(255,255,255,0.4)';
-      ctx.fillText(label, sp.x, y + 1);
+      ctx.beginPath(); ctx.roundRect(mx, my, mw, mh, [17, 17, 11, 11]); ctx.clip();
+      const g = ctx.createLinearGradient(0, my, 0, splitY);
+      g.addColorStop(0, colA); g.addColorStop(1, colB);
+      ctx.fillStyle = g;
+      ctx.globalAlpha = a * (0.30 + press * 0.70);      // idle tint, full on press
+      const dy = press * 2.5;                            // and it sinks as it presses
+      ctx.fillRect(side === 'left' ? mx : mx + mw / 2, my + dy, mw / 2, splitY - my - dy);
       ctx.restore();
     };
+    button('left',  leftPress,  '#ffe53b', '#ffb800');
+    button('right', rightPress, '#c084fc', '#7c3aed');
 
-    drawChip('▲ Q', sp.y - 54, canUp);
-    drawChip('▼ E', sp.y + 26, canDown);
+    // Outline, button split, and the line where the buttons meet the body
+    ctx.strokeStyle = 'rgba(255,255,255,0.85)';
+    ctx.lineWidth = 1.8;
+    ctx.beginPath(); ctx.roundRect(mx, my, mw, mh, [17, 17, 11, 11]); ctx.stroke();
+    ctx.lineWidth = 1.4;
+    ctx.beginPath(); ctx.moveTo(mx, splitY); ctx.lineTo(mx + mw, splitY); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(mx + mw / 2, my + 1); ctx.lineTo(mx + mw / 2, splitY); ctx.stroke();
+
+    // Scroll wheel
+    ctx.fillStyle = 'rgba(255,255,255,0.9)';
+    ctx.beginPath(); ctx.roundRect(mx + mw / 2 - 2.4, my + 8, 4.8, 10, 2.4); ctx.fill();
+
+    // ── Labels ──
+    const tx = mx + mw + 13;
+    const row = (y, tag, tagCol, label, press) => {
+      ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+      ctx.font = 'bold 13px sans-serif';
+      ctx.fillStyle = `rgba(255,255,255,${0.75 + press * 0.25})`;
+      ctx.fillText(tag, tx, y);
+      const w = ctx.measureText(tag).width;
+      ctx.font = 'bold 10px sans-serif';
+      ctx.fillStyle = tagCol.replace('ALPHA', (0.72 + press * 0.28).toFixed(2));
+      ctx.fillText(label, tx + w + 7, y + 0.5);
+      return tx + w + 7;
+    };
+
+    // The left button staying visibly depressed IS the "hold" cue — no bar needed.
+    row(by + H * 0.34, 'LMB', 'rgba(255,229,59,ALPHA)',  'HOLD FOR POWER', leftPress);
+    row(by + H * 0.68, 'RMB', 'rgba(192,132,252,ALPHA)', 'LOFT',           rightPress);
+
+    ctx.restore();
   },
 
   // ── Hold-ability card (DOM, bottom-right, shares style with Pass card) ──
@@ -4029,7 +4623,7 @@ const RENDERER = {
   _updateAbilityUsable(){
     const h = GAME.heldBy;
     const mine = !!h && (GAME.testMode ? h.team==='p1' : h.team===GAME.myRole);
-    const ids = ['charge-ability-card','loft-ability-card','pass-ability-card'];
+    const ids = ['charge-ability-card','loft-ability-card'];
     for(const id of ids){ const c=document.getElementById(id); if(!c) continue; c.classList.toggle('dim', !mine); c.classList.toggle('lit', mine); }
   },
 
@@ -4110,14 +4704,13 @@ const RENDERER = {
       this._drawCatchIndicator();
       this._drawPossBar();
       this._drawChargeBar();
-      this._drawPassDirIndicator();
+      this._drawClickPrompt();
       this._drawTutorialPath();
     } else if(GAME.ballHidden){
       this.clearTrail();
       this._trailAlpha = 0;
     }
     if(GAME.running) this._updateHoldAbilityUI();
-    this._updatePassChargesUI();
     this._updateAbilityUsable();
 
     // Ball shadow follows ball X/Z position — shrinks & fades while airborne
@@ -4268,12 +4861,35 @@ const RENDERER = {
 // ═══════════════════════════════════════════════════════════════
 const KEYS={};
 // P1 test controls (WASD)
+// ── Keyboard layout independence ──
+// e.key gives the LETTER produced, which differs by layout: the physical key in
+// QWERTY's W position types 'z' on AZERTY and 'w' on QWERTZ/QWERTY. e.code gives
+// the PHYSICAL position instead, so binding to KeyW/KeyS means the same two keys
+// under the player's fingers work on every layout without them remapping
+// anything. We normalise to the canonical 'w'/'s' the rest of the game reads,
+// and fall back to e.key on anything that doesn't report a code.
+function _physKey(e){
+  switch(e.code){
+    case 'KeyW': case 'ArrowUp':   return 'w';
+    case 'KeyS': case 'ArrowDown': return 's';
+    case 'Space':                  return ' ';
+  }
+  const k = (e.key || '').toLowerCase();
+  if(k === 'w' || k === 'z' || k === 'arrowup')   return 'w';   // 'z' = AZERTY's W position
+  if(k === 's' || k === 'arrowdown')              return 's';
+  if(k === ' ')                                   return ' ';
+  return null;
+}
 const KEY_P1={ get up(){return KEYS['w']||KEYS['W']}, get down(){return KEYS['s']||KEYS['S']}, get kick(){return KEYS[' ']}, get pass_prev(){return KEYS['q']||KEYS['Q']}, get pass_next(){return KEYS['e']||KEYS['E']} };
 // P2 test controls (Arrow keys)
 const KEY_P2={ get up(){return KEYS['ArrowUp']}, get down(){return KEYS['ArrowDown']}, get kick(){return KEYS['Enter']}, get pass_prev(){return KEYS['ArrowLeft']}, get pass_next(){return KEYS['ArrowRight']} };
 
 window.addEventListener('keydown',e=>{
   KEYS[e.key]=true;
+  // Canonical layout-independent alias, so KEY_P1 (which reads KEYS['w']/['s'])
+  // responds to the physical key position rather than the letter printed on it.
+  const _pk = _physKey(e);
+  if(_pk) KEYS[_pk] = true;
   if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].includes(e.key)) e.preventDefault();
   // Esc closes the How to Play overlay first if it's open.
   if(e.key==='Escape'){
@@ -4294,8 +4910,8 @@ window.addEventListener('keydown',e=>{
     const _tut = window.TUTORIAL && TUTORIAL.active ? TUTORIAL : null;
     const okMove = !_tut || _tut.allowMove();
     const okKick = !_tut || _tut.allowKick();
-    if(okMove && (e.key==='w'||e.key==='W'||e.key==='ArrowUp'))   GAME.myInput.up=true;
-    if(okMove && (e.key==='s'||e.key==='S'||e.key==='ArrowDown')) GAME.myInput.down=true;
+    if(okMove && _pk==='w') GAME.myInput.up=true;
+    if(okMove && _pk==='s') GAME.myInput.down=true;
     if(okKick && (e.key===' '||e.key==='Enter'))                  GAME.myInput.kick=true;
   }
   // Hold-input buffer: refresh whenever the kick key is pressed, so a slightly
@@ -4304,39 +4920,36 @@ window.addEventListener('keydown',e=>{
     if(e.key===' '){
       const _t = window.TUTORIAL && TUTORIAL.active ? TUTORIAL : null;
       if(!_t || _t.allowKick()){
-        GAME._holdBufferP1 = GAME.HOLD_BUFFER_FRAMES;
-        GAME._tutSpaceT = performance.now();   // tutorial: proves the KICK was the player's
+        // Space ONLY ever arms a grab — pressing it while already holding the
+        // ball deliberately does nothing. It used to drop the ball, but players
+        // spam Space to make sure a catch lands, and that extra press then threw
+        // the ball straight back out again. The ball now leaves your grip only
+        // by a shot (left/right click) or the hold timer.
+        // The ~1s arming window means an anticipated press still catches a ball
+        // that has not arrived yet.
+        if(!GAME.heldBy) GAME._holdBufferP1 = GAME.GRAB_ARM_FRAMES;
+        GAME._tutSpaceT = performance.now();   // tutorial: proves the press was the player's
       }
     }
     // Tutorial rod drill: record the actual keys pressed. Reading position deltas
     // could be fooled by spamming one direction into the rod's travel limit.
     if(window.TUTORIAL && TUTORIAL.active){
       const k=e.key;
-      if(k==='w'||k==='W'||k==='ArrowUp')   TUTORIAL._kW = true;
-      if(k==='s'||k==='S'||k==='ArrowDown') TUTORIAL._kS = true;
+      if(_pk==='w') TUTORIAL._kW = true;
+      if(_pk==='s') TUTORIAL._kS = true;
     }
     if(e.key==='Enter')  GAME._holdBufferP2 = GAME.HOLD_BUFFER_FRAMES;
   }
-  // Pass trigger: edge-triggered, only fires once per keydown while holding ball
-  if(GAME.running && GAME.heldBy && !GAME.passAnim){
-    const h = GAME.heldBy;
-    const isMyTeam = GAME.testMode || h.team===GAME.myRole;
-    if(isMyTeam){
-      let dir = null;
-      if(e.key==='q'||e.key==='Q'||e.key==='ArrowLeft')  dir='prev';
-      if(e.key==='e'||e.key==='E'||e.key==='ArrowRight') dir='next';
-      if(dir && _tutAllows('pass')){ GAME._passRequest = dir; GAME._tutPass = (GAME._tutPass||0)+1; }
-    }
-  } else if(GAME.running && !GAME.heldBy &&
-            (e.key==='q'||e.key==='Q'||e.key==='e'||e.key==='E'||e.key==='ArrowLeft'||e.key==='ArrowRight')){
-    _hintNeedBall();   // reached for Pass with no ball
-  }
+  // Passing between rods (Q / E) has been removed from the game. The ball now
+  // only leaves your grip via a shot or the hold timer.
 });
 window.addEventListener('keyup',e=>{
   KEYS[e.key]=false;
+  const _pk = _physKey(e);
+  if(_pk) KEYS[_pk] = false;
   if(GAME.running && !GAME.testMode){
-    if(e.key==='w'||e.key==='W'||e.key==='ArrowUp')   GAME.myInput.up=false;
-    if(e.key==='s'||e.key==='S'||e.key==='ArrowDown') GAME.myInput.down=false;
+    if(_pk==='w') GAME.myInput.up=false;
+    if(_pk==='s') GAME.myInput.down=false;
     if(e.key===' '||e.key==='Enter') GAME.myInput.kick=false;
   }
 });
@@ -4375,7 +4988,16 @@ function _hintNeedBall(){
 CV_EL.addEventListener('contextmenu', e => e.preventDefault());
 CV_EL.addEventListener('mousedown', e => {
   if(!_canShoot()){
-    if(e.button === 0 || e.button === 2) _hintNeedBall();   // reached for Charge / Loft with no ball
+    // Left-click is now "strike" in both situations. With no ball trapped it is
+    // a deliberate powered kick on a loose ball — buffered, because a click
+    // almost never lands on the exact frame the ball touches a figure.
+    if(e.button === 0 && GAME.running && !GAME.paused && !GAME.heldBy
+       && !GAME.countdownActive && !GAME.goalSeq){
+      if(_tutAllows('charge')) GAME._kickBufferP1 = GAME.KICK_BUFFER_FRAMES;
+      return;
+    }
+    // Right-click still genuinely requires the ball, so it keeps the hint.
+    if(e.button === 2) _hintNeedBall();
     return;
   }
   if(e.button === 0){          // Left click: start charging a ground shot
@@ -4409,8 +5031,13 @@ const STATE = {
   myRole: 'p1',
   p1Team: TEAMS[0],   // Brazil
   p2Team: TEAMS[3],   // Germany
-  p1Kit: 'home',      // 'home' | 'away' — set by selectKits()
+  p1Kit: 'home',      // 'home' | 'away' — resolved by selectKits()
   p2Kit: 'home',
+  // null = let selectKits choose for contrast; 'home'/'away' = player insisted.
+  p1KitChoice: null,
+  p2KitChoice: null,
+  _kitContrast: 0,
+  _tourneyPick: false,   // team select is entering a tournament run, not a quick match
   myTeamConfirmed: false,
 };
 
@@ -4488,12 +5115,72 @@ const APP = {
     const t=STATE[`${side}Team`];
     document.getElementById(`${side}-pf`).innerHTML=`<img src="${t.flag}" alt="${t.name}" style="width:38px;height:26px;object-fit:cover;border-radius:3px;vertical-align:middle">`;
     document.getElementById(`${side}-pn`).textContent=t.name;
+    this._refreshKitUI();
+  },
+
+  // ── Jersey picker ──────────────────────────────────────────────────────
+  // Clicking a strip pins it. selectKits() then treats that as fixed and only
+  // optimises contrast on whatever is still free, so the player's choice is
+  // never silently overridden — but we still avoid a colour clash where we can.
+  pickKit(side, kit){
+    STATE[`${side}KitChoice`] = kit;
+    if(STATE.p1Team && STATE.p2Team) selectKits(STATE.p1Team, STATE.p2Team);
+    this._refreshKitUI();
+  },
+
+  _refreshKitUI(){
+    const t1 = STATE.p1Team, t2 = STATE.p2Team;
+    // Entering a tournament there is no opponent yet — the draw happens after
+    // you confirm. Show your own strips only, honouring whatever you picked,
+    // rather than computing contrast against a stale team from a previous match.
+    if(STATE._tourneyPick){
+      if(!t1) return;
+      const worn = STATE.p1KitChoice || 'home';
+      STATE.p1Kit = worn;
+      const box = document.getElementById('kit-p1');
+      if(box) for(const btn of box.querySelectorAll('.kit-btn')){
+        const kit = btn.dataset.kit;
+        btn.classList.toggle('on', kit === worn);
+        const shirt = btn.querySelector('.ks-shirt'), shorts = btn.querySelector('.ks-shorts');
+        if(shirt)  shirt.style.background  = t1[kit]       || '#888';
+        if(shorts) shorts.style.background = t1[kit+'S']   || '#666';
+      }
+      const w = document.getElementById('kit-clash'); if(w) w.classList.remove('show');
+      return;
+    }
+    if(!t1 || !t2) return;
+    // Resolve the current pairing so the highlighted button always reflects what
+    // will actually be worn, including any auto-choice made for the free side.
+    selectKits(t1, t2);
+    for(const side of ['p1','p2']){
+      const team = STATE[`${side}Team`];
+      const worn = STATE[`${side}Kit`];
+      const box  = document.getElementById(`kit-${side}`);
+      if(!box || !team) continue;
+      for(const btn of box.querySelectorAll('.kit-btn')){
+        const kit = btn.dataset.kit;
+        btn.classList.toggle('on', kit === worn);
+        const shirt = btn.querySelector('.ks-shirt'), shorts = btn.querySelector('.ks-shorts');
+        if(shirt)  shirt.style.background  = team[kit]        || '#888';
+        if(shorts) shorts.style.background = team[kit + 'S']  || '#666';
+      }
+    }
+    // Contrast below ~1.6 means the two strips read as the same colour on the
+    // pitch. We no longer force a change, so say so instead.
+    const warn = document.getElementById('kit-clash');
+    if(warn) warn.classList.toggle('show', (STATE._kitContrast || 9) < 1.6);
   },
 
   // Two-phase bot flow: phase 1 picks your own team, phase 2 picks the AI's team.
   // screen-teams is only ever reached via startBotPick(), so those are the only
   // two cases this needs to handle.
   confirmTeam(){
+    // Tournament entry: a single pick, then the draw decides your opponents.
+    if(STATE._tourneyPick){
+      if(!STATE.p1Team){ this.toast('Pick a country first!'); return; }
+      TOURNEY.beginRun(STATE.p1Team);
+      return;
+    }
     if(STATE._botPickPhase===1){
       if(!STATE.p1Team){ this.toast('Pick a country first!'); return; }
       this._advanceBotPick();
@@ -4605,6 +5292,60 @@ const APP = {
     this.enterBotMode();
   },
 
+  // ── Tournament result ──
+  // Reuses the full-time screen so the whistle/sequence stays consistent, then
+  // rewrites its buttons for the run. A defeat leads with ONE prominent restart,
+  // because the moment right after losing is when people replay.
+  _showTourneyResult(won, finishedRun, round, myScore, oppScore){
+    const me = TOURNEY.myTeam, opp = STATE.p2Team;
+    const fi = t => `<img src="${t.flag}" alt="" style="width:28px;height:19px;object-fit:cover;border-radius:2px;vertical-align:middle;margin-right:5px">`;
+    let head, sub;
+    if(finishedRun){
+      head = `🏆 ${fi(me)}${me.name} are World Champions!`;
+      sub  = 'You won the whole thing.';
+    } else if(won){
+      head = `${fi(me)}Through to the ${TOURNEY.ROUNDS[TOURNEY.round].name}!`;
+      sub  = `Beat ${opp.name} in the ${round.name}.`;
+    } else {
+      head = `Knocked out in the ${round.name}`;
+      sub  = `${fi(opp)}${opp.name} go through.`;
+    }
+    document.getElementById('end-winner').innerHTML = head;
+    document.getElementById('end-score').textContent = `${myScore} — ${oppScore}`;
+    const title = document.querySelector('#screen-end .end-title');
+    if(title) title.textContent = finishedRun ? 'CHAMPIONS' : (won ? 'THROUGH' : 'FULL TIME');
+    const btns = document.querySelector('#screen-end .end-btns');
+    if(btns){
+      // Leaving here still abandons a live run, so this one says Quit (and will
+      // confirm). After a defeat the run is already gone, so it just says Menu.
+      btns.innerHTML = won && !finishedRun
+        ? `<button class="btn-lobby btn-create" style="width:auto;padding:14px 34px" onclick="TOURNEY.showBracket()">▶ Next Round</button>
+           <button class="btn-back-lnk" onclick="TOURNEY.quit()">✖ Quit</button>`
+        : `<button class="btn-lobby btn-create" style="width:auto;padding:14px 34px" onclick="TOURNEY.reset();TOURNEY.start()">🔄 Try Again</button>
+           <button class="btn-back-lnk" onclick="TOURNEY.quit()">Menu</button>`
+        ;
+      if(finishedRun){
+        btns.innerHTML = `<button class="btn-lobby btn-create" style="width:auto;padding:14px 34px" onclick="TOURNEY.reset();TOURNEY.start()">🔄 New Run</button>
+           <button class="btn-back-lnk" onclick="TOURNEY.quit()">Menu</button>`;
+      }
+    }
+    const best = TOURNEY.bestFinishLabel();
+    document.getElementById('matchend-overlay').classList.add('show');
+    AUDIO.fullTimeWhistle(() => {
+      document.getElementById('matchend-overlay').classList.remove('show');
+      this.showScreen('screen-end');
+      if(best) this.toast('Best finish: ' + best, 2600);
+    });
+  },
+
+  // Shows the best tournament finish under the menu buttons, once there is one.
+  _refreshMenuBest(){
+    const el = document.getElementById('menu-best');
+    if(!el) return;
+    const best = window.TOURNEY ? TOURNEY.bestFinishLabel() : null;
+    el.textContent = best ? `Best finish — ${best}` : '';
+  },
+
   // Quit an in-progress match (from the pause menu) back to the main menu.
   quitToMenu(){
     GAME.paused = false;
@@ -4629,6 +5370,15 @@ const APP = {
   // Route to team select for bot mode — two phases: pick your team, then pick the AI's team
   startBotPick(){
     GAME.practice = false;          // a normal match always has a live clock + opponent
+    // A Quick Match must never inherit a tournament run's state or difficulty.
+    if(window.TOURNEY) TOURNEY.active = false;
+    GAME.botCfg = BOT_LEVELS.medium;
+    STATE._tourneyPick = false;
+    // Quick Match restores the full two-player picker.
+    const k2 = document.getElementById('kit-p2'); if(k2) k2.style.display='';
+    document.getElementById('screen-teams').classList.remove('solo');
+    const lbl = document.getElementById('ts-label-p1');
+    if(lbl) lbl.textContent = '🟡 Player 1';
     STATE.myRole = 'p1';
     STATE._botPick = true;
     STATE._botPickPhase = 1;
@@ -4680,6 +5430,9 @@ const APP = {
     this.showScreen('screen-menu');
     CG.loadingStop();
     this._prewarmFlags();
+    TOURNEY.load();              // restore a mid-flight run and the best finish
+    this._refreshMenuBest();
+    _detectKeyLabels();          // show W/S or Z/S to match the player's keyboard
     this._offerTutorial();
   },
 
@@ -4816,8 +5569,8 @@ const TUTORIAL = {
       stage(){ TUTORIAL._parkBall(); } },
 
     { id:'move', title:'Move your rods', need:3, only:'none', move:true, kick:false,
-      keys:'<span class="keycap">W</span><span class="keycap">S</span>',
-      text:'Press <b>W</b> to go up and <b>S</b> to go down. Do <b>both</b> — 3 times.',
+      keys:'<span class="keycap js-key-up">W</span><span class="keycap js-key-down">S</span>',
+      text:'Press <b class="js-key-up">W</b> to go up and <b class="js-key-down">S</b> to go down. Do <b>both</b> — 3 times.',
       // Ball is parked off the pitch — nothing to chase, nothing to distract.
       stage(){ TUTORIAL._parkBall(); },
       // A rep needs BOTH keys. Driven by real key presses (set in the keydown
@@ -4829,32 +5582,14 @@ const TUTORIAL = {
       },
       setup(){ TUTORIAL._kW=false; TUTORIAL._kS=false; } },
 
-    { id:'shoot', title:'Kick it', need:2, only:'none', move:false, kick:true,
-      keys:'<span class="keycap wide">Space</span>',
-      text:'The ball is rolling to your players. <b>Tap Space</b> to kick it away. Do it <b>twice</b>.',
-      // Rolled at the player over and over until they connect.
-      stage(){ TUTORIAL._serveToPlayer(1.15); },
-      setup(){ TUTORIAL._h0=RENDERER._tutHits||0; },
-      // Only YOUR tap counts: a figure drifting into the ball fires the same hit
-      // effect, so the kick must coincide with a recent Space press.
-      tick(){
-        const h=RENDERER._tutHits||0;
-        if(h>TUTORIAL._h0){
-          TUTORIAL._h0=h;
-          // The ball still has to travel from its parked spot to the figure after
-          // the tap, so the window must cover that flight — 420ms was too tight
-          // and a slightly late tap was discarded, resetting the drill.
-          const now = performance.now();
-          const tapped = (GAME._tutSpaceT && now-GAME._tutSpaceT < 1500)
-                      || (TUTORIAL._releasedAt && now-TUTORIAL._releasedAt < 1500);
-          if(tapped){ GAME._tutSpaceT=0; TUTORIAL._releasedAt=0; return 1; }
-        }
-        return 0;
-      } },
+    // The "tap Space to kick" drill was removed with the mechanic itself —
+    // Space now only traps. Kicking a loose ball moved to left-click, and the
+    // charge drill below already teaches shooting, so there is nothing left for
+    // a separate kick lesson to cover.
 
     { id:'hold', title:'Trap the ball', need:1, only:'none', move:false, kick:true, glow:'hold-ability-card',
       keys:'<span class="keycap wide hold">Space</span>',
-      text:'Here it comes again — <b>hold Space</b> as it arrives to catch it. Keep trying, it\'ll keep coming.',
+      text:'Here it comes — <b>press Space</b> as it arrives to trap it. You don\'t need to hold the key. Keep trying, it\'ll keep coming.',
       stage(){ TUTORIAL._serveToPlayer(1.25); },
       tick(){ return TUTORIAL._holdingMine() ? 1 : 0; } },
 
@@ -4872,12 +5607,9 @@ const TUTORIAL = {
       setup(){ GAME._tutLoft=0; TUTORIAL._l0=0; },
       tick(){ const l=GAME._tutLoft||0; if(l>TUTORIAL._l0){ TUTORIAL._l0=l; return 1; } return 0; } },
 
-    { id:'pass', title:'Pass between rods', need:2, only:'pass', move:false, kick:false, glow:'pass-ability-card', hand:true,
-      keys:'<span class="keycap pass">Q</span><span class="keycap pass">E</span>',
-      text:'Still holding. Press <b>Q</b> or <b>E</b> to pass to the rod above or below. Make <b>2 passes</b>.',
-      stage(){ TUTORIAL._giveBall(); },
-      setup(){ GAME._tutPass=0; TUTORIAL._p0=0; },
-      tick(){ const p=GAME._tutPass||0; if(p>TUTORIAL._p0){ TUTORIAL._p0=p; return 1; } return 0; } },
+    // The pass drill was removed along with the Q/E pass mechanic. Leaving it in
+    // would have soft-locked the tutorial: the step waits for a pass counter
+    // that nothing can increment any more, so the player could never advance.
 
     { id:'score', title:'⚽ Now score!', need:1, only:'all',
       text:'Everything\'s unlocked. The ball is at the centre spot — put it in the <b>opponent\'s net</b> and enjoy the celebration!',
@@ -4972,7 +5704,7 @@ const TUTORIAL = {
   _fadeRods(){
     if(!GAME._rods) return;
     const s=this.steps[this.i];
-    const focusing = this.active && s && (s.id==='shoot' || s.id==='hold');
+    const focusing = this.active && s && s.id==='hold';
     const keeper = focusing ? this._keeperRod() : null;
     for(const {rod, figs} of GAME._rods){
       const dim = focusing && rod !== keeper;
@@ -5064,7 +5796,7 @@ const TUTORIAL = {
   // delivery always reaches him. Other drills keep the table completely normal.
   skipRod(rod){
     const s=this.steps[this.i];
-    if(!s || (s.id!=='shoot' && s.id!=='hold')) return false;
+    if(!s || s.id!=='hold') return false;
     // NOTHING is solid during these drills. The tutorial scripts the delivery and
     // performs the kick/catch itself, so physics contact is not just unnecessary —
     // it actively fought the scripted pin. Pressing Space while the ball was still
@@ -5209,6 +5941,9 @@ const TUTORIAL = {
     document.getElementById('tut-title').textContent = s.title;
     document.getElementById('tut-text').innerHTML = s.text;
     document.getElementById('tut-keys').innerHTML = s.keys||'';
+    // The step's markup was just injected, so re-stamp the layout-correct key
+    // letters onto it (AZERTY shows Z where QWERTY shows W).
+    if(window._applyKeyLabels) _applyKeyLabels();
     // The only button is "Let's go" on the intro. Action drills have no skip
     // button at all — the banner tells you what to do and you do it.
     // Text AND handler are re-applied every time: the completion card repurposes
@@ -5362,7 +6097,7 @@ const TUTORIAL = {
       if(this._ballIdle() && this._stageT>360) this.restage();
       return;
     }
-    if(s.id==='shoot' || s.id==='hold'){
+    if(s.id==='hold'){
       if(this._holdingMine()){ this._focus(false); this._deliver=null; return; }
       const b=GAME.ball, rod=this._keeperRod(), rx=P.x + rod.xFrac*P.w;
       // ── Scripted delivery: walk the ball along the launch→keeper line at a
@@ -5392,23 +6127,11 @@ const TUTORIAL = {
             GAME._tutSpaceT = 0;
             this._deliver = null;
             this._focus(false);
-            if(s.id === 'hold'){
-              // Trap: put the ball straight into the keeper's grip.
+            // Trap: put the ball straight into the keeper's grip. This used to
+            // branch for a 'shoot' drill too, but Space no longer kicks — it
+            // only traps — so the delivery has one outcome now.
+            {
               this._giveBallTo(rod);
-            } else {
-              // Kick: fire it upfield with the SAME power as a real powered
-              // contact (8.2). Nudge it just clear of the figure on the attacking
-              // side first — dropping it exactly ON the figure made the collision
-              // system resolve the overlap and bleed off the speed, which is why
-              // the first kick came out weak while later ones felt right.
-              b.x = D.x1 + (CFG.BALL_R + CFG.FIG_W/2 + 6);
-              b.y = D.y1;
-              b.vx = 8.2; b.vy = (Math.random()-0.5)*1.6;
-              GAME.lastTouchTeam = 'p1';
-              GAME.holdCooldownP1 = Math.max(GAME.holdCooldownP1||0, 0.8);  // don't re-catch it
-              GAME.p1KickAngle = 0.65;
-              if(RENDERER.triggerHitEffect) RENDERER.triggerHitEffect(b, 0.8);
-              if(AUDIO.kick) AUDIO.kick();
             }
             this._releasedAt = performance.now();
           }
@@ -5452,7 +6175,280 @@ document.addEventListener('DOMContentLoaded', ()=>{
 });
 
 // ── How to Play overlay (reachable from Main Menu + Pause) ──
-function showHowTo(){ var o=document.getElementById('howto-overlay'); if(o) o.classList.add('show'); }
+// ═══════════════════════════════════════════════════════════════
+//  TOURNAMENT — an 8-team knockout run: Quarter-Final → Semi → Final
+// ═══════════════════════════════════════════════════════════════
+//  Why this exists: a one-off match gives a player no reason to start a second
+//  one, which the analytics bore out (D7 retention 0%, returning users 0.81%).
+//  A run you are three matches into is a completely different proposition —
+//  losing in the Semi makes people immediately go again, which an exhibition
+//  defeat never does.
+//
+//  Progress is saved, so closing the tab mid-run does not throw it away, and the
+//  best finish persists as something to beat.
+const TOURNEY = {
+  active: false,
+  round: 0,           // index into ROUNDS
+  myTeam: null,
+  opponents: [],      // one per round, drawn at the start of the run
+  results: [],        // 'W' / 'L' / null per round
+  bestFinish: null,   // furthest round ever reached, by id
+
+  // The difficulty ramp. Calibrated levels live in BOT_LEVELS; note that the
+  // simulator showed opponent tuning is a WEAK lever compared with whether the
+  // player uses trap + power shot, so this ramp is texture rather than a wall.
+  ROUNDS: [
+    { id:'qf',    name:'Quarter-Final', level:'rookie' },
+    { id:'sf',    name:'Semi-Final',    level:'medium' },
+    { id:'final', name:'Final',         level:'hard'   },
+  ],
+
+  // ── persistence ───────────────────────────────────────────────────────
+  _KEY: 'wcbf_tourney',
+  save(){
+    try{
+      localStorage.setItem(this._KEY, JSON.stringify({
+        active:this.active, round:this.round,
+        myTeam:this.myTeam && this.myTeam.id,
+        opponents:this.opponents.map(t=>t && t.id),
+        results:this.results, bestFinish:this.bestFinish,
+      }));
+    }catch(e){}
+  },
+  load(){
+    try{
+      const d = JSON.parse(localStorage.getItem(this._KEY) || 'null');
+      if(!d) return;
+      this.bestFinish = d.bestFinish || null;
+      const byId = id => TEAMS.find(t=>t.id===id) || null;
+      // Only restore a run that is genuinely mid-flight and still coherent.
+      if(d.active && d.myTeam && Array.isArray(d.opponents)){
+        const me = byId(d.myTeam), opps = d.opponents.map(byId);
+        if(me && opps.every(Boolean) && d.round < this.ROUNDS.length){
+          this.active=true; this.round=d.round; this.myTeam=me;
+          this.opponents=opps; this.results=d.results||[];
+        }
+      }
+    }catch(e){}
+  },
+
+  bestFinishLabel(){
+    if(this.bestFinish === 'won') return 'Champion 🏆';
+    const r = this.ROUNDS.find(r=>r.id===this.bestFinish);
+    return r ? r.name : null;
+  },
+
+  // ── run lifecycle ─────────────────────────────────────────────────────
+  // Entry from the main menu. Sends the player to team select in single-pick
+  // mode: you choose your nation, the draw picks your opponents.
+  start(){
+    if(this.active && this.myTeam){ this.showBracket(); return; }   // resume
+    GAME.practice = false;
+    STATE.myRole = 'p1';
+    STATE._botPick = false;
+    STATE._tourneyPick = true;
+    APP._voteState = { myLocked:false, oppLocked:true, conflict:false };
+    const btn = document.getElementById('btn-ready');
+    btn.dataset.sent=''; btn.textContent='▶ ENTER'; btn.style.opacity=''; btn.style.cursor='';
+    document.getElementById('team-sub').innerHTML = `Choose the nation you will take to the <b style="color:#ffd700">🏆 World Cup</b>`;
+    APP._buildTeamGrids('p1');
+    document.getElementById('p2-pf').textContent='🏆';
+    document.getElementById('p2-pn').textContent='The draw…';
+    // In a tournament you dress your own nation only — your opponents are drawn,
+    // and their strips are chosen automatically to contrast with yours.
+    const k2 = document.getElementById('kit-p2'); if(k2) k2.style.display='none';
+    const k1 = document.getElementById('kit-p1'); if(k1) k1.style.display='';
+    APP._setVoteStatus('p1','waiting','Choose your team…');
+    document.getElementById('vote-timer').textContent='';
+    // Collapse the two-player picker to a single centred one — there is no
+    // opponent to choose here, the draw handles that.
+    document.getElementById('screen-teams').classList.add('solo');
+    const lbl = document.getElementById('ts-label-p1');
+    if(lbl) lbl.textContent = '🏆 Your Team';
+    APP.showScreen('screen-teams');
+  },
+
+  // Called once the player has confirmed their nation.
+  beginRun(team){
+    this.active = true;
+    this.round = 0;
+    this.myTeam = team;
+    this.results = [];
+    // Draw three distinct opponents, none of them the player's own nation.
+    const pool = TEAMS.filter(t => t.id !== team.id);
+    this.opponents = [];
+    for(let i=0;i<this.ROUNDS.length;i++){
+      const pick = pool.splice(Math.floor(Math.random()*pool.length), 1)[0];
+      this.opponents.push(pick);
+    }
+    STATE._tourneyPick = false;
+    this.save();
+    this.showBracket();
+  },
+
+  showBracket(){
+    const me = this.myTeam;
+    document.getElementById('tny-you').innerHTML =
+      `<img src="${me.flag}" alt=""><span>${me.name}</span>`;
+    const done = this.round >= this.ROUNDS.length;
+    document.getElementById('tny-title').textContent = done ? 'Champions!' : 'World Cup';
+    document.getElementById('tny-sub').textContent = done
+      ? 'You lifted the trophy. Play again for a new draw.'
+      : `${this.ROUNDS.length - this.round} match${this.ROUNDS.length-this.round===1?'':'es'} to lift the trophy`;
+
+    document.getElementById('tny-path').innerHTML = this.ROUNDS.map((r,i)=>{
+      const opp = this.opponents[i];
+      const res = this.results[i];
+      const cls = res ? 'done' : (i === this.round ? 'now' : 'locked');
+      const badge = res ? `<span class="tny-res ${res.w?'w':'l'}">${res.w?'WON':'LOST'} ${res.score}</span>` : '';
+      return `<div class="tny-round ${cls}">
+        <span class="tny-rname">${r.name}</span>
+        <span class="tny-vs">vs</span>
+        <span class="tny-opp"><img src="${opp.flag}" alt=""><span>${opp.name}</span></span>
+        ${badge}</div>`;
+    }).join('');
+
+    const go = document.getElementById('tny-go');
+    go.textContent = done ? '🔄 New Run' : `▶ Play ${this.ROUNDS[this.round].name}`;
+    go.onclick = done ? ()=>{ this.reset(); this.start(); } : ()=>this.playRound();
+    APP.showScreen('screen-tourney');
+  },
+
+  playRound(){
+    if(!this.active || this.round >= this.ROUNDS.length) return;
+    const r = this.ROUNDS[this.round];
+    STATE.p1Team = this.myTeam;
+    STATE.p2Team = this.opponents[this.round];
+    // The player's own strip is theirs to choose and is kept across the run.
+    // The opponent's is picked automatically for contrast against it, so no tie
+    // is ever unreadable — see selectKits().
+    STATE.p2KitChoice = null;
+    GAME.botCfg = BOT_LEVELS[r.level] || BOT_LEVELS.normal;
+    this.showMatchup(r, () => APP.enterBotMode());
+  },
+
+  // ── Matchup intro ──
+  // The moment the draw becomes real: your flag against theirs, the round on the
+  // line. Purely presentational, but it is what makes a knockout tie feel like an
+  // occasion rather than just another match starting.
+  showMatchup(round, done){
+    const ov = document.getElementById('vs-overlay');
+    if(!ov){ done(); return; }
+    const me = STATE.p1Team, opp = STATE.p2Team;
+    const side = t => `<div class="vs-flag"><img src="${t.flag}" alt=""></div><div class="vs-name">${t.name}</div>`;
+    document.getElementById('vs-round').textContent = round.name;
+    document.getElementById('vs-left').innerHTML  = side(me);
+    document.getElementById('vs-right').innerHTML = side(opp);
+
+    ov.classList.add('show');
+    // Restart the keyframes: drop the class, force a reflow, re-add. Without the
+    // reflow the browser coalesces both changes and the animation never replays
+    // on the second and third rounds.
+    ov.classList.remove('play');
+    void ov.offsetWidth;
+    ov.classList.add('play');
+
+    try{
+      AUDIO.tone && AUDIO.tone(300, 0.10, 0.16);                     // left side in
+      setTimeout(()=>AUDIO.tone && AUDIO.tone(380, 0.10, 0.16), 170); // right side in
+      setTimeout(()=>AUDIO.tone && AUDIO.tone(620, 0.22, 0.26), 620); // the slam
+    }catch(e){}
+
+    clearTimeout(this._vsT);
+    this._vsT = setTimeout(()=>{
+      ov.classList.remove('show','play');
+      done();
+    }, 2200);
+  },
+
+  // Called from _localGameEnd instead of the normal end screen.
+  onMatchEnd(myScore, oppScore){
+    const r = this.ROUNDS[this.round];
+    const won = myScore > oppScore;
+    this.results[this.round] = { w:won, score:`${myScore}-${oppScore}` };
+
+    if(won){
+      this.round++;
+      const finished = this.round >= this.ROUNDS.length;
+      if(finished) this._recordBest('won');
+      else this._recordBest(this.ROUNDS[this.round].id);
+      this.save();
+      APP._showTourneyResult(true, finished, r, myScore, oppScore);
+    } else {
+      this._recordBest(r.id);
+      this.active = false;
+      this.save();
+      APP._showTourneyResult(false, false, r, myScore, oppScore);
+    }
+  },
+
+  // "Best finish" is the FURTHEST round ever reached, so it only ever improves.
+  _recordBest(id){
+    const order = [...this.ROUNDS.map(r=>r.id), 'won'];
+    const now = order.indexOf(id), prev = order.indexOf(this.bestFinish);
+    if(now > prev) this.bestFinish = id;
+  },
+
+  reset(){
+    this.active=false; this.round=0; this.myTeam=null;
+    this.opponents=[]; this.results=[];
+    this.save();
+  },
+
+  // Leaving mid-run destroys it, so ask first. Once the run is over — knocked
+  // out, or the cup already lifted — there is nothing left to lose, so leaving
+  // is immediate rather than nagging the player about a run that has ended.
+  quit(){
+    if(this.active && this.round < this.ROUNDS.length){
+      document.getElementById('tny-quit-overlay').classList.add('show');
+      return;
+    }
+    this._leave();
+  },
+  confirmQuit(){
+    document.getElementById('tny-quit-overlay').classList.remove('show');
+    this.reset();               // wipes the saved run as well as the in-memory one
+    this._leave();
+  },
+  cancelQuit(){
+    document.getElementById('tny-quit-overlay').classList.remove('show');
+  },
+  _leave(){
+    APP.showScreen('screen-menu');
+    APP._refreshMenuBest();
+  },
+};
+window.TOURNEY = TOURNEY;
+
+// ── Show the keys the player's own keyboard actually prints ──
+// The bindings are physical (KeyW / KeyS), so an AZERTY player already presses
+// the right keys — but the UI would still say "W" while their keycap says "Z".
+// The Keyboard Map API reports what each physical key produces on the current
+// layout, so the labels can match the hardware in front of them. Where it is
+// unavailable (Firefox, Safari) we fall back to a language guess, then to W/S.
+let KEYLABEL = { up:'W', down:'S' };
+async function _detectKeyLabels(){
+  try{
+    if(navigator.keyboard && navigator.keyboard.getLayoutMap){
+      const map = await navigator.keyboard.getLayoutMap();
+      const u = map.get('KeyW'), d = map.get('KeyS');
+      if(u) KEYLABEL.up   = u.toUpperCase();
+      if(d) KEYLABEL.down = d.toUpperCase();
+    } else {
+      // Best-effort: fr/be keyboards are overwhelmingly AZERTY.
+      const lang = (navigator.language || '').toLowerCase();
+      if(/^fr|^be/.test(lang)) KEYLABEL.up = 'Z';
+    }
+  }catch(e){}
+  _applyKeyLabels();
+}
+function _applyKeyLabels(){
+  document.querySelectorAll('.js-key-up').forEach(el => el.textContent = KEYLABEL.up);
+  document.querySelectorAll('.js-key-down').forEach(el => el.textContent = KEYLABEL.down);
+}
+window._applyKeyLabels = _applyKeyLabels;
+
+function showHowTo(){ var o=document.getElementById('howto-overlay'); if(o) o.classList.add('show'); _applyKeyLabels(); }
 function hideHowTo(){ var o=document.getElementById('howto-overlay'); if(o) o.classList.remove('show'); }
 // Opened from the pause menu. Same panel, but it is now a pure controls
 // reference — the tutorial is launched from the main menu only.
@@ -5494,5 +6490,18 @@ APP.init();
   document.addEventListener('touchstart',onFirstInteraction, { once: true });
 })();
 </script>
+<!-- ── Touch layer ──
+     CrazyGames serves this game to phones as well as desktops, and until now a
+     mobile player loaded it and found that nothing responded: every control was
+     keyboard or mouse. These two files add on-screen controls.
+
+     They are safe on desktop: each self-disables unless it detects a coarse
+     pointer with touch support, so a mouse-and-keyboard player never sees them.
+     Force them on for testing with ?mobile=1&touch=1, or off with ?touch=0.
+
+     Must load AFTER the inline script above — they reach GAME, KEYS, CFG and
+     LIM through the shared global lexical scope. -->
+<script src="mobile/platform.js"></script>
+<script src="mobile/touch-controls.js"></script>
 </body>
 </html>
