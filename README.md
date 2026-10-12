@@ -38,4 +38,5 @@ Choose your moves wisely, outplay your opponent, and fight your way to the troph
 
 **47 nations. One champion. Is it going to be you?**
 
-![World Cup: Babyfoot Edition](<FootBall WC/cover/1920x1080.png>)
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/9e4a8be2-2a0b-44c5-b490-0bc6bf9e629c" />
+
