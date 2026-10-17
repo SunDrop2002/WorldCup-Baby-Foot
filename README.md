@@ -40,6 +40,8 @@ Choose your moves wisely, outplay your opponent, and fight your way to the troph
 
 <img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/9e4a8be2-2a0b-44c5-b490-0bc6bf9e629c" />
 
+<br><br>
 
-![World Cup Baby-Foot Gameplay](https://raw.githubusercontent.com/SunDrop2002/WorldCup-Baby-Foot/easy-version/FootBall%20WC/cover/trailer.gif)
-
+<p align="center">
+  <img src="https://raw.githubusercontent.com/SunDrop2002/WorldCup-Baby-Foot/easy-version/FootBall%20WC/cover/trailer.gif" width="700" alt="World Cup Baby-Foot Gameplay">
+</p>
